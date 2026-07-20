@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Anime Math Academy ⚡",
-  description: "Aprende las tablas de multiplicar coleccionando cartas de anime.",
+  title: "Academia Aventura 🏰",
+  description:
+    "La escuela hecha juego: matemáticas, inglés, lengua, ciencias, finanzas y programación. Crea tu héroe, gana recompensas y conviértete en leyenda.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

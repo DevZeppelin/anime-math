@@ -1,15 +1,44 @@
-# ⚡ Anime Math Academy
+# 🏰 Academia Aventura
 
-App para aprender las **tablas de multiplicar** con temática anime. Cada cuenta correcta da monedas 🪙 que se usan para **comprar cartas de personajes anime** y **subirlas de nivel**. El progreso se guarda automáticamente en el navegador (localStorage).
+La escuela hecha juego: una app educativa RPG donde los niños aprenden las
+habilidades esenciales del nuevo mundo mientras crean, personalizan y hacen
+crecer a su propio héroe.
 
-## ✨ Características
+## 📚 Las 6 materias
 
-- **Ayuda visual**: cada multiplicación se muestra con puntos (ej. 3 filas de 6 = 18) para que el niño *entienda* el porqué.
-- **Respuesta libre siempre**: el jugador puede escribir el número en cualquier momento. Si se acaba el tiempo (5 s), aparece además una opción múltiple — pero el campo de texto sigue activo.
-- **Recompensas por velocidad**: responder rápido da más monedas. Hay bono por racha cada 5 aciertos seguidos.
-- **Tienda de cartas**: 12 personajes anime con 4 rarezas (Común, Raro, Épico, Legendario). Se compran y se suben de nivel (hasta nivel 10), aumentando su poder.
-- **Compañero**: la carta seleccionada acompaña al jugador en la pantalla de juego.
-- **Guardado automático** en el dispositivo. Botón para reiniciar progreso.
+Currículo inspirado en los programas de primaria de **Finlandia, Singapur,
+Estonia y Canadá** — los países referentes en educación básica:
+
+| Materia | Contenido | Niveles |
+|---|---|---|
+| 🔢 Matemáticas | Sumas → restas → tablas → división → fracciones → porcentajes → problemas | 12 |
+| 🇬🇧 Inglés | Vocabulario esencial (pre-A1 → A1): colores, animales, familia, comida, cuerpo, verbos, frases reales | 10 |
+| 📚 Lengua | Sílabas, ortografía (B/V, H, G/J, C/S/Z), sinónimos, antónimos, gramática, comprensión lectora, refranes | 8 |
+| 🔬 Ciencias | Seres vivos, plantas, cuerpo humano, materia, espacio, la Tierra, ecología, grandes científicos | 8 |
+| 💰 Finanzas | Contar dinero, cambio, necesidades vs deseos, ahorro, trabajo, presupuesto, bancos, primer negocio | 8 |
+| 💻 Programación | Secuencias, patrones, robots, bucles, condicionales, bugs, algoritmos, binario y seguridad digital | 8 |
+
+Las preguntas combinan **opción múltiple, respuesta escrita, verdadero/falso y
+ordenar pasos**; matemáticas, finanzas y programación generan ejercicios
+proceduralmente (nunca se repiten igual).
+
+## ⚔️ El juego
+
+- **Héroe RPG de cuerpo completo**: 10 tonos de piel, 14 peinados, 18 colores
+  de pelo, 5 estilos de ojos, 10 colores de ojos, 5 expresiones de boca y
+  6 marcas faciales (pecas, cicatriz, estrellita…).
+- **56 ítems equipables**: 14 trajes, 12 armas/herramientas, 12 accesorios,
+  10 mascotas, 8 auras y 8 fondos, con rarezas (común → legendario).
+- **Economía doble**: 🪙 monedas (lecciones) y 💎 gemas (logros, niveles,
+  lecciones perfectas).
+- **6 habilidades pasivas**: más monedas, más XP, más tiempo, corazón extra,
+  pista 50/50, suerte x2.
+- **Progresión**: XP y nivel de jugador, estrellas por nivel (1–3),
+  desbloqueo progresivo, ~30 logros, racha diaria con bono.
+- **Arena de minijuegos** para lucir al héroe: Duelo Relámpago (cálculo
+  contra un rival), Memoria Mágica y Lluvia de Estrellas.
+- **Multi-perfil**: hasta 6 niños en el mismo dispositivo, cada uno con su
+  héroe y su progreso (guardado en localStorage, sin servidor).
 
 ## 🚀 Correr en local
 
@@ -17,43 +46,40 @@ Necesitas Node.js 18.18+ (recomendado 20+).
 
 ```bash
 npm install
-npm run dev
+npm run dev    # http://localhost:3000
+npm run build  # build de producción (estático)
 ```
-
-Abre http://localhost:3000
 
 ## ☁️ Deploy en Vercel
 
-**Opción A — desde la web (más fácil):**
 1. Subí esta carpeta a un repositorio en GitHub.
 2. Entrá a https://vercel.com → *Add New → Project* → importá el repo.
 3. Vercel detecta Next.js automáticamente. Click en **Deploy**. Listo.
 
-**Opción B — con la CLI:**
-```bash
-npm i -g vercel
-vercel
+Next.js + React + TypeScript, sin dependencias extra: todo el arte es SVG
+generado por código y el estado vive en el navegador.
+
+## 🗂️ Estructura
+
 ```
-Seguí las instrucciones (aceptá los valores por defecto).
+lib/
+  types.ts        # modelos (Perfil, Personaje, Ítem, Pregunta…)
+  storage.ts      # multi-perfil en localStorage + racha diaria
+  items.ts        # catálogo de ítems y habilidades
+  progression.ts  # XP, niveles, logros, economía
+  content/        # currículo: una materia por archivo
+components/
+  Avatar.tsx      # héroe SVG por capas (traje, arma, mascota, aura…)
+  Game.tsx        # orquestador: navegación, recompensas, toasts
+  LessonPlayer.tsx# lecciones con corazones, tiempo, pistas y rachas
+  Shop / Wardrobe / Achievements / Minigames / …
+```
 
 ## 🛠️ Personalizar
 
-- **Cartas / personajes**: editá `lib/data.ts` (nombres, colores, rarezas, costos, poder).
-- **Dibujo de personajes**: `components/CharacterArt.tsx` (SVG paramétrico).
-- **Recompensas y tiempos**: `components/Game.tsx` (constante `TIMER_MS` y función `resolve`).
+- **Materias y ejercicios**: `lib/content/<materia>.ts` — agrega niveles o
+  preguntas a los bancos.
+- **Ítems nuevos**: `lib/items.ts` (y su dibujo en `components/Avatar.tsx`
+  si es un traje/arma/accesorio nuevo).
+- **Recompensas y dificultad**: `lib/progression.ts`.
 - **Estilos**: `app/globals.css`.
-
-## 📁 Estructura
-
-```
-app/
-  layout.tsx       fuentes + metadata
-  page.tsx         carga el juego (client-only)
-  globals.css      sistema de diseño
-components/
-  Game.tsx         lógica completa del juego
-  CharacterArt.tsx retrato SVG de personajes
-lib/
-  data.ts          cartas, rarezas, fórmulas de poder
-  storage.ts       guardado en localStorage
-```
