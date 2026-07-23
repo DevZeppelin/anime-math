@@ -1,12 +1,14 @@
 import type { Difficulty, LevelDef, Question } from "../types";
-import { ri, pick, numMC, typed, tf, session } from "./utils";
+import { ri, pick, sample, numMC, typed, tf, session, repeatEmoji, SHAPES } from "./utils";
 
 // ─────────────────────────────────────────────────────────────
-// MATEMÁTICAS — 12 niveles, todo generado proceduralmente y
-// adaptado a la dificultad elegida (edad del jugador):
-//   facil   → números chicos + palitos para contar + más opción múltiple
-//   normal  → el clásico
-//   dificil → números más grandes + más respuesta escrita
+// MATEMÁTICAS — 16 niveles, adaptados de verdad a 3 edades:
+//   facil (Menores de 5)  → SOLO imágenes/emoji + números chicos.
+//                           Sin frases largas: el texto que hay
+//                           se lee en voz alta (ver LessonPlayer).
+//   normal (Menores de 10) → el clásico de la academia.
+//   dificil (Menores de 15) → números grandes, más escritura,
+//                           y conceptos de secundaria temprana.
 // ─────────────────────────────────────────────────────────────
 
 type D = Difficulty;
@@ -18,10 +20,126 @@ function byD<T>(d: D, facil: T, normal: T, dificil: T): T {
 
 /** Probabilidad de pregunta escrita (vs opción múltiple). */
 function typedChance(d: D): number {
-  return byD(d, 0.25, 0.5, 0.65);
+  return byD(d, 0, 0.5, 0.65);
 }
 
-/** Palitos para contar (solo modo fácil, números chicos). */
+const OBJS = ["🍎", "🍌", "🐟", "🐝", "🚗", "⭐", "🎈", "🍪", "🧸", "🐬"];
+
+// ── generadores 100% visuales para "Pequeños" (menores de 5) ──
+
+/** Cuenta cuántos objetos hay: pregunta corta (se lee en voz alta) + imagen grande. */
+function qCountVisual(): Question {
+  const emoji = pick(OBJS);
+  const n = ri(1, 5);
+  return numMC(`¿Cuántos ${emoji} hay?`, n, { visual: repeatEmoji(emoji, n), spread: 2 });
+}
+
+/** Suma visual: dos grupitos del mismo objeto que se juntan. */
+function qSumVisual(): Question {
+  const emoji = pick(OBJS);
+  const a = ri(1, 4);
+  const b = ri(1, 4);
+  return numMC(`Cuenta todos los ${emoji}`, a + b, {
+    visual: `${repeatEmoji(emoji, a)}   ➕   ${repeatEmoji(emoji, b)}`,
+    spread: 2,
+  });
+}
+
+/** Resta visual: un grupo donde algunos ya no están (tachados con ❌). */
+function qSubVisual(): Question {
+  const emoji = pick(OBJS);
+  const a = ri(2, 6);
+  const b = ri(1, a - 1);
+  const visual = `${repeatEmoji(emoji, a - b)}   ${repeatEmoji("❌" + emoji, 0)}${repeatEmoji(emoji + "❌", b)}`;
+  return numMC(`¿Cuántos ${emoji} quedan?`, a - b, { visual, spread: 2 });
+}
+
+/** Compara dos grupos de objetos: ¿cuál tiene más? (responde con el número). */
+function qCompareVisual(): Question {
+  const emoji = pick(OBJS);
+  let a = ri(1, 6);
+  let b = ri(1, 6);
+  if (a === b) b = a === 6 ? a - 2 : a + 2;
+  const mayor = Math.max(a, b);
+  return {
+    kind: "mc",
+    prompt: "¿Cuál grupo tiene MÁS?",
+    visual: `${repeatEmoji(emoji, a)}\n${repeatEmoji(emoji, b)}`,
+    options: [String(a), String(b)].sort(() => Math.random() - 0.5),
+    answer: String(mayor),
+    explain: "El grupo con más dibujitos es el que tiene el número más grande.",
+  };
+}
+
+/** Grupos iguales (pre-multiplicación): "2 grupos de 3" mostrados como imágenes. */
+function qGroupsVisual(): Question {
+  const emoji = pick(OBJS);
+  const groups = ri(2, 3);
+  const per = ri(2, 3);
+  const visual = Array.from({ length: groups }, () => repeatEmoji(emoji, per)).join("   |   ");
+  return numMC(`Cuenta todos los ${emoji}`, groups * per, { visual, spread: 2, explain: `${groups} grupos de ${per}.` });
+}
+
+/** Repartir en partes iguales (pre-división): reparte objetos entre "amigos" (🧑). */
+function qShareVisual(): Question {
+  const emoji = pick(OBJS);
+  const friends = ri(2, 3);
+  const each = ri(1, 3);
+  const total = friends * each;
+  return numMC(`Reparte los ${emoji} en partes iguales.\n¿Cuántos le tocan a cada ${"🧑"}?`, each, {
+    visual: `${repeatEmoji(emoji, total)}\n${repeatEmoji("🧑", friends)}`,
+    spread: 2,
+  });
+}
+
+/** El doble de una cantidad chiquita, mostrado con dibujitos. */
+function qDoubleVisual(): Question {
+  const emoji = pick(OBJS);
+  const n = ri(1, 4);
+  return numMC(`¿Cuál es el DOBLE de ${n}?`, n * 2, {
+    visual: repeatEmoji(emoji, n),
+    spread: 2,
+    explain: "El doble es la misma cantidad, dos veces.",
+  });
+}
+
+/** Reconoce formas básicas. */
+function qShapeVisual(): Question {
+  const s = pick(SHAPES);
+  const wrong = sample(
+    SHAPES.filter((x) => x.name !== s.name),
+    2
+  );
+  return {
+    kind: "mc",
+    prompt: `¿Cuál es el ${s.name}?`,
+    options: [s.emoji, ...wrong.map((w) => w.emoji)].sort(() => Math.random() - 0.5),
+    answer: s.emoji,
+  };
+}
+
+/** Grande / pequeño con el mismo emoji en dos tamaños de fuente (vía spans no es posible en texto plano,
+ *  así que usamos animales de tamaño naturalmente distinto). */
+const BIG_SMALL: [big: string, small: string][] = [
+  ["🐘", "🐜"], ["🐋", "🐟"], ["🦒", "🐹"], ["🚂", "🚲"], ["🏰", "🏠"],
+];
+function qSizeVisual(): Question {
+  const [big, small] = pick(BIG_SMALL);
+  const askBig = Math.random() < 0.5;
+  return {
+    kind: "mc",
+    prompt: askBig ? "¿Cuál es más GRANDE?" : "¿Cuál es más PEQUEÑO?",
+    options: shuffle2(big, small),
+    answer: askBig ? big : small,
+  };
+}
+function shuffle2(a: string, b: string): string[] {
+  return Math.random() < 0.5 ? [a, b] : [b, a];
+}
+
+// ── generadores para "Aventureros" (menores de 10) y "Genios" (menores de 15) ──
+
+/** Palitos para contar (apoyo visual también en modo normal/difícil si el número es chico). */
 function sticks(a: number, b: number, op: "+" | "−"): string | undefined {
   if (a + b > 12) return undefined;
   return `${"🪵".repeat(a)} ${op === "+" ? "➕" : "➖"} ${"🪵".repeat(b)}`;
@@ -30,7 +148,7 @@ function sticks(a: number, b: number, op: "+" | "−"): string | undefined {
 function qSumSmall(d: D): Question {
   const a = ri(1, byD(d, 5, 9, 9));
   const b = ri(1, Math.max(1, byD(d, 5, 10, 10) - a));
-  const visual = d === "facil" ? sticks(a, b, "+") : undefined;
+  const visual = d === "facil" ? undefined : sticks(a, b, "+");
   return Math.random() < typedChance(d)
     ? typed(`${a} + ${b} = ?`, a + b, { visual })
     : numMC(`${a} + ${b} = ?`, a + b, { spread: 3, visual });
@@ -39,7 +157,7 @@ function qSumSmall(d: D): Question {
 function qSubSmall(d: D): Question {
   const a = ri(2, byD(d, 6, 10, 10));
   const b = ri(1, a - 1);
-  const visual = d === "facil" ? sticks(a, b, "−") : undefined;
+  const visual = d === "facil" ? undefined : sticks(a, b, "−");
   return Math.random() < typedChance(d)
     ? typed(`${a} − ${b} = ?`, a - b, { visual })
     : numMC(`${a} − ${b} = ?`, a - b, { spread: 3, visual });
@@ -80,10 +198,9 @@ function qSub2d(d: D): Question {
 function qMulEasy(d: D): Question {
   const a = pick([2, 3, 4, 5, 10]);
   const b = ri(1, byD(d, 5, 10, 12));
-  const visual = d === "facil" && a * b <= 12 && a <= 4 ? `${("🪵".repeat(b) + "  ").repeat(a)}` : undefined;
   return Math.random() < typedChance(d)
-    ? typed(`${a} × ${b} = ?`, a * b, { visual, explain: `Son ${a} grupos de ${b}.` })
-    : numMC(`${a} × ${b} = ?`, a * b, { spread: Math.max(3, a), visual, explain: `Son ${a} grupos de ${b}.` });
+    ? typed(`${a} × ${b} = ?`, a * b, { explain: `Son ${a} grupos de ${b}.` })
+    : numMC(`${a} × ${b} = ?`, a * b, { spread: Math.max(3, a), explain: `Son ${a} grupos de ${b}.` });
 }
 
 function qMulHard(d: D): Question {
@@ -137,7 +254,7 @@ function qRound(d: D): Question {
 }
 
 function qFraction(d: D): Question {
-  const kind = d === "facil" ? pick([1, 2]) : ri(1, 3);
+  const kind = ri(1, 3);
   if (kind === 1) {
     const den = pick(byD(d, [2, 4], [2, 3, 4, 5, 10], [2, 3, 4, 5, 8, 10]));
     const total = den * ri(2, byD(d, 4, 8, 12));
@@ -161,7 +278,7 @@ function qFraction(d: D): Question {
 }
 
 function qPercent(d: D): Question {
-  const kind = d === "facil" ? pick([1, 3]) : ri(1, byD(d, 3, 3, 4));
+  const kind = ri(1, byD(d, 3, 3, 4));
   if (kind === 1) {
     const base = pick([10, 20, 40, 50, 60, 80, 100, 200]);
     return numMC(`¿Cuánto es el 50% de ${base}?`, base / 2, { explain: "El 50% es la mitad." });
@@ -219,25 +336,134 @@ function qWordProblem(d: D): Question {
   );
 }
 
+// ── geometría y medidas (nivel nuevo) ──────────────────────────
+
+function qGeometry(d: D): Question {
+  if (d === "facil") return qShapeVisual();
+  const kind = ri(1, 3);
+  if (kind === 1) {
+    const side = ri(byD(d, 2, 2, 3), byD(d, 8, 12, 20));
+    return numMC(`Un cuadrado tiene lados de ${side} cm.\n¿Cuál es su PERÍMETRO?`, side * 4, {
+      spread: 6,
+      explain: `Perímetro = 4 × lado = 4 × ${side} = ${side * 4}.`,
+    });
+  }
+  if (kind === 2) {
+    const w = ri(3, byD(d, 8, 8, 14));
+    const h = ri(2, byD(d, 6, 6, 10));
+    if (d === "dificil") {
+      return numMC(`Un rectángulo mide ${w} cm de ancho y ${h} cm de alto.\n¿Cuál es su ÁREA?`, w * h, {
+        spread: 8,
+        explain: `Área = ancho × alto = ${w} × ${h} = ${w * h} cm².`,
+      });
+    }
+    return numMC(`Un rectángulo mide ${w} cm de ancho y ${h} cm de alto.\n¿Cuál es su PERÍMETRO?`, 2 * (w + h), {
+      spread: 6,
+      explain: `Perímetro = 2 × (ancho + alto) = 2 × ${w + h} = ${2 * (w + h)}.`,
+    });
+  }
+  const shapes3: [string, number][] = [["triángulo", 3], ["cuadrado", 4], ["pentágono", 5], ["hexágono", 6]];
+  const [name, sides] = pick(shapes3);
+  return numMC(`¿Cuántos lados tiene un ${name}?`, sides, { spread: 2 });
+}
+
+function qTime(d: D): Question {
+  const kind = ri(1, 2);
+  if (kind === 1) {
+    const h = ri(1, 12);
+    return {
+      kind: "mc",
+      prompt: `Son las ${h} en punto. ¿Qué reloj lo muestra?`,
+      visual: "🕐",
+      options: shuffle3(String(h)),
+      answer: String(h),
+      explain: "Cuando el minutero apunta al 12, es una hora en punto.",
+    };
+  }
+  const startH = ri(1, 10);
+  const elapsed = ri(1, byD(d, 2, 4, 8));
+  const endH = ((startH + elapsed - 1) % 12) + 1;
+  return numMC(`Empiezas a jugar a las ${startH} y juegas ${elapsed} horas.\n¿A qué hora terminas?`, endH, {
+    spread: 3,
+    explain: `${startH} + ${elapsed} horas = ${endH} (el reloj vuelve a empezar después del 12).`,
+  });
+}
+function shuffle3(answer: string): string[] {
+  const a = Number(answer);
+  const set = new Set([a]);
+  while (set.size < 3) {
+    const v = ((a + ri(1, 4) - 1) % 12) + 1;
+    set.add(v);
+  }
+  return [...set].map(String).sort(() => Math.random() - 0.5);
+}
+
+// ── álgebra inicial (nivel nuevo, más presente en "Genios") ────
+
+function qAlgebra(d: D): Question {
+  if (d === "facil") return qCompareVisual();
+  if (d === "normal") {
+    // número que falta en la operación
+    const a = ri(3, 20);
+    const b = ri(1, 15);
+    const sum = a + b;
+    const hideFirst = Math.random() < 0.5;
+    if (hideFirst) {
+      return numMC(`? + ${b} = ${sum}\n¿Qué número falta?`, a, { spread: 5, explain: `${sum} − ${b} = ${a}.` });
+    }
+    return numMC(`${a} + ? = ${sum}\n¿Qué número falta?`, b, { spread: 5, explain: `${sum} − ${a} = ${b}.` });
+  }
+  // dificil: ecuaciones simples con x, y algo de negativos
+  const kind = ri(1, 3);
+  if (kind === 1) {
+    const x = ri(2, 15);
+    const b = ri(1, 20);
+    const total = x + b;
+    return typed(`x + ${b} = ${total}\n¿Cuánto vale x?`, x, { explain: `x = ${total} − ${b} = ${x}.` });
+  }
+  if (kind === 2) {
+    const x = ri(2, 12);
+    const m = pick([2, 3, 4, 5]);
+    const total = x * m;
+    return typed(`${m} × x = ${total}\n¿Cuánto vale x?`, x, { explain: `x = ${total} ÷ ${m} = ${x}.` });
+  }
+  const a = ri(-10, -1);
+  const b = ri(1, 15);
+  return numMC(`¿Cuánto es ${a} + ${b}?`, a + b, { spread: 6, explain: "Suma un negativo y un positivo: resta el menor al mayor y usa el signo del más grande." });
+}
+
 function gen(f: (d: D) => Question): (d: D) => Question[] {
   return (d) => session(Array.from({ length: 12 }, () => f(d)));
+}
+
+/** Como gen(), pero con un generador propio para "Pequeños" (menores de 5). */
+function genFacil(facilFn: () => Question, restFn: (d: D) => Question): (d: D) => Question[] {
+  return (d) => session(Array.from({ length: 12 }, () => (d === "facil" ? facilFn() : restFn(d))));
 }
 
 function genMix(fs: ((d: D) => Question)[]): (d: D) => Question[] {
   return (d) => session(Array.from({ length: 12 }, () => pick(fs)(d)));
 }
 
+function genMixFacil(facilFns: (() => Question)[], fs: ((d: D) => Question)[]): (d: D) => Question[] {
+  return (d) => session(Array.from({ length: 12 }, () => (d === "facil" ? pick(facilFns)() : pick(fs)(d))));
+}
+
 export const MATH_LEVELS: LevelDef[] = [
-  { name: "Sumas Pequeñas", emoji: "🐣", desc: "Sumas hasta 10", tier: 1, gen: gen(qSumSmall) },
-  { name: "Restas Pequeñas", emoji: "🐥", desc: "Restas hasta 10", tier: 1, gen: gen(qSubSmall) },
-  { name: "Hasta Veinte", emoji: "🔢", desc: "Sumas y restas hasta 20", tier: 1, gen: gen(qSum20) },
-  { name: "Grandes Sumas", emoji: "➕", desc: "Sumas de dos cifras", tier: 1, gen: gen(qSum2d) },
-  { name: "Grandes Restas", emoji: "➖", desc: "Restas de dos cifras", tier: 2, gen: gen(qSub2d) },
-  { name: "Tablas Amigas", emoji: "✖️", desc: "Tablas del 2, 3, 4, 5 y 10", tier: 2, gen: gen(qMulEasy) },
-  { name: "Tablas Valientes", emoji: "🔥", desc: "Tablas del 6, 7, 8 y 9", tier: 2, gen: gen(qMulHard) },
-  { name: "División Exacta", emoji: "➗", desc: "Repartir en partes iguales", tier: 2, gen: gen(qDiv) },
-  { name: "Números Gigantes", emoji: "🐘", desc: "Comparar y redondear", tier: 2, gen: genMix([qCompare, qRound]) },
-  { name: "Fracciones", emoji: "🍕", desc: "Mitades, tercios y cuartos", tier: 3, gen: gen(qFraction) },
-  { name: "Porcentajes", emoji: "💹", desc: "50%, 10%, 25%, dobles y mitades", tier: 3, gen: gen(qPercent) },
-  { name: "Misiones Mentales", emoji: "🧩", desc: "Problemas de la vida real", tier: 3, gen: genMix([qWordProblem, qWordProblem, qFraction, qPercent]) },
+  { name: "Contar Dibujitos", emoji: "🐣", desc: "Cuenta cuántos hay", tier: 1, gen: genFacil(qCountVisual, qSumSmall) },
+  { name: "Sumas Pequeñas", emoji: "➕", desc: "Sumas hasta 10", tier: 1, gen: genFacil(qSumVisual, qSumSmall) },
+  { name: "Restas Pequeñas", emoji: "➖", desc: "Restas hasta 10", tier: 1, gen: genFacil(qSubVisual, qSubSmall) },
+  { name: "¿Cuál Tiene Más?", emoji: "⚖️", desc: "Compara grupos y cantidades", tier: 1, gen: genMixFacil([qCompareVisual, qSizeVisual], [qSum20, qCompare]) },
+  { name: "Formas y Figuras", emoji: "🔺", desc: "Reconoce formas geométricas", tier: 1, gen: genFacil(qShapeVisual, qSum2d) },
+  { name: "Grandes Sumas", emoji: "🔢", desc: "Sumas de dos cifras", tier: 2, gen: genFacil(qSumVisual, qSum2d) },
+  { name: "Grandes Restas", emoji: "🧮", desc: "Restas de dos cifras", tier: 2, gen: genFacil(qSubVisual, qSub2d) },
+  { name: "Tablas Amigas", emoji: "✖️", desc: "Grupos iguales y tablas del 2, 3, 4, 5 y 10", tier: 2, gen: genFacil(qGroupsVisual, qMulEasy) },
+  { name: "Tablas Valientes", emoji: "🔥", desc: "Tablas del 6, 7, 8 y 9", tier: 2, gen: genFacil(qGroupsVisual, qMulHard) },
+  { name: "División Exacta", emoji: "➗", desc: "Repartir en partes iguales", tier: 2, gen: genFacil(qShareVisual, qDiv) },
+  { name: "Números Gigantes", emoji: "🐘", desc: "Comparar y redondear", tier: 2, gen: genMixFacil([qCompareVisual], [qCompare, qRound]) },
+  { name: "Geometría y Reloj", emoji: "📐", desc: "Perímetro, área, lados y la hora", tier: 3, gen: genMix([qGeometry, qTime]) },
+  { name: "Fracciones y Dobles", emoji: "🍕", desc: "Mitades, tercios, cuartos y el doble", tier: 3, gen: genFacil(qDoubleVisual, qFraction) },
+  { name: "Porcentajes", emoji: "💹", desc: "50%, 10%, 25%, dobles y mitades", tier: 3, gen: genFacil(qDoubleVisual, qPercent) },
+  { name: "Álgebra Inicial", emoji: "🧩", desc: "El número misterioso y ecuaciones con x", tier: 3, gen: gen(qAlgebra) },
+  { name: "Misiones Mentales", emoji: "🎒", desc: "Problemas de la vida real", tier: 3, gen: genMixFacil([qSumVisual, qShareVisual], [qWordProblem, qWordProblem, qFraction, qPercent]) },
 ];

@@ -995,6 +995,10 @@ button:disabled {
   font-size: 46px;
   text-align: center;
   margin-bottom: 6px;
+  /* clave: respeta los saltos de línea "\n" usados para separar
+     grupos de objetos (comparar cantidades, monedas, etc.) */
+  white-space: pre-line;
+  line-height: 1.4;
 }
 /* visual largo (palitos para contar): más chico y con salto de línea */
 .q-visual.small {
@@ -1003,12 +1007,44 @@ button:disabled {
   word-break: break-all;
   letter-spacing: 2px;
 }
+/* modo Pequeños: la imagen es la protagonista de la pregunta */
+.q-visual.big {
+  font-size: 76px;
+  filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.35));
+  margin-bottom: 10px;
+}
+.q-prompt-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
 .q-prompt {
   font-size: clamp(19px, 3.4vw, 26px);
   text-align: center;
-  margin-bottom: 20px;
   white-space: pre-line;
   line-height: 1.45;
+  margin-bottom: 0;
+}
+.speak-btn {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 19px;
+  display: grid;
+  place-items: center;
+  background: rgba(139, 92, 255, 0.15);
+  border: 1px solid rgba(139, 92, 255, 0.4);
+  transition: transform 0.12s, background 0.12s;
+}
+.speak-btn:hover {
+  background: rgba(139, 92, 255, 0.28);
+  transform: scale(1.08);
+}
+.speak-btn:active {
+  transform: scale(0.92);
 }
 .mc-grid {
   display: grid;

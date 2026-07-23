@@ -1,11 +1,16 @@
 import type { Difficulty, LevelDef, Question } from "../types";
-import { sample, session, shuffle, tf } from "./utils";
+import { pick, pickEmojiMC, sample, session, shuffle, tf } from "./utils";
 
 // ─────────────────────────────────────────────────────────────
-// CIENCIAS — 8 niveles: seres vivos, cuerpo humano, materia,
-// espacio, la Tierra y ecología
+// CIENCIAS — 8 niveles, adaptados a 3 edades:
+//   facil (Menores de 5)  → identificación pura por imágenes:
+//                           animales, cuerpo, clima, espacio y
+//                           estados de la materia, todo narrado
+//                           en voz alta con opciones en emoji.
+//   normal / dificil       → el temario clásico con más texto.
 // ─────────────────────────────────────────────────────────────
 
+type D = Difficulty;
 type MC = [prompt: string, answer: string, distractors: string[], visual?: string, explain?: string];
 type TF = [prompt: string, answer: boolean, explain?: string];
 
@@ -32,6 +37,76 @@ function build(mcs: MC[], tfs: TF[] = [], d: Difficulty = "normal", take = 10): 
   ];
   return session(sample(qs, take + 2));
 }
+
+// ── bancos de imágenes puras para "Pequeños" ───────────────────
+
+const ANIMAL_ID: [string, string][] = [
+  ["el perro", "🐶"], ["el gato", "🐱"], ["la vaca", "🐮"], ["el caballo", "🐴"],
+  ["la oveja", "🐑"], ["el pollo", "🐔"], ["el pato", "🦆"], ["el cerdo", "🐷"],
+  ["el león", "🦁"], ["el elefante", "🐘"], ["el mono", "🐵"], ["el oso", "🐻"],
+  ["el conejo", "🐰"], ["la tortuga", "🐢"], ["el pez", "🐟"], ["el pájaro", "🐦"],
+];
+
+const FRUIT_ID: [string, string][] = [
+  ["la manzana", "🍎"], ["el plátano", "🍌"], ["la naranja", "🍊"], ["la fresa", "🍓"], ["la uva", "🍇"],
+];
+const NOT_FRUIT: string[] = ["🚗", "👟", "📺", "🎈", "✏️", "🧦"];
+function qIsFruit(): Question {
+  const useFruit = Math.random() < 0.5;
+  if (useFruit) {
+    const [name, emoji] = pick(FRUIT_ID);
+    const wrong = sample(NOT_FRUIT, 2);
+    return { kind: "mc", prompt: `¿Cuál de estos ES una fruta?`, visual: undefined, options: shuffle([emoji, ...wrong]), answer: emoji, explain: `${name} es una fruta.` };
+  }
+  const wrong2 = sample(NOT_FRUIT, 1);
+  const fruit = pick(FRUIT_ID)[1];
+  const nonFruit = pick(NOT_FRUIT.filter((f) => f !== wrong2[0]));
+  return { kind: "mc", prompt: `¿Cuál de estos NO es una fruta?`, options: shuffle([nonFruit, fruit, ...wrong2]), answer: nonFruit };
+}
+
+const BODY_PARTS_ES: [string, string][] = [
+  ["la nariz", "👃"], ["el ojo", "👁️"], ["la oreja", "👂"], ["la boca", "👄"],
+  ["la mano", "✋"], ["el pie", "🦶"], ["el diente", "🦷"], ["el pelo", "💇"],
+];
+
+const MATTER_VISUAL: [string, string][] = [
+  ["un líquido", "💧"], ["un sólido", "🪨"], ["un gas", "🎈"],
+];
+
+const SPACE_ID: [string, string][] = [
+  ["el Sol", "☀️"], ["la Luna", "🌙"], ["una estrella", "⭐"], ["un planeta", "🪐"],
+  ["un cohete", "🚀"], ["un astronauta", "👨‍🚀"],
+];
+
+const WEATHER_ID: [string, string][] = [
+  ["un día soleado", "☀️"], ["un día lluvioso", "🌧️"], ["un día nevado", "❄️"],
+  ["un día con viento", "🌬️"], ["un arcoíris", "🌈"], ["una nube", "☁️"],
+];
+
+function qTrashVisual(): Question {
+  return {
+    kind: "mc",
+    prompt: "¿Dónde va la basura?",
+    options: shuffle(["🗑️", "🌊", "🌳"]),
+    answer: "🗑️",
+    explain: "La basura va siempre al tacho de basura, ¡nunca al agua ni a la naturaleza!",
+  };
+}
+
+const SIMPLE_TF_FACTS: TF[] = [
+  ["El sol es caliente", true],
+  ["Los peces pueden volar como los pájaros", false, "Los peces nadan; no vuelan."],
+  ["La nieve es fría", true],
+  ["Los gatos dicen «muu»", false, "Los gatos dicen «miau»; la vaca dice «muu»."],
+  ["El hielo es frío", true],
+  ["El fuego es frío", false, "El fuego quema: es muy caliente."],
+  ["Los pájaros pueden volar", true],
+  ["Las piedras flotan en el agua", false, "Las piedras son pesadas y se hunden."],
+  ["De noche vemos la Luna", true],
+  ["Los peces respiran fuera del agua como nosotros", false, "Los peces respiran con branquias, dentro del agua."],
+];
+
+// ── bancos clásicos para "Aventureros" y "Genios" ──────────────
 
 const ANIMALS_MC: MC[] = [
   ["¿Qué animal es un mamífero?", "La ballena", ["El tiburón", "El pingüino", "La rana"], "🍼", "Las ballenas respiran aire y amamantan a sus crías."],
@@ -148,13 +223,85 @@ const INVENT_MC: MC[] = [
   ["¿Quién pintó e inventó máquinas hace 500 años?", "Leonardo da Vinci", ["Pablo Picasso", "Cristóbal Colón", "Mozart"], "🎨"],
 ];
 
+// ── generador con rama visual para "Pequeños" ──────────────────
+
+function scienceLevel(
+  facilBanks: [string, string][][],
+  facilPrompts: ((name: string) => string)[],
+  mcs: MC[],
+  tfs: TF[] = []
+): (d: D) => Question[] {
+  return (d) => {
+    if (d === "facil") {
+      return session(
+        Array.from({ length: 10 }, () => {
+          const i = Math.floor(Math.random() * facilBanks.length);
+          return pickEmojiMC(facilBanks[i], facilPrompts[i]);
+        })
+      );
+    }
+    return build(mcs, tfs, d);
+  };
+}
+
 export const SCIENCE_LEVELS: LevelDef[] = [
-  { name: "Reino Animal", emoji: "🦁", desc: "Mamíferos, aves, reptiles y más", tier: 1, gen: (d) => build(ANIMALS_MC, [], d) },
-  { name: "Mundo Verde", emoji: "🌱", desc: "Las plantas y sus secretos", tier: 1, gen: (d) => build(PLANTS_MC, [], d) },
-  { name: "Mi Cuerpo", emoji: "🫀", desc: "Órganos, sentidos y salud", tier: 2, gen: (d) => build(BODY_MC, [], d) },
-  { name: "Laboratorio de Materia", emoji: "🧪", desc: "Sólidos, líquidos, gases y el ciclo del agua", tier: 2, gen: (d) => build(MATTER_MC, [], d) },
-  { name: "Viaje Espacial", emoji: "🚀", desc: "El Sol, la Luna y los planetas", tier: 2, gen: (d) => build(SPACE_MC, [], d) },
-  { name: "Planeta Tierra", emoji: "🌍", desc: "Océanos, volcanes, clima y estaciones", tier: 2, gen: (d) => build(EARTH_MC, [], d) },
-  { name: "Guardianes del Planeta", emoji: "♻️", desc: "Ecología, reciclaje y energía limpia", tier: 3, gen: (d) => build(ECO_MC, [], d) },
-  { name: "Grandes Mentes", emoji: "🔬", desc: "Inventos, científicos y verdadero o falso", tier: 3, gen: (d) => build(INVENT_MC, MIX_TF, d) },
+  {
+    name: "Reino Animal",
+    emoji: "🦁",
+    desc: "Mamíferos, aves, reptiles y más",
+    tier: 1,
+    gen: scienceLevel([ANIMAL_ID], [(name) => `¿Cuál es ${name}?`], ANIMALS_MC),
+  },
+  {
+    name: "Mundo Verde",
+    emoji: "🌱",
+    desc: "Las plantas, las frutas y sus secretos",
+    tier: 1,
+    gen: (d) => (d === "facil" ? session(Array.from({ length: 10 }, qIsFruit)) : build(PLANTS_MC, [], d)),
+  },
+  {
+    name: "Mi Cuerpo",
+    emoji: "🫀",
+    desc: "Órganos, sentidos y salud",
+    tier: 2,
+    gen: scienceLevel([BODY_PARTS_ES], [(name) => `¿Dónde está ${name}?`], BODY_MC),
+  },
+  {
+    name: "Laboratorio de Materia",
+    emoji: "🧪",
+    desc: "Sólidos, líquidos, gases y el ciclo del agua",
+    tier: 2,
+    gen: scienceLevel([MATTER_VISUAL], [(name) => `¿Cuál de estos es ${name}?`], MATTER_MC),
+  },
+  {
+    name: "Viaje Espacial",
+    emoji: "🚀",
+    desc: "El Sol, la Luna y los planetas",
+    tier: 2,
+    gen: scienceLevel([SPACE_ID], [(name) => `¿Cuál es ${name}?`], SPACE_MC),
+  },
+  {
+    name: "Planeta Tierra",
+    emoji: "🌍",
+    desc: "Océanos, volcanes, clima y estaciones",
+    tier: 2,
+    gen: scienceLevel([WEATHER_ID], [(name) => `¿Cuál es ${name}?`], EARTH_MC),
+  },
+  {
+    name: "Guardianes del Planeta",
+    emoji: "♻️",
+    desc: "Ecología, reciclaje y energía limpia",
+    tier: 3,
+    gen: (d) => (d === "facil" ? session(Array.from({ length: 10 }, qTrashVisual)) : build(ECO_MC, [], d)),
+  },
+  {
+    name: "Grandes Mentes",
+    emoji: "🔬",
+    desc: "Inventos, científicos y verdadero o falso",
+    tier: 3,
+    gen: (d) =>
+      d === "facil"
+        ? session(SIMPLE_TF_FACTS.map(([prompt, answer, explain]) => tf(prompt, answer, { explain })))
+        : build(INVENT_MC, MIX_TF, d),
+  },
 ];

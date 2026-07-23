@@ -107,6 +107,46 @@ export function session(qs: Question[]): Question[] {
   return shuffle(qs).slice(0, SESSION_SIZE);
 }
 
+/** Repite un emoji n veces (separado por espacios) para mostrar una
+ *  cantidad de forma 100% visual — clave para el modo "Pequeños". */
+export function repeatEmoji(emoji: string, n: number): string {
+  return Array.from({ length: n }, () => emoji).join(" ");
+}
+
+/** Formas básicas en emoji: sirven como "imagen" universal sin texto. */
+export const SHAPES: { name: string; emoji: string }[] = [
+  { name: "círculo", emoji: "🔴" },
+  { name: "cuadrado", emoji: "🟥" },
+  { name: "triángulo", emoji: "🔺" },
+  { name: "estrella", emoji: "⭐" },
+  { name: "corazón", emoji: "❤️" },
+  { name: "diamante", emoji: "🔷" },
+];
+
+/** Colores básicos como emoji de color: la propia imagen ES el color. */
+export const COLOR_DOTS: { name: string; emoji: string }[] = [
+  { name: "rojo", emoji: "🔴" },
+  { name: "azul", emoji: "🔵" },
+  { name: "verde", emoji: "🟢" },
+  { name: "amarillo", emoji: "🟡" },
+  { name: "morado", emoji: "🟣" },
+  { name: "naranja", emoji: "🟠" },
+  { name: "negro", emoji: "⚫" },
+  { name: "blanco", emoji: "⚪" },
+  { name: "marrón", emoji: "🟤" },
+];
+
+/** Pregunta "¿Cuál es...?" con opciones 100% en emoji: la base de
+ *  todo el contenido visual para "Pequeños" (menores de 5). */
+export function pickEmojiMC(bank: readonly [string, string][], promptFn: (name: string) => string): Question {
+  const [name, emoji] = pick(bank);
+  const wrong = sample(
+    bank.filter((b) => b[1] !== emoji).map((b) => b[1]),
+    2
+  );
+  return { kind: "mc", prompt: promptFn(name), options: shuffle([emoji, ...wrong]), answer: emoji };
+}
+
 /** Ajusta una pregunta al modo de dificultad:
  *  fácil → máximo 3 opciones; difícil → hasta 6 opciones numéricas. */
 export function adaptQuestion(q: Question, d: Difficulty): Question {

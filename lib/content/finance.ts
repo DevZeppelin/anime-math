@@ -1,13 +1,71 @@
-import type { LevelDef, Question } from "../types";
-import { ri, pick, sample, session, shuffle, numMC, typed, tf } from "./utils";
+import type { Difficulty, LevelDef, Question } from "../types";
+import { ri, pick, pickEmojiMC, sample, session, shuffle, numMC, typed, tf, repeatEmoji } from "./utils";
 
 // ─────────────────────────────────────────────────────────────
-// FINANZAS — 8 niveles: dinero, ahorro, necesidades vs deseos,
-// presupuesto y espíritu emprendedor (educación financiera
-// presente en los currículos de Finlandia, Australia y Canadá)
+// FINANZAS — 8 niveles, adaptados a 3 edades:
+//   facil (Menores de 5)  → contar monedas con dibujos, oficios
+//                           por imagen y "necesito vs. deseo" con
+//                           íconos, todo narrado en voz alta.
+//   normal / dificil       → dinero, ahorro, presupuesto, bancos.
 // ─────────────────────────────────────────────────────────────
+
+type D = Difficulty;
 
 const COIN_VALUES = [1, 2, 5, 10];
+
+// ── generadores visuales para "Pequeños" ───────────────────────
+
+function qCoinCountVisual(): Question {
+  const n = ri(1, 5);
+  return numMC(`¿Cuántas monedas hay?`, n, { visual: repeatEmoji("🪙", n), spread: 2 });
+}
+
+function qCoinCompareVisual(): Question {
+  let a = ri(1, 6);
+  let b = ri(1, 6);
+  if (a === b) b = a === 6 ? a - 2 : a + 2;
+  const mayor = Math.max(a, b);
+  return {
+    kind: "mc",
+    prompt: "¿Cuál grupo tiene MÁS monedas?",
+    visual: `${repeatEmoji("🪙", a)}\n${repeatEmoji("🪙", b)}`,
+    options: [String(a), String(b)].sort(() => Math.random() - 0.5),
+    answer: String(mayor),
+  };
+}
+
+function qEnoughVisual(): Question {
+  const have = ri(2, 6);
+  const cost = ri(2, 6);
+  return tf(`¿Te alcanzan las monedas para comprarlo?`, have >= cost, {
+    visual: `Tienes: ${repeatEmoji("🪙", have)}\nCuesta: ${repeatEmoji("🪙", cost)}`,
+  });
+}
+
+const PROFESSIONS_ID: [string, string][] = [
+  ["el doctor", "👨‍⚕️"], ["el bombero", "👨‍🚒"], ["el policía", "👮"], ["el panadero", "🥖"],
+  ["el granjero", "👨‍🌾"], ["el pescador", "🎣"], ["el maestro", "🧑‍🏫"], ["el cocinero", "👨‍🍳"],
+];
+function qProfessionVisual(): Question {
+  return pickEmojiMC(PROFESSIONS_ID, (name) => `¿Quién es ${name}?`);
+}
+
+function qStorageVisual(): Question {
+  return {
+    kind: "mc",
+    prompt: "¿Dónde guardamos el dinero para que esté seguro?",
+    options: shuffle(["🐷", "🔥", "🚽"]),
+    answer: "🐷",
+    explain: "El dinero se guarda en una alcancía o en el banco, ¡nunca en el fuego!",
+  };
+}
+
+function qLemonadeVisual(): Question {
+  const n = ri(1, 5);
+  return numMC(`Vendes ${repeatEmoji("🍋", n)} a 1 moneda cada uno.\n¿Cuántas monedas ganaste?`, n, { spread: 2 });
+}
+
+// ── generadores clásicos para "Aventureros" y "Genios" ─────────
 
 function qCountMoney(): Question {
   const n = ri(3, 5);
@@ -45,8 +103,8 @@ function qNeedWant(): Question {
     return {
       kind: "mc",
       prompt: `${item[0].toUpperCase()}${item.slice(1)}\n¿Es una NECESIDAD o un DESEO?`,
-      options: ["Necesidad", "Deseo"],
-      answer: "Necesidad",
+      options: ["❤️ Necesidad", "⭐ Deseo"],
+      answer: "❤️ Necesidad",
       explain: "Las necesidades son cosas sin las que no podemos vivir bien.",
     };
   }
@@ -54,8 +112,8 @@ function qNeedWant(): Question {
   return {
     kind: "mc",
     prompt: `${item[0].toUpperCase()}${item.slice(1)}\n¿Es una NECESIDAD o un DESEO?`,
-    options: ["Necesidad", "Deseo"],
-    answer: "Deseo",
+    options: ["❤️ Necesidad", "⭐ Deseo"],
+    answer: "⭐ Deseo",
     explain: "Los deseos son cosas lindas pero no imprescindibles.",
   };
 }
@@ -116,6 +174,7 @@ const CONCEPTS_BANK: MC[] = [
   ["Una tarjeta de débito usa…", "El dinero que ya tienes guardado", ["Dinero infinito", "Dinero del vecino", "Dinero de mentira"], "💳"],
   ["¿Qué pasa si gastas más de lo que ganas?", "Te quedas sin dinero o con deudas", ["Te vuelves rico", "No pasa nada", "El banco te aplaude"], "⚠️"],
   ["Donar una parte de lo que tienes a quien lo necesita es…", "Generosidad", ["Un gasto tonto", "Una deuda", "Un impuesto"], "💝"],
+  ["Si ahorras $200 al 10% de interés anual durante 2 años (sin retirar nada), ¿cuánto interés ganas en total?", "$42", ["$20", "$40", "$400"], "📊", "Año 1: 200×10%=20 → 220. Año 2: 220×10%=22 → total interés 20+22=42 (interés compuesto)."],
 ];
 
 function qBudget(): Question {
@@ -182,17 +241,26 @@ function buildMC(bank: MC[]): Question[] {
   );
 }
 
-function genProc(f: () => Question): () => Question[] {
-  return () => session(Array.from({ length: 10 }, f));
+function genProc(facilFn: () => Question, restFn: () => Question): (d: D) => Question[] {
+  return (d) => session(Array.from({ length: 10 }, () => (d === "facil" ? facilFn() : restFn())));
 }
 
 export const FINANCE_LEVELS: LevelDef[] = [
-  { name: "Contando Monedas", emoji: "🪙", desc: "Suma monedas y billetes", tier: 1, gen: genProc(qCountMoney) },
-  { name: "La Tienda", emoji: "🛒", desc: "Pagar, recibir cambio y saber si alcanza", tier: 1, gen: genProc(() => (Math.random() < 0.5 ? qChange() : qEnough())) },
-  { name: "¿Necesito o Deseo?", emoji: "🤔", desc: "Diferencia necesidades de deseos", tier: 1, gen: genProc(qNeedWant) },
-  { name: "La Alcancía", emoji: "🐷", desc: "Metas de ahorro y cuánto falta", tier: 2, gen: genProc(qSavings) },
-  { name: "Sabio Ahorrador", emoji: "🧠", desc: "Buenas decisiones con el dinero", tier: 2, gen: () => buildMC(CONCEPTS_SAVE) },
-  { name: "El Mundo del Trabajo", emoji: "💼", desc: "Oficios, salarios y emprendedores", tier: 2, gen: () => buildMC(CONCEPTS_WORK) },
-  { name: "Mi Presupuesto", emoji: "📒", desc: "Planifica tus gastos de la semana", tier: 3, gen: genProc(qBudget) },
-  { name: "Banco y Negocios", emoji: "🏦", desc: "Bancos, intereses y tu primer negocio", tier: 3, gen: () => session([...sample(CONCEPTS_BANK, 6).map(([prompt, answer, wrong, visual, explain]) => ({ kind: "mc" as const, prompt, visual, options: shuffle([answer, ...wrong]), answer, explain })), ...Array.from({ length: 5 }, qBusiness)]) },
+  { name: "Contando Monedas", emoji: "🪙", desc: "Suma monedas y billetes", tier: 1, gen: genProc(qCoinCountVisual, qCountMoney) },
+  { name: "La Tienda", emoji: "🛒", desc: "Pagar, recibir cambio y saber si alcanza", tier: 1, gen: genProc(qCoinCompareVisual, () => (Math.random() < 0.5 ? qChange() : qEnough())) },
+  { name: "¿Necesito o Deseo?", emoji: "🤔", desc: "Diferencia necesidades de deseos", tier: 1, gen: genProc(qNeedWant, qNeedWant) },
+  { name: "El Mundo del Trabajo", emoji: "💼", desc: "Oficios, salarios y emprendedores", tier: 1, gen: (d) => (d === "facil" ? session(Array.from({ length: 10 }, qProfessionVisual)) : buildMC(CONCEPTS_WORK)) },
+  { name: "La Alcancía", emoji: "🐷", desc: "Metas de ahorro y cuánto falta", tier: 2, gen: genProc(qCoinCountVisual, qSavings) },
+  { name: "Sabio Ahorrador", emoji: "🧠", desc: "Buenas decisiones con el dinero", tier: 2, gen: (d) => (d === "facil" ? session(Array.from({ length: 10 }, qStorageVisual)) : buildMC(CONCEPTS_SAVE)) },
+  { name: "Mi Presupuesto", emoji: "📒", desc: "Planifica tus gastos de la semana", tier: 3, gen: genProc(qEnoughVisual, qBudget) },
+  {
+    name: "Banco y Negocios",
+    emoji: "🏦",
+    desc: "Bancos, intereses y tu primer negocio",
+    tier: 3,
+    gen: (d) =>
+      d === "facil"
+        ? session(Array.from({ length: 10 }, qLemonadeVisual))
+        : session([...sample(CONCEPTS_BANK, 6).map(([prompt, answer, wrong, visual, explain]) => ({ kind: "mc" as const, prompt, visual, options: shuffle([answer, ...wrong]), answer, explain })), ...Array.from({ length: 5 }, qBusiness)]),
+  },
 ];

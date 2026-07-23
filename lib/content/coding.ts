@@ -1,13 +1,27 @@
-import type { LevelDef, Question } from "../types";
-import { ri, pick, sample, session, shuffle, typed, order, numMC } from "./utils";
+import type { Difficulty, LevelDef, Question } from "../types";
+import { ri, pick, sample, session, shuffle, typed, order, numMC, tf, repeatEmoji } from "./utils";
 
 // ─────────────────────────────────────────────────────────────
-// PROGRAMACIÓN Y LÓGICA — 8 niveles de pensamiento
-// computacional (como en Estonia y Finlandia): secuencias,
-// patrones, bucles, condicionales, bugs, algoritmos y binario
+// PROGRAMACIÓN Y LÓGICA — 8 niveles, adaptados a 3 edades:
+//   facil (Menores de 5)  → secuencias e imágenes puras: ciclos
+//                           de vida, patrones de colores, "si
+//                           esto... entonces aquello" con dibujos.
+//   normal / dificil       → bucles, condicionales, bugs, binario.
 // ─────────────────────────────────────────────────────────────
 
-// Secuencias de la vida real para ordenar
+type D = Difficulty;
+
+// secuencias de la vida real, en emoji puro (menores de 5)
+const EMOJI_SEQUENCES: [prompt: string, items: string[]][] = [
+  ["Ordena el crecimiento de un pollito", ["🥚", "🐣", "🐥", "🐔"]],
+  ["Ordena el crecimiento de una planta", ["🌱", "🌿", "🌳"]],
+  ["Ordena lo que pasa cuando llueve", ["☁️", "🌧️", "🌈"]],
+  ["Ordena las partes del día", ["🌅", "☀️", "🌇", "🌙"]],
+  ["Ordena las estaciones del año", ["🌸", "☀️", "🍂", "❄️"]],
+  ["Ordena el crecimiento de una mariposa", ["🥚", "🐛", "🦋"]],
+];
+
+// secuencias de la vida real para ordenar (con texto, menores de 10 y 15)
 const SEQUENCES: [string, string[]][] = [
   ["Ordena los pasos para lavarte los dientes", ["Poner pasta en el cepillo", "Cepillar los dientes", "Enjuagar la boca", "Guardar el cepillo"]],
   ["Ordena los pasos para hacer un sándwich", ["Sacar el pan", "Poner el queso", "Tapar con la otra rebanada", "Comer el sándwich"]],
@@ -28,7 +42,17 @@ const ALGORITHMS: [string, string[]][] = [
   ["Algoritmo para preparar la mochila", ["Mirar el horario de mañana", "Elegir los libros necesarios", "Guardarlos en la mochila", "Cerrar la mochila"]],
 ];
 
-// Patrones con emojis y números
+// patrones simples de 2 símbolos que se alternan (ideal para menores de 5)
+const PATTERNS_SIMPLE: [string, string, string[]][] = [
+  ["🔴 🔵 🔴 🔵 🔴 …", "🔵", ["🔴", "🟢"]],
+  ["🍎 🍌 🍎 🍌 🍎 …", "🍌", ["🍎", "🍇"]],
+  ["🐸 🐢 🐸 🐢 🐸 …", "🐢", ["🐸", "🐟"]],
+  ["🌸 🌼 🌸 🌼 🌸 …", "🌼", ["🌸", "🍀"]],
+  ["😀 😎 😀 😎 😀 …", "😎", ["😀", "😴"]],
+  ["⭐ 🌙 ⭐ 🌙 ⭐ …", "🌙", ["⭐", "☀️"]],
+];
+
+// patrones con emojis y números (menores de 10 y 15)
 const EMOJI_PATTERNS: [string, string, string[]][] = [
   ["🔴 🔵 🔴 🔵 🔴 …", "🔵", ["🔴", "🟢", "🟡"]],
   ["⭐ ⭐ 🌙 ⭐ ⭐ 🌙 ⭐ ⭐ …", "🌙", ["⭐", "☀️", "☁️"]],
@@ -39,6 +63,11 @@ const EMOJI_PATTERNS: [string, string, string[]][] = [
   ["🚗 🚗 🚌 🚗 🚗 🚌 🚗 🚗 …", "🚌", ["🚗", "🚲", "✈️"]],
   ["😀 😎 😎 😀 😎 😎 😀 …", "😎", ["😀", "😴", "🤖"]],
 ];
+
+function qEmojiPatternSimple(): Question {
+  const [seq, answer, wrong] = pick(PATTERNS_SIMPLE);
+  return { kind: "mc", prompt: `¿Qué sigue?`, visual: seq, options: shuffle([answer, ...wrong]), answer };
+}
 
 function qEmojiPattern(): Question {
   const [seq, answer, wrong] = pick(EMOJI_PATTERNS);
@@ -78,6 +107,13 @@ function qNumberPattern(): Question {
   });
 }
 
+// robot muy simple: un solo paso (menores de 5)
+function qRobotSimple(): Question {
+  const start = ri(1, 3);
+  const steps = ri(1, 3);
+  return numMC(`El robot 🤖 está en el número ${start}.\nAvanza ${steps}. ¿En qué número queda?`, start + steps, { spread: 2 });
+}
+
 function qRobotWalk(): Question {
   const start = ri(1, 4);
   const f1 = ri(2, 5);
@@ -89,6 +125,14 @@ function qRobotWalk(): Question {
     end,
     { explain: `${start} + ${f1} − ${b} + ${f2} = ${end}.` }
   );
+}
+
+// bucle simple: aplaudir en grupos iguales (menores de 5)
+function qLoopVisual(): Question {
+  const times = ri(2, 3);
+  const per = ri(2, 3);
+  const visual = Array.from({ length: times }, () => repeatEmoji("👏", per)).join("   |   ");
+  return numMC(`El robot repite esto ${times} veces.\n¿Cuántos aplausos hace en total?`, times * per, { visual, spread: 2 });
 }
 
 function qLoop(): Question {
@@ -117,6 +161,20 @@ function qLoop(): Question {
     total / per,
     { explain: `${total} ÷ ${per} = ${total / per} vueltas.` }
   );
+}
+
+// "si esto... entonces aquello" con dibujos (menores de 5)
+const IF_THEN_VISUAL: [string, string, string[]][] = [
+  ["Si hace frío ❄️, ¿qué te pones?", "🧥", ["🩳", "🕶️"]],
+  ["Si hace calor ☀️, ¿qué te pones?", "🩳", ["🧥", "🧤"]],
+  ["Si tienes hambre 😋, ¿qué comes?", "🍎", ["😴", "🚿"]],
+  ["Si tienes sueño 😴, ¿qué usas?", "🛏️", ["🍎", "⚽"]],
+  ["Si está lloviendo 🌧️, ¿qué usas?", "☂️", ["🕶️", "🩱"]],
+  ["Si te ensucias las manos 🖐️, ¿qué haces?", "🧼", ["🍬", "📺"]],
+];
+function qIfThenVisual(): Question {
+  const [prompt, answer, wrong] = pick(IF_THEN_VISUAL);
+  return { kind: "mc", prompt, options: shuffle([answer, ...wrong]), answer };
 }
 
 type MC = [string, string, string[], string?, string?];
@@ -174,8 +232,31 @@ function qBinary(): Question {
   };
 }
 
+// "código secreto" visual: reconocer el igual entre varios (menores de 5)
+const MATCH_POOL = ["🔴", "🔵", "🟢", "🟡", "🟣", "🟠", "⭐", "❤️", "🔺", "⬛"];
+function qMatchVisual(): Question {
+  const target = pick(MATCH_POOL);
+  const wrong = sample(
+    MATCH_POOL.filter((e) => e !== target),
+    2
+  );
+  return { kind: "mc", prompt: "¿Cuál es IGUAL a este?", visual: target, options: shuffle([target, ...wrong]), answer: target };
+}
+
 function genOrder(bank: [string, string[]][]): () => Question[] {
   return () => sample(bank, 6).map(([prompt, items]) => order(prompt, items));
+}
+
+function genOrderOrCheck(facilBank: [string, string[]][]): () => Question[] {
+  return () =>
+    sample(facilBank, 6).map(([prompt, items]) => {
+      // la mitad de las veces se pide ordenar; la otra mitad, decir si YA está bien ordenado
+      if (Math.random() < 0.5) return order(prompt, items);
+      const isCorrect = Math.random() < 0.5;
+      const shown = isCorrect ? items : shuffle(items);
+      const reallyCorrect = shown.every((it, i) => it === items[i]);
+      return tf(`${prompt}\n${shown.join(" → ")}\n¿Está bien ordenado?`, reallyCorrect);
+    });
 }
 
 function buildMC(bank: MC[]): Question[] {
@@ -191,17 +272,26 @@ function buildMC(bank: MC[]): Question[] {
   );
 }
 
-function genProc(f: () => Question): () => Question[] {
-  return () => session(Array.from({ length: 10 }, f));
+function genProc(facilFn: () => Question, restFn: () => Question): (d: D) => Question[] {
+  return (d) => session(Array.from({ length: 10 }, () => (d === "facil" ? facilFn() : restFn())));
 }
 
 export const CODING_LEVELS: LevelDef[] = [
-  { name: "Paso a Paso", emoji: "👣", desc: "Ordena instrucciones en secuencia", tier: 1, gen: genOrder(SEQUENCES) },
-  { name: "Caza Patrones", emoji: "🔍", desc: "Descubre qué sigue en cada patrón", tier: 1, gen: genProc(() => (Math.random() < 0.5 ? qEmojiPattern() : qNumberPattern())) },
-  { name: "Robot Explorador", emoji: "🤖", desc: "Programa los movimientos del robot", tier: 2, gen: genProc(qRobotWalk) },
-  { name: "Bucles Mágicos", emoji: "🔁", desc: "Repite instrucciones y calcula el resultado", tier: 2, gen: genProc(qLoop) },
-  { name: "Si… Entonces", emoji: "🚦", desc: "Condicionales: decisiones del programa", tier: 2, gen: () => buildMC(CONDITIONALS) },
-  { name: "Cazador de Bugs", emoji: "🐞", desc: "Encuentra el error en cada programa", tier: 3, gen: () => buildMC(BUGS) },
-  { name: "Gran Arquitecto", emoji: "📐", desc: "Construye algoritmos completos", tier: 3, gen: genOrder(ALGORITHMS) },
-  { name: "Código Secreto", emoji: "💾", desc: "Binario y cultura digital", tier: 3, gen: () => session([...Array.from({ length: 6 }, qBinary), ...sample(CONCEPTS, 5).map(([prompt, answer, wrong, visual, explain]) => ({ kind: "mc" as const, prompt, visual, options: shuffle([answer, ...wrong]), answer, explain }))]) },
+  { name: "Paso a Paso", emoji: "👣", desc: "Ordena instrucciones e imágenes en secuencia", tier: 1, gen: (d) => (d === "facil" ? genOrder(EMOJI_SEQUENCES)() : genOrder(SEQUENCES)()) },
+  { name: "Caza Patrones", emoji: "🔍", desc: "Descubre qué sigue en cada patrón", tier: 1, gen: genProc(qEmojiPatternSimple, () => (Math.random() < 0.5 ? qEmojiPattern() : qNumberPattern())) },
+  { name: "Robot Explorador", emoji: "🤖", desc: "Programa los movimientos del robot", tier: 2, gen: genProc(qRobotSimple, qRobotWalk) },
+  { name: "Bucles Mágicos", emoji: "🔁", desc: "Repite instrucciones y calcula el resultado", tier: 2, gen: genProc(qLoopVisual, qLoop) },
+  { name: "Si… Entonces", emoji: "🚦", desc: "Condicionales: decisiones del programa", tier: 2, gen: (d) => (d === "facil" ? session(Array.from({ length: 10 }, qIfThenVisual)) : buildMC(CONDITIONALS)) },
+  { name: "Cazador de Bugs", emoji: "🐞", desc: "Encuentra el error en cada programa", tier: 3, gen: (d) => (d === "facil" ? genOrderOrCheck(EMOJI_SEQUENCES)() : buildMC(BUGS)) },
+  { name: "Gran Arquitecto", emoji: "📐", desc: "Construye algoritmos completos", tier: 3, gen: (d) => (d === "facil" ? genOrder(EMOJI_SEQUENCES)() : genOrder(ALGORITHMS)()) },
+  {
+    name: "Código Secreto",
+    emoji: "💾",
+    desc: "Binario, cultura digital y encontrar el igual",
+    tier: 3,
+    gen: (d) =>
+      d === "facil"
+        ? session(Array.from({ length: 10 }, qMatchVisual))
+        : session([...Array.from({ length: 6 }, qBinary), ...sample(CONCEPTS, 5).map(([prompt, answer, wrong, visual, explain]) => ({ kind: "mc" as const, prompt, visual, options: shuffle([answer, ...wrong]), answer, explain }))]),
+  },
 ];

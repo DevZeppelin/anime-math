@@ -5,6 +5,7 @@ import type { Profile, Question, SubjectDef } from "@/lib/types";
 import { DIFFICULTY_META } from "@/lib/types";
 import { adaptQuestion, checkTyped, shuffle } from "@/lib/content/utils";
 import { TIER_COINS, TIER_XP, LESSON_BONUS, QUESTION_SECONDS, starsForErrors } from "@/lib/progression";
+import { speak, speechAvailable, stopSpeaking } from "@/lib/speech";
 import Avatar from "./Avatar";
 
 export interface LessonResult {
@@ -107,6 +108,24 @@ export default function LessonPlayer({ subject, levelIdx, profile, onComplete, o
   useEffect(() => {
     if (phase === "ask" && q?.kind === "type" && !q.numeric) inputRef.current?.focus();
   }, [phase, qi, q]);
+
+  // lectura en voz alta: clave para que los "Pequeños" (que no saben leer)
+  // puedan jugar solos. En ese modo se lee automáticamente cada pregunta;
+  // en los demás modos queda disponible el botón 🔊 para quien lo necesite.
+  // el idioma especial de la materia (p.ej. inglés) solo se usa en modo
+  // "Pequeños", donde el prompt ES la palabra suelta en ese idioma;
+  // en los demás modos los prompts son oraciones en español.
+  const lessonLang = diff === "facil" ? subject.lang ?? "es" : "es";
+  const speakPrompt = useCallback(() => {
+    if (q) speak(q.prompt, lessonLang);
+  }, [q, lessonLang]);
+  useEffect(() => {
+    if (diff !== "facil" || phase !== "ask" || !q) return;
+    const t = setTimeout(() => speak(q.prompt, lessonLang), 350);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [qi, phase, diff]);
+  useEffect(() => stopSpeaking, []); // corta la voz al desmontar la lección
 
   const finish = useCallback(
     (failed: boolean, fErrors: number, fCorrect: number, fCoins: number, fXp: number, fBest: number, fAnswered: number) => {
@@ -335,8 +354,15 @@ export default function LessonPlayer({ subject, levelIdx, profile, onComplete, o
 
       {/* pregunta */}
       <div className={`q-card panel ${phase === "feedback" ? (lastOk ? "flash-ok" : "flash-no") : ""}`}>
-        {q.visual && <div className={`q-visual ${q.visual.length > 10 ? "small" : ""}`}>{q.visual}</div>}
-        <p className="q-prompt display">{q.prompt}</p>
+        {q.visual && <div className={`q-visual ${q.visual.length > 10 ? "small" : ""} ${diff === "facil" ? "big" : ""}`}>{q.visual}</div>}
+        <div className="q-prompt-row">
+          <p className="q-prompt display">{q.prompt}</p>
+          {speechAvailable() && (
+            <button className="speak-btn" onClick={speakPrompt} title="Escuchar la pregunta" aria-label="Escuchar la pregunta">
+              🔊
+            </button>
+          )}
+        </div>
 
         {q.kind === "mc" && (
           <div className={`mc-grid ${q.options.some((o) => o.length > 18) ? "long" : ""}`}>

@@ -2,8 +2,12 @@ import type { Difficulty, LevelDef, Question } from "../types";
 import { sample, session, shuffle, textMC, typed } from "./utils";
 
 // ─────────────────────────────────────────────────────────────
-// INGLÉS — 10 niveles. Vocabulario esencial + frases,
-// siguiendo la progresión típica de primaria (CEFR pre-A1 → A1)
+// INGLÉS — 11 niveles, adaptados a 3 edades:
+//   facil (Menores de 5)  → "Escucha y toca la imagen": la palabra
+//                           en inglés se lee en voz alta (con
+//                           acento inglés) y el niño toca el
+//                           dibujo correcto. Cero lectura.
+//   normal / dificil       → el vocabulario y las frases clásicas.
 // ─────────────────────────────────────────────────────────────
 
 type V = [es: string, en: string, emoji: string];
@@ -68,6 +72,22 @@ const VERBS: V[] = [
   ["abrir", "open", "🔓"],
 ];
 
+const SHAPES_WORDS: V[] = [
+  ["círculo", "circle", "🔴"], ["cuadrado", "square", "🟥"], ["triángulo", "triangle", "🔺"],
+  ["estrella", "star", "⭐"], ["corazón", "heart", "❤️"], ["diamante", "diamond", "🔷"],
+];
+
+const FEELINGS: V[] = [
+  ["feliz", "happy", "😊"], ["triste", "sad", "😢"], ["enojado", "angry", "😠"],
+  ["cansado", "tired", "😴"], ["asustado", "scared", "😱"], ["sorprendido", "surprised", "😮"],
+];
+
+const OPPOSITES_BASIC: V[] = [
+  ["arriba", "up", "⬆️"], ["abajo", "down", "⬇️"], ["grande", "big", "🐘"],
+  ["pequeño", "small", "🐜"], ["caliente", "hot", "🔥"], ["frío", "cold", "❄️"],
+  ["rápido", "fast", "🐆"], ["lento", "slow", "🐢"],
+];
+
 // [pregunta, respuesta correcta, distractores]
 type P = [prompt: string, answer: string, distractors: string[], visual?: string];
 
@@ -118,12 +138,33 @@ const PHRASES: P[] = [
 
 // ── constructores ────────────────────────────────────────────
 
+/** "Escucha y toca la imagen": el prompt ES la palabra en inglés
+ *  (se lee con voz/acento inglés) y las opciones son dibujos. */
+function vocabFacil(bank: V[]): Question[] {
+  const emojiPool = bank.map((v) => v[2]);
+  return session(
+    sample(bank, 10).map(([, en, emoji]) => {
+      const wrong = sample(
+        emojiPool.filter((e) => e !== emoji),
+        2
+      );
+      return {
+        kind: "mc" as const,
+        prompt: en,
+        options: shuffle([emoji, ...wrong]),
+        answer: emoji,
+      };
+    })
+  );
+}
+
 function vocabQuestions(bank: V[], d: Difficulty, typedCount = 2): Question[] {
+  if (d === "facil") return vocabFacil(bank);
   const englishPool = bank.map((v) => v[1]);
   const spanishPool = bank.map((v) => v[0]);
   // en difícil hay más opciones para elegir y más escritura
   const count = d === "dificil" ? 6 : 4;
-  const writeChance = d === "facil" ? 0 : d === "dificil" ? 0.25 : 0.1;
+  const writeChance = d === "dificil" ? 0.25 : 0.1;
   const qs: Question[] = [];
   for (const [es, en, emoji] of sample(bank, 10)) {
     const mode = Math.random();
@@ -137,17 +178,16 @@ function vocabQuestions(bank: V[], d: Difficulty, typedCount = 2): Question[] {
       qs.push(typed(`Escribe en inglés: «${es}»`, en, { visual: emoji }));
     }
   }
-  // garantiza algo de escritura (salvo en modo fácil)
-  if (d !== "facil") {
-    const easy = bank.filter((v) => v[1].length <= 5);
-    for (const [es, en, emoji] of sample(easy.length ? easy : bank, typedCount)) {
-      qs.push(typed(`Escribe en inglés: «${es}»`, en, { visual: emoji }));
-    }
+  // garantiza algo de escritura
+  const easy = bank.filter((v) => v[1].length <= 5);
+  for (const [es, en, emoji] of sample(easy.length ? easy : bank, typedCount)) {
+    qs.push(typed(`Escribe en inglés: «${es}»`, en, { visual: emoji }));
   }
   return session(qs);
 }
 
-function phraseQuestions(bank: P[]): Question[] {
+function phraseQuestions(bank: P[], d: Difficulty, facilBank: V[]): Question[] {
+  if (d === "facil") return vocabFacil(facilBank);
   return session(
     sample(bank, 10).map(([prompt, answer, distractors, visual]) => ({
       kind: "mc" as const,
@@ -162,12 +202,13 @@ function phraseQuestions(bank: P[]): Question[] {
 export const ENGLISH_LEVELS: LevelDef[] = [
   { name: "Colors & Numbers", emoji: "🌈", desc: "Colores y números del 1 al 10", tier: 1, gen: (d) => vocabQuestions(COLORS_NUMBERS, d) },
   { name: "Animals", emoji: "🦁", desc: "Los animales en inglés", tier: 1, gen: (d) => vocabQuestions(ANIMALS, d) },
+  { name: "Shapes & Feelings", emoji: "⭐", desc: "Formas y emociones básicas", tier: 1, gen: (d) => vocabQuestions(d === "facil" ? SHAPES_WORDS : [...SHAPES_WORDS, ...FEELINGS], d) },
   { name: "My Family", emoji: "👨‍👩‍👧‍👦", desc: "La familia y los amigos", tier: 1, gen: (d) => vocabQuestions(FAMILY, d) },
   { name: "Food", emoji: "🍎", desc: "Comidas y bebidas", tier: 1, gen: (d) => vocabQuestions(FOOD, d) },
   { name: "My Body", emoji: "🙌", desc: "Las partes del cuerpo", tier: 2, gen: (d) => vocabQuestions(BODY, d) },
   { name: "School & Home", emoji: "🏫", desc: "Objetos de la escuela y la casa", tier: 2, gen: (d) => vocabQuestions(SCHOOL_HOME, d) },
   { name: "Action Words", emoji: "🏃", desc: "Verbos de acción", tier: 2, gen: (d) => vocabQuestions(VERBS, d) },
-  { name: "Hello!", emoji: "👋", desc: "Saludos y presentaciones", tier: 2, gen: () => phraseQuestions(GREETINGS) },
-  { name: "Where Is It?", emoji: "🧭", desc: "Posiciones y opuestos", tier: 3, gen: () => phraseQuestions(PREPOSITIONS) },
-  { name: "Real Phrases", emoji: "💬", desc: "Frases completas de la vida real", tier: 3, gen: () => phraseQuestions(PHRASES) },
+  { name: "Hello!", emoji: "👋", desc: "Saludos y presentaciones", tier: 2, gen: (d) => phraseQuestions(GREETINGS, d, FEELINGS) },
+  { name: "Where Is It?", emoji: "🧭", desc: "Posiciones y opuestos", tier: 3, gen: (d) => phraseQuestions(PREPOSITIONS, d, OPPOSITES_BASIC) },
+  { name: "Real Phrases", emoji: "💬", desc: "Frases completas de la vida real", tier: 3, gen: (d) => phraseQuestions(PHRASES, d, ANIMALS) },
 ];

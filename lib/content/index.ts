@@ -5,9 +5,13 @@ import { LANGUAGE_LEVELS } from "./language";
 import { SCIENCE_LEVELS } from "./science";
 import { FINANCE_LEVELS } from "./finance";
 import { CODING_LEVELS } from "./coding";
+import { GEOGRAPHY_LEVELS } from "./geography";
+import { ART_LEVELS } from "./art";
+import { EMOTIONS_LEVELS } from "./emotions";
 
-// Las 6 materias esenciales, inspiradas en los currículos de
-// primaria de Finlandia, Singapur, Estonia y Canadá.
+// Las 9 materias esenciales, inspiradas en los currículos de
+// primaria de Finlandia, Singapur, Estonia y Canadá — y
+// adaptadas a 3 edades (Menores de 5, 10 y 15).
 export const SUBJECTS: SubjectDef[] = [
   {
     id: "math",
@@ -24,6 +28,7 @@ export const SUBJECTS: SubjectDef[] = [
     color: "#ff5a6e",
     tagline: "Habla con todo el mundo",
     levels: ENGLISH_LEVELS,
+    lang: "en", // en modo "Pequeños" las palabras se leen con acento inglés
   },
   {
     id: "language",
@@ -56,6 +61,30 @@ export const SUBJECTS: SubjectDef[] = [
     color: "#c061ff",
     tagline: "Piensa como un creador",
     levels: CODING_LEVELS,
+  },
+  {
+    id: "geography",
+    name: "Geografía",
+    emoji: "🌍",
+    color: "#2fb8c4",
+    tagline: "Banderas, países y culturas del mundo",
+    levels: GEOGRAPHY_LEVELS,
+  },
+  {
+    id: "art",
+    name: "Arte y Música",
+    emoji: "🎨",
+    color: "#ff7ad9",
+    tagline: "Colores, ritmo y grandes artistas",
+    levels: ART_LEVELS,
+  },
+  {
+    id: "emotions",
+    name: "Emociones y Valores",
+    emoji: "💛",
+    color: "#ffb454",
+    tagline: "Conócete y cuida a los demás",
+    levels: EMOTIONS_LEVELS,
   },
 ];
 

@@ -13,26 +13,26 @@ export const DIFFICULTY_META: Record<
   { label: string; ages: string; emoji: string; desc: string; coinMult: number; timeBonus: number }
 > = {
   facil: {
-    label: "Explorador",
-    ages: "5-7 años",
-    emoji: "🐣",
-    desc: "Números pequeños, ayudas para contar y menos opciones.",
+    label: "Pequeños",
+    ages: "Menores de 5",
+    emoji: "🐥",
+    desc: "Todo con imágenes y colores, y lo lee en voz alta: ¡ideal para quienes aún no leen!",
     coinMult: 1,
-    timeBonus: 10,
+    timeBonus: 20,
   },
   normal: {
-    label: "Aventurero",
-    ages: "8-10 años",
+    label: "Aventureros",
+    ages: "Menores de 10",
     emoji: "🚀",
-    desc: "El desafío clásico de la academia.",
+    desc: "El desafío clásico de la academia, con lectura y escritura.",
     coinMult: 1.2,
     timeBonus: 0,
   },
   dificil: {
-    label: "Maestro",
-    ages: "11+ años",
-    emoji: "🔥",
-    desc: "Números grandes, más opciones y menos tiempo. ¡Más monedas!",
+    label: "Genios",
+    ages: "Menores de 15",
+    emoji: "🎓",
+    desc: "Retos avanzados, números grandes y menos tiempo. ¡Más monedas!",
     coinMult: 1.5,
     timeBonus: -7,
   },
@@ -162,6 +162,7 @@ export interface SubjectDef {
   color: string; // color de acento de la materia
   tagline: string;
   levels: LevelDef[];
+  lang?: "es" | "en"; // idioma para la lectura en voz alta (por defecto "es")
 }
 
 // ── Guardado ─────────────────────────────────────────────────
