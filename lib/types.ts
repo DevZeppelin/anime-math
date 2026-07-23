@@ -58,6 +58,7 @@ export interface ItemDef {
   c2?: string;
   c3?: string;
   variant?: string;
+  motif?: string; // patrón decorativo (sakura, olas, dragón, luna, llama…)
 }
 
 export interface AbilityDef {

@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import type { ItemDef, ItemType, Profile } from "@/lib/types";
 import { RARITY_META } from "@/lib/types";
 import { ALL_ITEMS, ABILITIES, ITEM_TYPE_META } from "@/lib/items";
-import Avatar from "./Avatar";
+import HeroStage from "./HeroStage";
 
 interface Props {
   profile: Profile;
@@ -50,7 +50,7 @@ export default function Shop({ profile, updateProfile, onBack }: Props) {
 
       <div className="shop-layout">
         <aside className="panel shop-preview">
-          <Avatar character={profile.character} size={160} idle showBackground />
+          <HeroStage character={profile.character} size={160} showBackground />
           <div className="shop-wallet">
             <span className="pill coin">🪙 {profile.coins}</span>
             <span className="pill gem">💎 {profile.gems}</span>

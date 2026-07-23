@@ -3,7 +3,7 @@
 import React from "react";
 import type { Profile } from "@/lib/types";
 import { SUBJECTS } from "@/lib/content";
-import Avatar from "./Avatar";
+import HeroStage from "./HeroStage";
 
 interface Props {
   profile: Profile;
@@ -18,7 +18,7 @@ export default function Dashboard({ profile, onOpenSubject, onNav }: Props) {
         {/* panel del personaje */}
         <aside className="panel char-panel">
           <div className="char-stage">
-            <Avatar character={profile.character} size={190} idle showBackground />
+            <HeroStage character={profile.character} size={180} showBackground />
           </div>
           <b className="display char-name">{profile.name}</b>
           <div className="quick-nav">

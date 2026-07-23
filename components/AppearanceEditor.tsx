@@ -11,6 +11,7 @@ import {
   MOUTH_STYLES,
   FACE_MARKS,
 } from "@/lib/items";
+import Avatar from "./Avatar";
 
 interface Props {
   character: Character;
@@ -23,14 +24,17 @@ export default function AppearanceEditor({ character: ch, onChange }: Props) {
     <>
       <div className="opt-group panel">
         <h3 className="display">Peinado</h3>
-        <div className="opt-row">
+        <div className="opt-row hair-row">
           {HAIR_STYLES.map((h) => (
             <button
               key={h.id}
-              className={`opt-chip ${ch.hairStyle === h.id ? "sel" : ""}`}
+              className={`hair-chip ${ch.hairStyle === h.id ? "sel" : ""}`}
               onClick={() => onChange({ hairStyle: h.id })}
             >
-              {h.label}
+              <span className="hair-thumb">
+                <Avatar character={{ ...ch, hairStyle: h.id }} size={76} />
+              </span>
+              <span className="hair-label">{h.label}</span>
             </button>
           ))}
         </div>

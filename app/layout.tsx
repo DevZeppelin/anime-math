@@ -1,10 +1,18 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Academia Aventura 🏰",
   description:
     "La escuela hecha juego: matemáticas, inglés, lengua, ciencias, finanzas y programación. Crea tu héroe, gana recompensas y conviértete en leyenda.",
+};
+
+// evita el zoom accidental al tocar botones/inputs en móvil
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  themeColor: "#0c0c20",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

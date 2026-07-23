@@ -26,6 +26,8 @@ interface Props {
 
 type Phase = "ask" | "feedback" | "result" | "failed";
 
+const PRAISE = ["¡Correcto!", "¡Genial!", "¡Excelente!", "¡Muy bien!", "¡Increíble!", "¡Eso es!"];
+
 export default function LessonPlayer({ subject, levelIdx, profile, onComplete, onExit }: Props) {
   const level = subject.levels[levelIdx];
   const questions = useMemo(() => level.gen(), [level]);
@@ -94,8 +96,9 @@ export default function LessonPlayer({ subject, levelIdx, profile, onComplete, o
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, qi]);
 
+  // foco solo para respuestas de texto (las numéricas usan el teclado en pantalla)
   useEffect(() => {
-    if (phase === "ask" && q?.kind === "type") inputRef.current?.focus();
+    if (phase === "ask" && q?.kind === "type" && !q.numeric) inputRef.current?.focus();
   }, [phase, qi, q]);
 
   const finish = useCallback(
@@ -170,7 +173,7 @@ export default function LessonPlayer({ subject, levelIdx, profile, onComplete, o
       }
       setPhase("feedback");
       if (ok) {
-        setTimeout(() => advance(answered, newErrors, newCorrect, newCoins, newXp, newBest), 1100);
+        setTimeout(() => advance(answered, newErrors, newCorrect, newCoins, newXp, newBest), 1000);
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
     },
@@ -189,6 +192,36 @@ export default function LessonPlayer({ subject, levelIdx, profile, onComplete, o
     },
     [questions.length, errors, correctCount, coins, xp, bestStreak, finish]
   );
+
+  /** Escritura con validación instantánea estilo Duolingo:
+   *  numérica → se resuelve sola al completar los dígitos;
+   *  texto → se resuelve sola en cuanto coincide. */
+  const onTyped = useCallback(
+    (val: string) => {
+      if (phase !== "ask" || !q || q.kind !== "type") return;
+      setTypedVal(val);
+      const clean = val.trim();
+      if (clean === "") return;
+      if (q.numeric) {
+        if (clean.replace("-", "").length >= q.answer.replace("-", "").length) resolve(checkTyped(q, clean));
+      } else if (checkTyped(q, clean)) {
+        resolve(true);
+      }
+    },
+    [phase, q, resolve]
+  );
+
+  // teclado físico para preguntas numéricas (el input visible es un display)
+  useEffect(() => {
+    if (phase !== "ask" || !q || q.kind !== "type" || !q.numeric) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (/^[0-9]$/.test(e.key)) onTyped(typedVal + e.key);
+      else if (e.key === "Backspace") setTypedVal((v) => v.slice(0, -1));
+      else if (e.key === "-" && typedVal === "") setTypedVal("-");
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [phase, q, typedVal, onTyped]);
 
   if (!q && phase === "ask") return null;
 
@@ -247,6 +280,7 @@ export default function LessonPlayer({ subject, levelIdx, profile, onComplete, o
   if (!q) return null;
 
   const timerPct = Math.max(0, (timeLeft / qSeconds) * 100);
+  const praise = PRAISE[correctCount % PRAISE.length];
 
   return (
     <div className="lesson-shell">
@@ -326,7 +360,43 @@ export default function LessonPlayer({ subject, levelIdx, profile, onComplete, o
           </div>
         )}
 
-        {q.kind === "type" && (
+        {q.kind === "type" && q.numeric && (
+          <div className="type-area">
+            {/* display de la respuesta: se valida sola al completar los dígitos */}
+            <div className={`type-display display ${typedVal ? "filled" : ""}`}>
+              {typedVal || "?"}
+            </div>
+            <div className="numpad">
+              {["1", "2", "3", "4", "5", "6", "7", "8", "9"].map((d) => (
+                <button
+                  key={d}
+                  className="numpad-btn display"
+                  disabled={phase !== "ask"}
+                  onClick={() => onTyped(typedVal + d)}
+                >
+                  {d}
+                </button>
+              ))}
+              <button
+                className="numpad-btn aux"
+                disabled={phase !== "ask" || typedVal === ""}
+                onClick={() => setTypedVal((v) => v.slice(0, -1))}
+              >
+                ⌫
+              </button>
+              <button
+                className="numpad-btn display"
+                disabled={phase !== "ask"}
+                onClick={() => onTyped(typedVal + "0")}
+              >
+                0
+              </button>
+              <span className="numpad-spacer" />
+            </div>
+          </div>
+        )}
+
+        {q.kind === "type" && !q.numeric && (
           <form
             className="type-row"
             onSubmit={(e) => {
@@ -338,14 +408,15 @@ export default function LessonPlayer({ subject, levelIdx, profile, onComplete, o
               ref={inputRef}
               className="type-input display"
               value={typedVal}
-              inputMode={q.numeric ? "numeric" : "text"}
+              inputMode="text"
               autoComplete="off"
-              placeholder={q.numeric ? "?" : "escribe aquí…"}
+              autoCapitalize="off"
+              placeholder="escribe aquí…"
               disabled={phase !== "ask"}
-              onChange={(e) => setTypedVal(e.target.value)}
+              onChange={(e) => onTyped(e.target.value)}
             />
             <button className="btn primary" type="submit" disabled={phase !== "ask" || typedVal.trim() === ""}>
-              Responder
+              Comprobar
             </button>
           </form>
         )}
@@ -367,8 +438,12 @@ export default function LessonPlayer({ subject, levelIdx, profile, onComplete, o
                   className="mc-btn order-opt"
                   disabled={phase !== "ask"}
                   onClick={() => {
-                    setOrderPool((p) => p.filter((x) => x !== it));
-                    setOrderSel((s) => [...s, it]);
+                    // al colocar la última pieza se comprueba solo
+                    const nextPool = orderPool.filter((x) => x !== it);
+                    const nextSel = [...orderSel, it];
+                    setOrderPool(nextPool);
+                    setOrderSel(nextSel);
+                    if (nextPool.length === 0) resolve(nextSel.every((x, i) => x === q.items[i]));
                   }}
                 >
                   {it}
@@ -385,13 +460,6 @@ export default function LessonPlayer({ subject, levelIdx, profile, onComplete, o
                 }}
               >
                 ↺ Reiniciar
-              </button>
-              <button
-                className="btn primary"
-                disabled={phase !== "ask" || orderPool.length > 0}
-                onClick={() => resolve(orderSel.every((it, i) => it === q.items[i]))}
-              >
-                Comprobar
               </button>
             </div>
           </div>
@@ -410,32 +478,43 @@ export default function LessonPlayer({ subject, levelIdx, profile, onComplete, o
             🦅 Usar pista 50/50
           </button>
         )}
+      </div>
 
-        {/* feedback */}
-        {phase === "feedback" && (
-          <div className={`feedback ${lastOk ? "ok" : "no"}`}>
+      <div className="lesson-companion">
+        <Avatar character={profile.character} size={90} idle />
+      </div>
+
+      {/* hoja de feedback inferior estilo Duolingo */}
+      {phase === "feedback" && (
+        <div className={`sheet ${lastOk ? "ok" : "no"}`}>
+          <div className="sheet-inner">
             {lastOk ? (
-              <span className="display">
-                {lucky ? "🍀 ¡SUERTE x2! " : "✨ ¡Correcto! "}+{lastGain} 🪙
-              </span>
+              <div className="sheet-msg">
+                <span className="sheet-icon">{lucky ? "🍀" : "✨"}</span>
+                <div className="sheet-text">
+                  <b className="display">{lucky ? "¡SUERTE x2!" : praise}</b>
+                  <small>+{lastGain} 🪙</small>
+                </div>
+              </div>
             ) : (
               <>
-                <span className="display">La respuesta era: {correctText}</span>
-                {"explain" in q && q.explain && <small>{q.explain}</small>}
+                <div className="sheet-msg">
+                  <span className="sheet-icon">💡</span>
+                  <div className="sheet-text">
+                    <b className="display">La respuesta era: {correctText}</b>
+                    {"explain" in q && q.explain && <small>{q.explain}</small>}
+                  </div>
+                </div>
                 {hearts > 0 && (
-                  <button className="btn primary" onClick={() => advance(qi + 1)}>
+                  <button className="btn primary big sheet-btn" onClick={() => advance(qi + 1)}>
                     Entendido →
                   </button>
                 )}
               </>
             )}
           </div>
-        )}
-      </div>
-
-      <div className="lesson-companion">
-        <Avatar character={profile.character} size={90} idle />
-      </div>
+        </div>
+      )}
     </div>
   );
 }

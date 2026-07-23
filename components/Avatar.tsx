@@ -66,7 +66,8 @@ export default function Avatar({ character, size = 160, showBackground = false, 
   const o2 = outfit?.c2 ?? "#2b3f6b";
   const o3 = outfit?.c3 ?? "#ffd24d";
   const variant = outfit?.variant ?? "suit";
-  const isSkirt = variant === "dress" || variant === "robe";
+  const isKimono = variant === "kimono";
+  const isSkirt = variant === "dress" || variant === "robe" || isKimono;
 
   // ── fondo ──────────────────────────────────────────────────
   let bgArt: React.ReactNode = null;
@@ -180,42 +181,57 @@ export default function Avatar({ character, size = 160, showBackground = false, 
     );
   }
 
+  // trazo de contorno del pelo: da el acabado "figura de anime"
+  const hs = {
+    stroke: hairD,
+    strokeWidth: 1.4,
+    strokeLinejoin: "round" as const,
+    strokeLinecap: "round" as const,
+  };
+
   // ── pelo trasero (masas que van DETRÁS del cuerpo) ─────────
   let hairBack: React.ReactNode = null;
   switch (c.hairStyle) {
     case "long":
-      hairBack = (
-        <path d="M56,60 Q44,120 52,158 Q60,170 70,160 L72,90 L128,90 L130,160 Q140,170 148,158 Q156,120 144,60 Z" fill={hairD} />
-      );
-      break;
-    case "wavy":
+      // melena suelta hasta la cintura con puntas
       hairBack = (
         <path
-          d="M56,60 Q40,95 52,115 Q42,135 54,152 Q46,168 62,172 Q74,166 72,150 L74,90 L126,90 L128,150 Q126,166 138,172 Q154,168 146,152 Q158,135 148,115 Q160,95 144,60 Z"
+          d="M54,58 Q38,120 48,168 Q52,180 62,172 L60,148 Q68,166 78,158 L74,94 L126,94 L122,158 Q132,166 140,148 L138,172 Q148,180 152,168 Q162,120 146,58 Z"
           fill={hairD}
+          {...hs}
         />
       );
       break;
-    case "hime":
+    case "wavy":
+      // cascada ondulada en forma de S a ambos lados
       hairBack = (
-        <path d="M58,60 Q48,120 54,166 Q70,174 78,164 L78,88 L122,88 L122,164 Q130,174 146,166 Q152,120 142,60 Z" fill={hairD} />
-      );
-      break;
-    case "twintails":
-      hairBack = (
-        <g>
-          <path d="M60,62 Q26,84 32,146 Q36,166 50,160 Q44,108 68,78 Z" fill={hairD} />
-          <path d="M140,62 Q174,84 168,146 Q164,166 150,160 Q156,108 132,78 Z" fill={hairD} />
+        <g fill={hairD} {...hs}>
+          <path d="M56,56 Q34,92 52,118 Q36,144 56,166 Q50,180 68,176 Q78,166 68,152 Q80,132 66,114 Q78,94 68,78 Z" />
+          <path d="M144,56 Q166,92 148,118 Q164,144 144,166 Q150,180 132,176 Q122,166 132,152 Q120,132 134,114 Q122,94 132,78 Z" />
         </g>
       );
       break;
-    case "braid":
+    case "hime":
+      // panel largo y recto con corte horizontal
+      hairBack = (
+        <path d="M56,56 Q46,130 52,178 L74,178 L76,92 L124,92 L126,178 L148,178 Q154,130 144,56 Z" fill={hairD} {...hs} />
+      );
+      break;
+    case "twintails":
+      // dos coletas enormes con curva y volumen
+      hairBack = (
+        <g fill={hairD} {...hs}>
+          <path d="M60,58 Q18,84 26,148 Q30,172 50,168 Q44,120 70,82 Z" />
+          <path d="M140,58 Q182,84 174,148 Q170,172 150,168 Q156,120 130,82 Z" />
+        </g>
+      );
+      break;
+    case "ponytail":
+      // cola alta que fluye hacia atrás
       hairBack = (
         <g>
-          {[70, 88, 106, 124, 140].map((y, i) => (
-            <circle key={i} cx={146 + (i % 2 === 0 ? 2 : -2)} cy={y} r={10 - i * 0.8} fill={i % 2 === 0 ? hairD : darken(hair, 0.58)} />
-          ))}
-          <polygon points="140,150 148,166 154,148" fill={darken(hair, 0.58)} />
+          <path d="M134,42 Q176,40 176,94 Q176,142 150,162 Q162,120 150,84 Q144,58 130,52 Z" fill={hairG} {...hs} />
+          <path d="M160,70 Q168,100 158,136 Q166,104 156,76 Z" fill={hairL} opacity={0.5} />
         </g>
       );
       break;
@@ -254,7 +270,117 @@ export default function Avatar({ character, size = 160, showBackground = false, 
 
   // ── torso / traje ──────────────────────────────────────────
   let torso: React.ReactNode;
-  if (isSkirt) {
+  if (isKimono) {
+    // motivo decorativo bordado en la falda del kimono
+    const motifArt: React.ReactNode[] = [];
+    const motif = outfit?.motif;
+    if (motif === "sakura") {
+      const flower = (fx: number, fy: number, fs: number) => (
+        <g key={`fl${fx}-${fy}`}>
+          {[0, 72, 144, 216, 288].map((a) => (
+            <circle
+              key={a}
+              cx={fx + Math.cos((a * Math.PI) / 180) * 3.2 * fs}
+              cy={fy + Math.sin((a * Math.PI) / 180) * 3.2 * fs}
+              r={2.4 * fs}
+              fill="#fff"
+              opacity={0.9}
+            />
+          ))}
+          <circle cx={fx} cy={fy} r={1.7 * fs} fill={o3} />
+        </g>
+      );
+      motifArt.push(flower(82, 180, 1), flower(114, 197, 0.85), flower(99, 168, 0.65), flower(126, 178, 0.55));
+    } else if (motif === "olas") {
+      for (let r = 0; r < 2; r++)
+        for (let i = 0; i < 5; i++)
+          motifArt.push(
+            <path
+              key={`w${r}-${i}`}
+              d={`M${60 + i * 16 + (r % 2) * 8},${200 - r * 13} a8,8 0 0 1 16,0`}
+              fill="none"
+              stroke={o3}
+              strokeWidth={1.7}
+              opacity={0.75}
+            />
+          );
+    } else if (motif === "dragon") {
+      motifArt.push(
+        <g key="drg" stroke={o3} fill="none" strokeWidth={2.3} strokeLinecap="round" opacity={0.92}>
+          <path d="M74,201 Q86,183 100,193 Q114,203 123,185" />
+          <path d="M120,183 L127,180 M121,184 L125,190" strokeWidth={1.7} />
+        </g>,
+        <circle key="drge" cx={124.5} cy={184} r={1.5} fill={o3} />
+      );
+    } else if (motif === "luna") {
+      motifArt.push(
+        <path key="mn" d="M92,170 A10.5,10.5 0 1 0 92,191 A8,8 0 1 1 92,170 Z" fill={o3} opacity={0.95} />,
+        <g key="st" fill={o3}>
+          <path d="M116,178 l2,3.2 -2,3.2 -2,-3.2 Z" />
+          <path d="M108,196 l1.6,2.6 -1.6,2.6 -1.6,-2.6 Z" opacity={0.8} />
+          <path d="M122,198 l1.3,2 -1.3,2 -1.3,-2 Z" opacity={0.6} />
+        </g>
+      );
+    }
+    torso = (
+      <g>
+        {/* mangas anchas colgantes */}
+        <path d="M50,122 L74,119 L79,172 L42,166 Z" fill={o1} stroke={darken(o1, 0.7)} strokeWidth={1.2} />
+        <path d="M150,122 L126,119 L121,172 L158,166 Z" fill={o1} stroke={darken(o1, 0.7)} strokeWidth={1.2} />
+        <path d="M42,166 L79,172 L78,163 L44,158 Z" fill={darken(o1, 0.8)} />
+        <path d="M158,166 L121,172 L122,163 L156,158 Z" fill={darken(o1, 0.8)} />
+        {/* cuerpo del kimono */}
+        <path d="M74,118 L126,118 L138,212 Q100,224 62,212 Z" fill={o1} />
+        <path d="M74,118 L84,118 L70,205 Q65,209 62,212 Z" fill="#fff" opacity={0.08} />
+        {/* cuello cruzado con juban blanco asomando */}
+        <path d="M84,118 L100,143 L116,118" stroke="#fff8f0" strokeWidth={6} fill="none" />
+        <path d="M79,118 L100,150 L121,118" stroke={o2} strokeWidth={7} fill="none" />
+        {motifArt}
+        {/* obi */}
+        <rect x={69} y={150} width={62} height={16} fill={o3} />
+        <rect x={69} y={155} width={62} height={2.5} fill={darken(o3, 0.7)} opacity={0.7} />
+        <rect x={92} y={147} width={16} height={21} rx={3} fill={darken(o3, 0.85)} />
+        <rect x={95} y={150} width={10} height={15} rx={2} fill={o3} />
+      </g>
+    );
+  } else if (variant === "seifuku") {
+    torso = (
+      <g>
+        {/* camisa blanca */}
+        <rect x={74} y={118} width={52} height={54} rx={12} fill="#f6f8ff" />
+        <rect x={78} y={122} width={8} height={44} rx={4} fill="#fff" opacity={0.65} />
+        {/* falda tableada */}
+        <path d="M72,166 L128,166 L133,186 L67,186 Z" fill={o1} />
+        {[79, 89, 99, 109, 119].map((x) => (
+          <line key={x} x1={x} y1={168} x2={x - 1.5} y2={185} stroke={darken(o1, 0.75)} strokeWidth={1.4} />
+        ))}
+        {/* cuello marinero */}
+        <path d="M74,118 L100,146 L126,118 L126,133 L100,153 L74,133 Z" fill={o1} />
+        <path d="M78,121 L100,143 L122,121" stroke="#fff" strokeWidth={1.6} fill="none" opacity={0.85} />
+        <path d="M78,126 L100,148 L122,126" stroke="#fff" strokeWidth={1.2} fill="none" opacity={0.5} />
+        {/* pañoleta anudada */}
+        <path d="M94,141 L100,135 L106,141 L100,151 Z" fill={o3} />
+        <path d="M100,149 L95,160 L100,156 L105,160 Z" fill={darken(o3, 0.85)} />
+      </g>
+    );
+  } else if (variant === "shinobi") {
+    torso = (
+      <g>
+        <rect x={74} y={118} width={52} height={66} rx={13} fill={o1} />
+        {/* chaleco cruzado */}
+        <path d="M74,120 L100,150 L74,150 Z" fill={darken(o1, 0.8)} />
+        <path d="M126,120 L100,150 L126,150 Z" fill={darken(o1, 0.7)} />
+        <path d="M74,119 L100,149 M126,119 L100,149" stroke={o3} strokeWidth={2.4} opacity={0.95} />
+        {/* faja */}
+        <rect x={72} y={157} width={56} height={11} rx={4} fill={o3} />
+        <rect x={72} y={160} width={56} height={2} fill={darken(o3, 0.65)} opacity={0.8} />
+        {/* bufanda shinobi */}
+        <path d="M80,113 Q100,126 120,113 L120,124 Q100,135 80,124 Z" fill={darken(o1, 0.6)} />
+        <path d="M116,122 Q126,136 120,152 L112,150 Q118,136 110,126 Z" fill={darken(o1, 0.6)} opacity={0.9} />
+        <rect x={78} y={124} width={7} height={46} rx={3.5} fill="#fff" opacity={0.06} />
+      </g>
+    );
+  } else if (isSkirt) {
     torso = (
       <g>
         <path d={`M76,122 L124,122 L140,214 Q100,226 60,214 Z`} fill={o1} />
@@ -306,7 +432,7 @@ export default function Avatar({ character, size = 160, showBackground = false, 
   }
 
   // ── brazos ─────────────────────────────────────────────────
-  const sleeve = variant === "sport" ? skin : o1;
+  const sleeve = variant === "sport" ? skin : variant === "seifuku" ? "#f6f8ff" : o1;
   const arms = (
     <g>
       <rect x={56} y={122} width={16} height={52} rx={8} fill={sleeve} />
@@ -324,66 +450,87 @@ export default function Avatar({ character, size = 160, showBackground = false, 
     </g>
   );
 
-  // ── ojos ───────────────────────────────────────────────────
+  // ── ojos: grandes, estilo manga, iris con degradado y varios brillos ──
   function drawEye(cx: number, mirror: boolean): React.ReactNode {
     const s = mirror ? -1 : 1;
-    const lash = (
-      <g stroke={lineC} strokeWidth={2.2} strokeLinecap="round" fill="none">
-        <path d={`M${cx - 9 * s},76 Q${cx},68 ${cx + 9 * s},76`} strokeWidth={2.6} />
-        <line x1={cx + 8.5 * s} y1={74.5} x2={cx + 12 * s} y2={71.5} />
-        <line x1={cx + 6 * s} y1={71.8} x2={cx + 8.5 * s} y2={68.5} />
+    // párpado superior grueso con pestañas hacia afuera
+    const topLash = (yTop: number) => (
+      <g stroke={lineC} strokeLinecap="round" fill="none">
+        <path d={`M${cx - 10 * s},${yTop + 4.5} Q${cx},${yTop - 2} ${cx + 10 * s},${yTop + 4.5}`} strokeWidth={3.4} />
+        <path d={`M${cx + 9 * s},${yTop + 3.5} L${cx + 13.5 * s},${yTop - 0.5}`} strokeWidth={2.6} />
+        <path d={`M${cx + 5.5 * s},${yTop + 1} L${cx + 8 * s},${yTop - 3}`} strokeWidth={2} />
+        <path d={`M${cx - 8.5 * s},${yTop + 3.5} L${cx - 11.5 * s},${yTop + 0.5}`} strokeWidth={1.8} opacity={0.85} />
+      </g>
+    );
+    // brillos característicos del manga: uno grande arriba, uno chico abajo
+    const sparkle = (
+      <g fill="#fff">
+        <circle cx={cx - 3 * s} cy={77.5} r={3.1} />
+        <circle cx={cx + 3.5 * s} cy={88} r={1.7} opacity={0.9} />
+        <ellipse cx={cx - 4.8 * s} cy={84} rx={1} ry={2.4} opacity={0.5} />
       </g>
     );
     switch (c.eyeStyle) {
       case "happy":
         return (
-          <g stroke={lineC} strokeWidth={3.2} strokeLinecap="round" fill="none">
-            <path d={`M${cx - 8 * s},84 Q${cx},74 ${cx + 8 * s},84`} />
-            <line x1={cx + 7.5 * s} y1={80} x2={cx + 11 * s} y2={77} strokeWidth={2.2} />
+          <g stroke={lineC} strokeWidth={3.6} strokeLinecap="round" fill="none">
+            <path d={`M${cx - 9 * s},85 Q${cx},73 ${cx + 9 * s},85`} />
+            <path d={`M${cx + 8 * s},81 L${cx + 12 * s},77.5`} strokeWidth={2.4} />
+            <path d={`M${cx - 7 * s},90 Q${cx},93.5 ${cx + 7 * s},90`} strokeWidth={1.5} opacity={0.3} />
           </g>
         );
       case "sleepy":
         return (
           <g>
-            <path d={`M${cx - 9},84 Q${cx},78 ${cx + 9},84 L${cx + 9},88 Q${cx},96 ${cx - 9},88 Z`} fill="#fff" />
-            <ellipse cx={cx} cy={86} rx={5.5} ry={6} fill={irisG} />
-            <ellipse cx={cx} cy={86.5} rx={2.4} ry={3} fill="#1c1626" />
-            <circle cx={cx - 1.8} cy={84.5} r={1.4} fill="#fff" />
-            <path d={`M${cx - 9.5},83 Q${cx},76 ${cx + 9.5},83`} stroke={lineC} strokeWidth={2.8} strokeLinecap="round" fill="none" />
+            <path d={`M${cx - 9.5},82 Q${cx},77 ${cx + 9.5},82 L${cx + 9},90 Q${cx},96.5 ${cx - 9},90 Z`} fill="#fff" />
+            <ellipse cx={cx} cy={86} rx={6.2} ry={7} fill={irisG} />
+            <ellipse cx={cx} cy={87} rx={2.8} ry={3.6} fill="#1c1626" />
+            <circle cx={cx - 2.2} cy={83.5} r={1.9} fill="#fff" />
+            <path d={`M${cx - 10},81 Q${cx},74.5 ${cx + 10},81`} stroke={lineC} strokeWidth={3.2} strokeLinecap="round" fill="none" />
+            <path d={`M${cx - 8},92.5 Q${cx},96 ${cx + 8},92.5`} stroke={lineC} strokeWidth={1.4} strokeLinecap="round" fill="none" opacity={0.3} />
           </g>
         );
       case "determined":
         return (
           <g>
-            <path d={`M${cx - 9 * s},73 L${cx + 9 * s},78.5 L${cx + 9 * s},88 Q${cx},95 ${cx - 9 * s},88 Z`} fill="#fff" />
-            <ellipse cx={cx + 1 * s} cy={83.5} rx={6} ry={7.5} fill={irisG} />
-            <ellipse cx={cx + 1 * s} cy={84.5} rx={2.8} ry={4} fill="#1c1626" />
-            <circle cx={cx - 1.5 * s} cy={80} r={2.2} fill="#fff" />
-            <path d={`M${cx - 9 * s},73 L${cx + 9.5 * s},78.4`} stroke={lineC} strokeWidth={3} strokeLinecap="round" />
+            <path d={`M${cx - 10 * s},72 L${cx + 10 * s},78 L${cx + 10 * s},89 Q${cx},96 ${cx - 10 * s},89 Z`} fill="#fff" />
+            <ellipse cx={cx + 1 * s} cy={84} rx={6.6} ry={8.4} fill={irisG} />
+            <ellipse cx={cx + 1 * s} cy={85} rx={3} ry={4.4} fill="#1c1626" />
+            <circle cx={cx - 1.5 * s} cy={80} r={2.6} fill="#fff" />
+            <circle cx={cx + 3.5 * s} cy={89} r={1.3} fill="#fff" opacity={0.9} />
+            <path d={`M${cx - 10 * s},72 L${cx + 11 * s},77.8`} stroke={lineC} strokeWidth={3.4} strokeLinecap="round" />
+            <path d={`M${cx - 8 * s},93 Q${cx},96 ${cx + 8 * s},92`} stroke={lineC} strokeWidth={1.4} strokeLinecap="round" fill="none" opacity={0.3} />
           </g>
         );
       case "star":
         return (
           <g>
-            <ellipse cx={cx} cy={81} rx={9} ry={11.5} fill="#fff" />
-            <ellipse cx={cx} cy={82} rx={7} ry={9.5} fill={irisG} />
+            <path d={`M${cx - 10},71.5 Q${cx},65.5 ${cx + 10},71.5 L${cx + 10},89 Q${cx},96.5 ${cx - 10},89 Z`} fill="#fff" />
+            <ellipse cx={cx} cy={82.5} rx={8} ry={10.5} fill={irisG} />
             <path
-              d={`M${cx},75.5 L${cx + 1.8},80 L${cx + 6.4},80.4 L${cx + 2.9},83.4 L${cx + 4},88 L${cx},85.2 L${cx - 4},88 L${cx - 2.9},83.4 L${cx - 6.4},80.4 L${cx - 1.8},80 Z`}
+              d={`M${cx},74.5 L${cx + 2.2},80 L${cx + 8},80.5 L${cx + 3.6},84.2 L${cx + 5},90 L${cx},86.4 L${cx - 5},90 L${cx - 3.6},84.2 L${cx - 8},80.5 L${cx - 2.2},80 Z`}
               fill="#fff"
               opacity={0.95}
             />
-            {lash}
+            <circle cx={cx + 4 * s} cy={76.5} r={1.6} fill="#fff" />
+            {topLash(68)}
           </g>
         );
       default:
         return (
           <g>
-            <ellipse cx={cx} cy={81} rx={9} ry={12} fill="#fff" />
-            <ellipse cx={cx} cy={82.5} rx={6.5} ry={9.5} fill={irisG} />
-            <ellipse cx={cx} cy={84} rx={3} ry={5} fill="#1c1626" />
-            <circle cx={cx - 2.5} cy={78.5} r={2.8} fill="#fff" />
-            <circle cx={cx + 2.5} cy={87} r={1.4} fill="#fff" opacity={0.85} />
-            {lash}
+            {/* globo ocular alto */}
+            <path d={`M${cx - 10},71.5 Q${cx},65.5 ${cx + 10},71.5 L${cx + 10},88.5 Q${cx},96.5 ${cx - 10},88.5 Z`} fill="#fff" />
+            <ellipse cx={cx} cy={82} rx={7.4} ry={10.6} fill={irisG} />
+            {/* reflejo inferior claro del iris */}
+            <path d={`M${cx - 4.5},89 Q${cx},92.5 ${cx + 4.5},89 Q${cx},94.5 ${cx - 4.5},89 Z`} fill={lighten(eye, 0.55)} opacity={0.8} />
+            <ellipse cx={cx} cy={83.5} rx={3.4} ry={5.6} fill="#1c1626" />
+            {sparkle}
+            {topLash(68)}
+            {/* línea inferior suave */}
+            <path d={`M${cx - 8},92 Q${cx},95.5 ${cx + 8},92`} stroke={lineC} strokeWidth={1.5} strokeLinecap="round" fill="none" opacity={0.3} />
+            {/* pliegue del párpado */}
+            <path d={`M${cx - 7 * s},66 Q${cx},62.5 ${cx + 7 * s},66`} stroke={lineC} strokeWidth={1.2} fill="none" opacity={0.22} />
           </g>
         );
     }
@@ -393,13 +540,13 @@ export default function Avatar({ character, size = 160, showBackground = false, 
   const brows =
     c.eyeStyle === "determined" ? (
       <g stroke={hairD} strokeWidth={3} fill="none" strokeLinecap="round">
-        <path d="M73,62 L93,68" />
-        <path d="M127,62 L107,68" />
+        <path d="M72,58 L93,64" />
+        <path d="M128,58 L107,64" />
       </g>
     ) : (
       <g stroke={hairD} strokeWidth={2.6} fill="none" strokeLinecap="round">
-        <path d="M74,66 Q83,61.5 92,65" />
-        <path d="M108,65 Q117,61.5 126,66" />
+        <path d="M74,61 Q83,56.5 92,60" />
+        <path d="M108,60 Q117,56.5 126,61" />
       </g>
     );
 
@@ -492,9 +639,19 @@ export default function Avatar({ character, size = 160, showBackground = false, 
       <circle cx={144} cy={78} r={9} fill={skin} stroke={skinD} strokeWidth={1.2} />
       <circle cx={57.5} cy={78} r={4} fill={skinD} opacity={0.5} />
       <circle cx={142.5} cy={78} r={4} fill={skinD} opacity={0.5} />
-      {/* cara */}
-      <circle cx={100} cy={72} r={45} fill={skin} />
-      <path d="M60,85 Q100,124 140,85 Q136,110 100,117 Q64,110 60,85 Z" fill={skinD} opacity={0.18} />
+      {/* cara: cráneo redondo con mejillas y mentón afilado estilo anime */}
+      <path
+        d="M55,64 Q55,26 100,26 Q145,26 145,64 Q145,91 127,106 Q113,117 100,118 Q87,117 73,106 Q55,91 55,64 Z"
+        fill={skin}
+      />
+      <path
+        d="M55,64 Q55,26 100,26 Q145,26 145,64 Q145,91 127,106 Q113,117 100,118 Q87,117 73,106 Q55,91 55,64 Z"
+        fill="none"
+        stroke={lineC}
+        strokeWidth={1.6}
+        opacity={0.25}
+      />
+      <path d="M64,88 Q100,120 136,88 Q132,107 100,115 Q68,107 64,88 Z" fill={skinD} opacity={0.15} />
       <ellipse cx={82} cy={52} rx={18} ry={10} fill={skinL} opacity={0.5} />
       {/* mejillas suaves siempre presentes */}
       <ellipse cx={74} cy={92} rx={5} ry={3} fill="#ff8fa8" opacity={0.35} />
@@ -512,193 +669,265 @@ export default function Avatar({ character, size = 160, showBackground = false, 
   // ── pelo delantero ─────────────────────────────────────────
   let hairArt: React.ReactNode = null;
   const shine = (d: string) => <path d={d} fill="#fff" opacity={0.22} />;
+  // flequillo de picos afilados que caen sobre los ojos (sello del anime)
+  const bangsSharp = (
+    <path
+      d="M55,72 Q50,28 100,22 Q150,28 145,72 L139,58 L131,67 L124,50 L116,67 L108,49 L100,67 L92,49 L84,67 L77,50 L69,67 L61,58 Z"
+      fill={hairG}
+      {...hs}
+    />
+  );
+  // flequillo de mechones redondeados barridos
+  const bangsSwept = (
+    <path
+      d="M55,72 Q50,26 100,20 Q150,26 145,72 Q141,58 133,54 Q126,68 115,58 Q104,72 90,60 Q76,70 67,58 Q58,60 55,72 Z"
+      fill={hairG}
+      {...hs}
+    />
+  );
+  // antenita rebelde (ahoge)
+  const ahoge = <path d="M95,21 Q88,10 97,-2 Q94,10 101,16 Z" fill={hairG} {...hs} />;
+
   switch (c.hairStyle) {
     case "spiky":
+      // picos saiyan: capa oscura atrás, picos grandes con curva adelante
       hairArt = (
         <g>
-          <path
-            d="M55,72 Q52,30 100,26 Q148,30 145,72 Q140,50 128,52 Q132,40 118,44 Q118,32 104,40 Q98,28 88,42 Q76,36 78,50 Q64,46 70,60 Q58,58 55,72 Z"
-            fill={hairG}
-          />
-          <polygon points="62,58 48,30 76,44" fill={hairG} />
-          <polygon points="90,38 100,10 110,38" fill={hairG} />
-          <polygon points="124,44 152,30 138,58" fill={hairG} />
-          <polygon points="76,42 68,22 92,36" fill={hairD} />
-          <polygon points="108,36 132,22 124,42" fill={hairD} />
-          {/* flequillo en picos sobre la frente */}
-          <path d="M60,64 Q100,44 140,64 L132,60 L124,66 L114,58 L104,66 L96,58 L86,66 L76,58 L68,66 Z" fill={hairG} />
-          {shine("M70,44 Q88,30 108,32 Q90,38 78,50 Z")}
+          <g fill={hairD}>
+            <path d="M60,58 Q42,44 36,22 Q58,32 66,44 Z" />
+            <path d="M140,58 Q158,44 164,22 Q142,32 134,44 Z" />
+            <path d="M78,34 Q68,14 72,-4 Q86,14 90,28 Z" />
+            <path d="M122,34 Q132,14 128,-4 Q114,14 110,28 Z" />
+          </g>
+          {bangsSharp}
+          <g fill={hairG} {...hs}>
+            <path d="M62,54 Q44,42 38,22 Q60,30 72,42 Z" />
+            <path d="M138,54 Q156,42 162,22 Q140,30 128,42 Z" />
+            <path d="M72,42 Q58,22 62,2 Q82,18 88,32 Z" />
+            <path d="M128,42 Q142,22 138,2 Q118,18 112,32 Z" />
+            <path d="M88,30 Q84,8 96,-10 Q100,10 101,26 Z" />
+            <path d="M112,30 Q116,8 104,-10 Q100,10 99,26 Z" />
+          </g>
+          {shine("M70,40 Q86,24 100,22 Q84,34 76,48 Z")}
         </g>
       );
       break;
     case "messy":
+      // despeinado de protagonista: mechones hacia todos lados + ahoge
       hairArt = (
         <g>
-          <path
-            d="M55,76 Q50,26 100,25 Q150,26 145,76 L138,62 L132,72 L124,56 L114,68 L106,52 L96,66 L88,52 L80,66 L72,54 L66,70 L60,60 Z"
-            fill={hairG}
-          />
-          <path d="M74,52 L80,64 L86,50 Z" fill={hairD} opacity={0.7} />
-          <path d="M112,52 L118,64 L124,50 Z" fill={hairD} opacity={0.7} />
-          {shine("M68,44 Q90,28 116,32 Q92,36 74,52 Z")}
+          <g fill={hairD}>
+            <path d="M64,42 Q52,30 50,16 Q64,24 72,34 Z" />
+            <path d="M136,42 Q148,30 150,16 Q136,24 128,34 Z" />
+          </g>
+          {bangsSharp}
+          <g fill={hairG} {...hs}>
+            <path d="M56,66 Q40,62 32,50 Q48,50 60,56 Z" />
+            <path d="M144,66 Q160,62 168,50 Q152,50 140,56 Z" />
+            <path d="M76,30 Q68,14 76,0 Q86,14 88,26 Z" />
+            <path d="M124,30 Q132,14 124,0 Q114,14 112,26 Z" />
+            <path d="M98,24 Q94,8 104,-6 Q110,12 104,24 Z" />
+          </g>
+          {ahoge}
+          {shine("M68,42 Q88,26 112,28 Q88,34 76,50 Z")}
         </g>
       );
       break;
     case "bob":
+      // bob con cortinas que enmarcan la cara y puntas hacia adentro
       hairArt = (
         <g>
-          <path d="M54,80 Q50,24 100,24 Q150,24 146,80 Q146,60 138,54 Q140,44 100,42 Q60,44 62,54 Q54,60 54,80 Z" fill={hairG} />
-          <path d="M54,80 Q56,94 66,96 Q58,76 62,60 Z" fill={hairG} />
-          <path d="M146,80 Q144,94 134,96 Q142,76 138,60 Z" fill={hairG} />
-          {/* flequillo bajo con puntas */}
-          <path d="M62,54 Q100,40 138,54 L136,62 L126,56 L116,63 L106,56 L96,63 L86,56 L76,63 L66,58 Z" fill={hairG} />
-          <path d="M70,46 Q100,36 130,46 Q100,30 70,46 Z" fill={hairD} />
-          {shine("M66,48 Q92,32 122,38 Q94,40 74,56 Z")}
+          <path
+            d="M52,86 Q44,26 100,20 L100,32 Q66,36 64,70 Q62,96 76,110 Q63,112 57,102 Q50,96 52,86 Z"
+            fill={hairG}
+            {...hs}
+          />
+          <path
+            d="M148,86 Q156,26 100,20 L100,32 Q134,36 136,70 Q138,96 124,110 Q137,112 143,102 Q150,96 148,86 Z"
+            fill={hairG}
+            {...hs}
+          />
+          <path d="M70,80 Q70,98 78,106 Q68,102 66,84 Z" fill={hairD} opacity={0.5} />
+          <path d="M130,80 Q130,98 122,106 Q132,102 134,84 Z" fill={hairD} opacity={0.5} />
+          {bangsSwept}
+          {shine("M66,44 Q90,28 116,30 Q90,36 74,52 Z")}
         </g>
       );
       break;
     case "long":
+      // melena larga: mechones laterales con punta + flequillo de picos
       hairArt = (
         <g>
-          <path d="M56,70 Q52,24 100,24 Q148,24 144,70 Q142,52 130,48 Q134,56 122,54 Q124,44 108,46 Q98,36 88,48 Q74,44 76,56 Q62,54 56,70 Z" fill={hairG} />
-          <path d="M56,66 Q50,110 58,150 Q66,160 72,150 L70,92 Q64,76 56,66 Z" fill={hairG} />
-          <path d="M144,66 Q150,110 142,150 Q134,160 128,150 L130,92 Q136,76 144,66 Z" fill={hairG} />
-          {shine("M66,46 Q90,30 118,36 Q92,40 74,54 Z")}
-          <path d="M62,120 Q64,140 60,148 Q58,132 62,120 Z" fill={hairL} opacity={0.5} />
+          <path d="M56,58 Q48,100 52,146 Q54,164 66,158 Q60,116 64,84 Z" fill={hairG} {...hs} />
+          <path d="M144,58 Q152,100 148,146 Q146,164 134,158 Q140,116 136,84 Z" fill={hairG} {...hs} />
+          {bangsSharp}
+          {ahoge}
+          {shine("M64,44 Q86,26 112,28 Q86,34 72,52 Z")}
         </g>
       );
       break;
     case "wavy":
+      // ondulado: mechones en S por delante de los hombros
       hairArt = (
         <g>
-          <path d="M56,70 Q52,24 100,24 Q148,24 144,70 Q140,50 126,50 Q128,42 112,46 Q100,36 90,48 Q76,42 78,54 Q64,52 56,70 Z" fill={hairG} />
-          <path d="M56,66 Q44,96 56,116 Q46,136 58,154 Q50,168 64,170 Q74,162 68,150 Q76,136 66,120 Q76,102 66,88 Z" fill={hairG} />
-          <path d="M144,66 Q156,96 144,116 Q154,136 142,154 Q150,168 136,170 Q126,162 132,150 Q124,136 134,120 Q124,102 134,88 Z" fill={hairG} />
-          {shine("M64,46 Q90,30 118,36 Q92,42 72,56 Z")}
+          <path d="M54,60 Q42,88 54,106 Q44,126 58,142 Q66,134 60,118 Q70,102 58,84 Z" fill={hairG} {...hs} />
+          <path d="M146,60 Q158,88 146,106 Q156,126 142,142 Q134,134 140,118 Q130,102 142,84 Z" fill={hairG} {...hs} />
+          {bangsSwept}
+          {shine("M64,44 Q90,28 118,32 Q90,38 72,54 Z")}
         </g>
       );
       break;
     case "hime":
+      // corte hime: flequillo recto con muescas + mechones a la mejilla
       hairArt = (
         <g>
-          <path d="M56,74 Q50,22 100,22 Q150,22 144,74 L138,74 Q142,40 100,38 Q58,40 62,74 Z" fill={hairG} />
-          <path d="M62,60 Q100,48 138,60 L138,66 Q100,56 62,66 Z" fill={hairD} opacity={0.6} />
-          {/* flequillo recto */}
-          <path d="M64,44 Q100,36 136,44 L136,62 L128,58 L120,63 L112,58 L104,63 L96,58 L88,63 L80,58 L72,63 L64,58 Z" fill={hairG} />
-          {/* mechones laterales rectos */}
-          <rect x={50} y={58} width={15} height={62} rx={7} fill={hairG} />
-          <rect x={135} y={58} width={15} height={62} rx={7} fill={hairG} />
-          {shine("M68,42 Q96,34 126,40 Q98,40 74,48 Z")}
+          <path d="M48,54 L68,56 Q70,96 66,122 L58,134 L50,122 Q44,96 48,54 Z" fill={hairG} {...hs} />
+          <path d="M152,54 L132,56 Q130,96 134,122 L142,134 L150,122 Q156,96 152,54 Z" fill={hairG} {...hs} />
+          <path
+            d="M56,70 Q52,24 100,20 Q148,24 144,70 L136,62 L128,67 L120,62 L112,67 L104,62 L96,67 L88,62 L80,67 L72,62 L64,67 Z"
+            fill={hairG}
+            {...hs}
+          />
+          {shine("M66,42 Q94,32 124,36 Q96,38 74,48 Z")}
         </g>
       );
       break;
     case "ponytail":
+      // coleta alta deportiva: flequillo barrido + coletero
       hairArt = (
         <g>
-          <path d="M138,52 Q170,60 162,124 Q156,152 146,148 Q156,108 142,72 Z" fill={hairG} />
-          <path d="M148,80 Q154,104 150,128 Q146,110 148,80 Z" fill={hairL} opacity={0.5} />
-          <circle cx={141} cy={57} r={6.5} fill={hairD} />
-          <path d="M55,76 Q50,24 100,24 Q150,24 145,76 Q142,52 128,50 Q130,42 112,44 Q100,34 88,46 Q70,42 72,54 Q58,56 55,76 Z" fill={hairG} />
-          <path d="M74,48 Q100,36 126,48 Q100,28 74,48 Z" fill={hairD} />
-          {shine("M66,48 Q90,32 118,38 Q92,42 74,56 Z")}
+          {bangsSwept}
+          <path d="M92,20 Q98,4 112,2 Q102,12 104,22 Z" fill={hairG} {...hs} />
+          <circle cx={138} cy={46} r={7} fill={o3} stroke={darken(o3, 0.7)} strokeWidth={1.5} />
+          {shine("M66,44 Q90,28 116,30 Q90,36 74,52 Z")}
         </g>
       );
       break;
     case "twintails":
+      // dos coletas: flequillo de picos + coleteros + mechones al frente
       hairArt = (
         <g>
-          <path d="M55,76 Q50,24 100,24 Q150,24 145,76 Q140,50 100,44 Q60,50 55,76 Z" fill={hairG} />
-          <path d="M58,62 Q30,86 36,148 Q42,164 54,156 Q48,106 70,78 Z" fill={hairG} />
-          <path d="M142,62 Q170,86 164,148 Q158,164 146,156 Q152,106 130,78 Z" fill={hairG} />
-          <circle cx={62} cy={64} r={6} fill={o3} />
-          <circle cx={138} cy={64} r={6} fill={o3} />
-          <path d="M84,46 Q100,38 116,46 L112,54 L88,54 Z" fill={hairD} />
-          {shine("M68,46 Q92,32 120,38 Q94,42 76,54 Z")}
-          <path d="M44,100 Q42,126 48,144 Q42,124 44,100 Z" fill={hairL} opacity={0.55} />
-          <path d="M156,100 Q158,126 152,144 Q158,124 156,100 Z" fill={hairL} opacity={0.55} />
+          {bangsSharp}
+          <path d="M58,66 Q46,92 54,116 Q62,108 60,90 Z" fill={hairG} {...hs} />
+          <path d="M142,66 Q154,92 146,116 Q138,108 140,90 Z" fill={hairG} {...hs} />
+          <circle cx={60} cy={60} r={6.5} fill={o3} stroke={darken(o3, 0.7)} strokeWidth={1.4} />
+          <circle cx={140} cy={60} r={6.5} fill={o3} stroke={darken(o3, 0.7)} strokeWidth={1.4} />
+          {shine("M68,44 Q92,28 118,32 Q92,38 76,52 Z")}
         </g>
       );
       break;
     case "braid":
+      // trenza lateral sobre el hombro, eslabones decrecientes
       hairArt = (
         <g>
-          <path d="M55,78 Q50,24 100,24 Q150,24 145,78 Q140,52 100,44 Q60,52 55,78 Z" fill={hairG} />
-          <path d="M80,46 Q100,38 120,48 L114,56 L86,56 Z" fill={hairD} />
-          {[64, 82, 100, 118, 136].map((y, i) => (
-            <circle key={i} cx={140 + (i % 2 === 0 ? 3 : -1)} cy={y} r={10.5 - i} fill={i % 2 === 0 ? hairG : hairD} />
-          ))}
-          <polygon points="134,146 141,162 148,144" fill={hairD} />
-          <circle cx={139} cy={148} r={4} fill={o3} />
-          {shine("M66,48 Q92,32 122,40 Q94,44 74,56 Z")}
+          {bangsSwept}
+          <g fill={hairG} {...hs}>
+            <ellipse cx={139} cy={68} rx={9} ry={7} transform="rotate(28 139 68)" />
+            <ellipse cx={146} cy={82} rx={8.5} ry={6.5} transform="rotate(12 146 82)" />
+            <ellipse cx={149} cy={96} rx={8} ry={6} transform="rotate(-4 149 96)" />
+            <ellipse cx={148} cy={110} rx={7.5} ry={5.5} transform="rotate(-14 148 110)" />
+            <ellipse cx={144} cy={123} rx={7} ry={5} transform="rotate(-24 144 123)" />
+          </g>
+          <g fill={hairD} opacity={0.5}>
+            <ellipse cx={143} cy={75} rx={4} ry={3} />
+            <ellipse cx={148} cy={89} rx={4} ry={3} />
+            <ellipse cx={148.5} cy={103} rx={3.8} ry={2.8} />
+            <ellipse cx={146} cy={117} rx={3.5} ry={2.6} />
+          </g>
+          <rect x={137} y={126} width={10} height={5.5} rx={2.7} fill={o3} transform="rotate(-24 142 129)" />
+          <path d="M137,131 Q134,146 141,153 Q146,144 145,133 Z" fill={hairD} {...hs} />
+          {shine("M66,44 Q90,28 116,30 Q90,36 74,52 Z")}
         </g>
       );
       break;
     case "buns":
+      // rodetes espaciales con espiral + flequillo de picos
       hairArt = (
         <g>
-          <circle cx={62} cy={36} r={15} fill={hairG} />
-          <circle cx={138} cy={36} r={15} fill={hairG} />
-          <circle cx={62} cy={36} r={7} fill={hairD} />
-          <circle cx={138} cy={36} r={7} fill={hairD} />
-          <path d="M55,78 Q50,26 100,26 Q150,26 145,78 Q140,52 100,46 Q60,52 55,78 Z" fill={hairG} />
-          <path d="M84,46 Q100,38 116,46 L112,54 L88,54 Z" fill={hairD} />
-          {shine("M66,48 Q92,34 120,40 Q94,44 74,56 Z")}
+          <circle cx={60} cy={30} r={15} fill={hairG} {...hs} />
+          <circle cx={140} cy={30} r={15} fill={hairG} {...hs} />
+          <path d="M52,30 Q58,20 68,24 M54,36 Q62,40 68,34" stroke={hairD} strokeWidth={1.6} fill="none" strokeLinecap="round" />
+          <path d="M148,30 Q142,20 132,24 M146,36 Q138,40 132,34" stroke={hairD} strokeWidth={1.6} fill="none" strokeLinecap="round" />
+          {bangsSharp}
+          {shine("M68,44 Q92,28 118,32 Q92,38 76,52 Z")}
         </g>
       );
       break;
     case "topknot":
+      // samurái: frente despejada, pico de viuda, patillas afiladas y moño
       hairArt = (
         <g>
-          <circle cx={100} cy={14} r={13} fill={hairG} />
-          <path d="M92,24 L108,24 L106,32 L94,32 Z" fill={hairD} />
-          <rect x={93} y={28} width={14} height={6} rx={3} fill={o3} />
-          <path d="M56,76 Q52,28 100,28 Q148,28 144,76 Q140,52 100,46 Q60,52 56,76 Z" fill={hairG} />
-          <path d="M82,48 Q100,40 118,48 L114,56 L86,56 Z" fill={hairD} />
-          {shine("M68,48 Q92,36 120,42 Q94,46 76,56 Z")}
+          <ellipse cx={100} cy={12} rx={12} ry={10} fill={hairG} {...hs} />
+          <rect x={92} y={20} width={16} height={7} rx={3} fill={o3} stroke={darken(o3, 0.7)} strokeWidth={1.2} />
+          <path d="M55,70 Q50,24 100,20 Q150,24 145,70 Q142,44 104,42 L100,52 L96,42 Q58,44 55,70 Z" fill={hairG} {...hs} />
+          <path d="M56,62 Q58,84 64,94 L68,64 Z" fill={hairG} {...hs} />
+          <path d="M144,62 Q142,84 136,94 L132,64 Z" fill={hairG} {...hs} />
+          {shine("M66,40 Q90,26 118,30 Q92,34 74,46 Z")}
         </g>
       );
       break;
     case "curly":
+      // nube de rulos con bucles marcados
       hairArt = (
         <g>
-          {[
-            [64, 52, 14], [82, 38, 15], [100, 32, 16], [118, 38, 15], [136, 52, 14],
-            [56, 70, 11], [144, 70, 11], [72, 42, 12], [128, 42, 12],
-          ].map(([x, y, r], i) => (
-            <circle key={i} cx={x} cy={y} r={r} fill={i % 3 === 2 ? hairD : hairG} />
-          ))}
-          <path d="M56,70 Q60,46 100,42 Q140,46 144,70 Q100,52 56,70 Z" fill={hairG} />
-          <circle cx={88} cy={36} r={5} fill={hairL} opacity={0.6} />
-          <circle cx={112} cy={34} r={4} fill={hairL} opacity={0.6} />
+          <g fill={hairG} {...hs}>
+            <circle cx={64} cy={54} r={15} />
+            <circle cx={78} cy={38} r={16} />
+            <circle cx={100} cy={30} r={18} />
+            <circle cx={122} cy={38} r={16} />
+            <circle cx={136} cy={54} r={15} />
+            <circle cx={56} cy={72} r={12} />
+            <circle cx={144} cy={72} r={12} />
+          </g>
+          <g fill={hairG} {...hs}>
+            <circle cx={74} cy={58} r={10} />
+            <circle cx={92} cy={52} r={11} />
+            <circle cx={110} cy={52} r={11} />
+            <circle cx={127} cy={58} r={10} />
+          </g>
+          <g stroke={hairD} strokeWidth={1.5} fill="none" strokeLinecap="round">
+            <path d="M70,36 Q76,30 82,34" />
+            <path d="M96,26 Q102,20 108,26" />
+            <path d="M124,36 Q130,32 134,38" />
+          </g>
+          <circle cx={84} cy={32} r={4.5} fill={hairL} opacity={0.6} />
+          <circle cx={112} cy={28} r={4} fill={hairL} opacity={0.6} />
         </g>
       );
       break;
     case "afro":
+      // afro grande y redondo con brillos
       hairArt = (
         <g>
-          {[
-            [100, 26, 26], [70, 36, 20], [130, 36, 20], [54, 58, 17], [146, 58, 17],
-            [58, 80, 13], [142, 80, 13], [84, 20, 18], [116, 20, 18],
-          ].map(([x, y, r], i) => (
-            <circle key={i} cx={x} cy={y} r={r} fill={i % 3 === 2 ? hairD : hairG} />
-          ))}
+          <g fill={hairG} {...hs}>
+            <circle cx={100} cy={28} r={27} />
+            <circle cx={68} cy={38} r={21} />
+            <circle cx={132} cy={38} r={21} />
+            <circle cx={52} cy={62} r={16} />
+            <circle cx={148} cy={62} r={16} />
+            <circle cx={58} cy={84} r={12} />
+            <circle cx={142} cy={84} r={12} />
+          </g>
           <path d="M55,80 Q52,36 100,34 Q148,36 145,80 Q140,56 100,50 Q60,56 55,80 Z" fill={hairG} />
-          <circle cx={78} cy={28} r={5} fill={hairL} opacity={0.55} />
-          <circle cx={118} cy={24} r={4.5} fill={hairL} opacity={0.55} />
-          <circle cx={60} cy={52} r={4} fill={hairL} opacity={0.45} />
+          <circle cx={76} cy={26} r={5} fill={hairL} opacity={0.55} />
+          <circle cx={118} cy={22} r={4.5} fill={hairL} opacity={0.55} />
+          <circle cx={56} cy={54} r={4} fill={hairL} opacity={0.45} />
         </g>
       );
       break;
     case "mohawk":
+      // cresta de llamas con laterales rapados
       hairArt = (
         <g>
-          <path d="M58,70 Q54,40 84,32 L84,54 Q66,56 58,70 Z" fill={hairD} opacity={0.6} />
-          <path d="M142,70 Q146,40 116,32 L116,54 Q134,56 142,70 Z" fill={hairD} opacity={0.6} />
-          <path d="M88,50 L88,8 Q100,0 100,12 Q102,2 112,10 L112,50 Q100,42 88,50 Z" fill={hairG} />
-          <polygon points="88,28 78,14 90,20" fill={hairG} />
-          <polygon points="112,28 122,14 110,20" fill={hairG} />
-          <path d="M92,46 L92,16 L98,24 L98,46 Z" fill={hairD} />
-          {shine("M99,10 L104,8 L104,40 L99,42 Z")}
+          <path d="M58,66 Q56,40 80,32 L82,52 Q66,54 60,68 Z" fill={hairD} opacity={0.5} />
+          <path d="M142,66 Q144,40 120,32 L118,52 Q134,54 140,68 Z" fill={hairD} opacity={0.5} />
+          <path
+            d="M86,52 Q80,30 90,10 Q92,-2 100,-14 Q100,0 106,4 Q112,-6 116,6 Q122,0 120,20 Q128,28 116,48 Q108,58 100,56 Q92,58 86,52 Z"
+            fill={hairG}
+            {...hs}
+          />
+          <path d="M94,46 Q90,26 98,8 Q98,24 104,28 Q108,20 108,34 Q112,40 104,48 Z" fill={hairD} opacity={0.7} />
+          {shine("M97,0 Q100,10 104,12 Q101,4 102,-6 Z")}
         </g>
       );
       break;
@@ -803,6 +1032,40 @@ export default function Avatar({ character, size = 160, showBackground = false, 
           </g>
         );
         break;
+      case "kitsune":
+        // máscara de zorro ladeada sobre un costado de la cabeza
+        frontAcc = (
+          <g transform="translate(138,34) rotate(20)">
+            <polygon points="-14,-15 -9,-28 -3,-17" fill={a1} stroke={a2} strokeWidth={1.3} />
+            <polygon points="14,-15 9,-28 3,-17" fill={a1} stroke={a2} strokeWidth={1.3} />
+            <path d="M-15,-16 Q0,-24 15,-16 Q17,2 0,13 Q-17,2 -15,-16 Z" fill={a1} stroke={a2} strokeWidth={1.6} />
+            <path d="M-9,-8 L-3,-5 M9,-8 L3,-5" stroke={a2} strokeWidth={2.4} strokeLinecap="round" />
+            <path d="M0,2 L-2.4,6.5 L2.4,6.5 Z" fill={a2} />
+            <path d="M-13,-1 Q-7,2 -3,1 M13,-1 Q7,2 3,1" stroke={a2} strokeWidth={1} opacity={0.7} fill="none" />
+          </g>
+        );
+        break;
+      case "kanzashi":
+        // horquilla floral con pétalos colgantes
+        frontAcc = (
+          <g transform="translate(64,42)">
+            {[0, 72, 144, 216, 288].map((deg) => (
+              <circle
+                key={deg}
+                cx={Math.cos((deg * Math.PI) / 180) * 4.6}
+                cy={Math.sin((deg * Math.PI) / 180) * 4.6}
+                r={3.4}
+                fill={a1}
+              />
+            ))}
+            <circle cx={0} cy={0} r={2.6} fill={a2} />
+            <path d="M2,6 Q4.5,15 2.5,24" stroke={a2} strokeWidth={1.4} fill="none" />
+            {[11, 18, 25].map((y, i) => (
+              <ellipse key={y} cx={3.4 - i * 0.5} cy={y} rx={2.3} ry={1.6} fill={lighten(a1 ?? "#ff8fc4", 0.35)} />
+            ))}
+          </g>
+        );
+        break;
     }
   }
 
@@ -829,9 +1092,59 @@ export default function Avatar({ character, size = 160, showBackground = false, 
       case "katana":
         shape = (
           <g transform="rotate(-6)">
-            <path d="M-2,-78 Q8,-40 4,-6 L-4,-6 Q-8,-42 -2,-78 Z" fill={w1} stroke={darken(w1, 0.75)} strokeWidth={1} />
-            <ellipse cx={0} cy={-4} rx={10} ry={4} fill={w2} />
-            <rect x={-3.5} y={-2} width={7} height={20} rx={3} fill={darken(w2, 0.7)} />
+            {/* hoja curvada */}
+            <path d="M-2,-84 Q10,-46 5,-9 L-4,-9 Q-9,-46 -2,-84 Z" fill={w1} stroke={darken(w1, 0.72)} strokeWidth={1.2} />
+            {/* hamon: línea del temple */}
+            <path d="M-1.5,-78 Q7,-45 3,-12" stroke="#fff" strokeWidth={1.3} fill="none" opacity={0.85} />
+            {/* brillo de la punta */}
+            <path d="M-2,-84 L1.5,-72 L-3.5,-70 Z" fill="#fff" opacity={0.55} />
+            {/* habaki dorado */}
+            <rect x={-5} y={-12} width={10} height={5} rx={1} fill="#d8b84a" />
+            {/* tsuba */}
+            <ellipse cx={0} cy={-5} rx={11} ry={4.2} fill={w2} stroke={darken(w2, 0.7)} strokeWidth={1} />
+            {/* tsuka con trenzado de rombos */}
+            <rect x={-4.2} y={-2} width={8.4} height={26} rx={3.6} fill={darken(w2, 0.78)} />
+            <path d="M-4,2 L4,7.5 M4,2 L-4,7.5 M-4,10 L4,15.5 M4,10 L-4,15.5 M-4,18 L4,23" stroke={w1} strokeWidth={1.3} opacity={0.9} />
+            <rect x={-4.6} y={21.5} width={9.2} height={4.5} rx={2} fill={w2} />
+            {weapon.motif === "petalos" && (
+              <g fill="#ff9ec4" opacity={0.95}>
+                <ellipse cx={10} cy={-64} rx={3} ry={2} transform="rotate(-30 10 -64)" />
+                <ellipse cx={-9} cy={-46} rx={2.6} ry={1.7} transform="rotate(24 -9 -46)" />
+                <ellipse cx={12} cy={-30} rx={2.4} ry={1.6} transform="rotate(-18 12 -30)" />
+                <ellipse cx={-7} cy={-68} rx={2.2} ry={1.5} transform="rotate(40 -7 -68)" />
+              </g>
+            )}
+            {weapon.motif === "llama" && (
+              <path
+                d="M4,-72 Q10,-63 5,-55 Q12,-48 6,-38 Q11,-31 5,-23"
+                stroke="#ff7a3c"
+                strokeWidth={2.2}
+                fill="none"
+                strokeLinecap="round"
+                opacity={0.85}
+              />
+            )}
+            {weapon.motif === "luna" && (
+              <path d="M10,-74 A6,6 0 1 0 10,-62 A4.6,4.6 0 1 1 10,-74 Z" fill="#fff6c9" opacity={0.95} />
+            )}
+            {weapon.motif === "sombra" && (
+              <g stroke="#8b5cff" strokeWidth={2} fill="none" strokeLinecap="round" opacity={0.8}>
+                <path d="M-8,-66 Q-13,-58 -8,-50" />
+                <path d="M9,-52 Q14,-44 9,-36" />
+                <path d="M-7,-34 Q-11,-28 -7,-22" opacity={0.6} />
+              </g>
+            )}
+          </g>
+        );
+        break;
+      case "kunai":
+        shape = (
+          <g>
+            <path d="M0,-52 L9,-28 L3.5,-12 L-3.5,-12 L-9,-28 Z" fill={w1} stroke={darken(w1, 0.7)} strokeWidth={1.2} />
+            <line x1={0} y1={-49} x2={0} y2={-14} stroke="#fff" strokeWidth={1.2} opacity={0.6} />
+            <rect x={-3.2} y={-12} width={6.4} height={18} rx={3} fill={w2} />
+            <path d="M-3,-8 L3,-4 M3,-8 L-3,-4 M-3,-1 L3,3" stroke={w1} strokeWidth={1.1} opacity={0.8} />
+            <circle cx={0} cy={11} r={4.5} fill="none" stroke={w2} strokeWidth={2.4} />
           </g>
         );
         break;
@@ -910,12 +1223,19 @@ export default function Avatar({ character, size = 160, showBackground = false, 
         );
         break;
     }
-    weaponArt = <g transform="translate(146,176) rotate(-14)">{shape}</g>;
+    // el arma va EN la mano derecha, con la mano empuñándola encima
+    weaponArt = (
+      <g transform="translate(136,180) rotate(8)" style={{ filter: "drop-shadow(0 3px 3px rgba(0,0,0,0.35))" }}>
+        {shape}
+        <circle cx={0} cy={5} r={8.5} fill={skin} stroke={skinD} strokeWidth={1.2} />
+        <path d="M-6,1.5 L6,1.5 M-6.5,5 L6.5,5 M-6,8.5 L6,8.5" stroke={skinD} strokeWidth={1} opacity={0.5} fill="none" />
+      </g>
+    );
   }
 
   // ── mascota ────────────────────────────────────────────────
   const petArt = pet ? (
-    <g className={idle ? "pet-bob" : undefined}>
+    <g className={idle ? "pet-bob" : undefined} style={{ filter: "drop-shadow(0 3px 4px rgba(0,0,0,0.4))" }}>
       <ellipse cx={38} cy={238} rx={16} ry={5} fill="#000" opacity={0.18} />
       <text x={38} y={230} textAnchor="middle" fontSize={34}>
         {pet.emoji}
@@ -960,7 +1280,13 @@ export default function Avatar({ character, size = 160, showBackground = false, 
         {torso}
         {head}
         {hairArt}
-        {frontAcc}
+        {/* "angel ring": banda de brillo anime sobre el pelo */}
+        {hairArt && !["afro", "curly", "mohawk", "topknot"].includes(c.hairStyle) && (
+          <path d="M70,47 Q100,33 130,47" stroke="#fff" strokeWidth={5} fill="none" opacity={0.22} strokeLinecap="round" />
+        )}
+        {frontAcc && (
+          <g style={{ filter: "drop-shadow(0 2px 2px rgba(0,0,0,0.35))" }}>{frontAcc}</g>
+        )}
         {weaponArt}
       </g>
       {petArt}

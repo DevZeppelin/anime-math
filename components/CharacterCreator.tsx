@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import type { Character, Profile } from "@/lib/types";
 import { DEFAULT_CHARACTER, newProfile } from "@/lib/storage";
-import Avatar from "./Avatar";
+import HeroStage from "./HeroStage";
 import AppearanceEditor from "./AppearanceEditor";
 
 interface Props {
@@ -24,7 +24,7 @@ export default function CharacterCreator({ onDone, onCancel }: Props) {
 
       <div className="creator-grid">
         <div className="creator-preview panel">
-          <Avatar character={ch} size={210} idle />
+          <HeroStage character={ch} size={200} />
           <input
             className="name-input display"
             placeholder="Tu nombre…"

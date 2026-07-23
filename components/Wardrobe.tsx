@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import type { ItemType, Profile } from "@/lib/types";
 import { RARITY_META } from "@/lib/types";
 import { ALL_ITEMS, ITEM_TYPE_META } from "@/lib/items";
-import Avatar from "./Avatar";
+import HeroStage from "./HeroStage";
 import AppearanceEditor from "./AppearanceEditor";
 
 interface Props {
@@ -42,8 +42,7 @@ export default function Wardrobe({ profile, updateProfile, onBack }: Props) {
 
       <div className="shop-layout">
         <aside className="panel shop-preview">
-          <Avatar character={ch} size={180} idle showBackground />
-          <b className="display" style={{ marginTop: 8 }}>{profile.name}</b>
+          <HeroStage character={ch} size={170} showBackground name={profile.name} />
         </aside>
 
         <div className="shop-main">
