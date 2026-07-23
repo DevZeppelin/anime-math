@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import type { Profile } from "@/lib/types";
+import type { Difficulty, Profile } from "@/lib/types";
+import { DIFFICULTY_META } from "@/lib/types";
 import { SUBJECTS } from "@/lib/content";
 import HeroStage from "./HeroStage";
 
@@ -9,9 +10,10 @@ interface Props {
   profile: Profile;
   onOpenSubject: (id: string) => void;
   onNav: (t: "shop" | "wardrobe" | "achievements" | "games") => void;
+  onDifficulty: (d: Difficulty) => void;
 }
 
-export default function Dashboard({ profile, onOpenSubject, onNav }: Props) {
+export default function Dashboard({ profile, onOpenSubject, onNav, onDifficulty }: Props) {
   return (
     <div className="dashboard">
       <div className="dash-grid">
@@ -34,6 +36,23 @@ export default function Dashboard({ profile, onOpenSubject, onNav }: Props) {
             <button className="btn nav-btn" onClick={() => onNav("achievements")}>
               🏆 Logros
             </button>
+          </div>
+          {/* modo de dificultad según la edad */}
+          <div className="diff-switch">
+            {(Object.keys(DIFFICULTY_META) as Difficulty[]).map((k) => {
+              const m = DIFFICULTY_META[k];
+              const sel = (profile.difficulty ?? "normal") === k;
+              return (
+                <button
+                  key={k}
+                  className={`diff-chip ${sel ? "sel" : ""}`}
+                  title={`${m.ages} — ${m.desc}`}
+                  onClick={() => onDifficulty(k)}
+                >
+                  {m.emoji} {m.label}
+                </button>
+              );
+            })}
           </div>
         </aside>
 

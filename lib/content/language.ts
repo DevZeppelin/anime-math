@@ -172,15 +172,24 @@ function genSpelling(bank: [string, string][]): () => Question[] {
     );
 }
 
-function genPairs(bank: [string, string, string[]][], label: string): () => Question[] {
-  return () =>
+function genPairs(bank: [string, string, string[]][], label: string): (d: import("../types").Difficulty) => Question[] {
+  const allWrong = bank.flatMap((b) => b[2]);
+  return (d) =>
     session(
-      sample(bank, 10).map(([word, right, wrong]) => ({
-        kind: "mc" as const,
-        prompt: `${label} de «${word}»`,
-        options: shuffle([right, ...wrong]),
-        answer: right,
-      }))
+      sample(bank, 10).map(([word, right, wrong]) => {
+        let options = [right, ...wrong];
+        // en difícil se agregan distractores de otras palabras
+        if (d === "dificil") {
+          const extra = sample(allWrong.filter((w) => !options.includes(w) && w !== word), 2);
+          options = [...options, ...extra];
+        }
+        return {
+          kind: "mc" as const,
+          prompt: `${label} de «${word}»`,
+          options: shuffle(options),
+          answer: right,
+        };
+      })
     );
 }
 

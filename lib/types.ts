@@ -4,6 +4,40 @@
 
 export type Rarity = "comun" | "raro" | "epico" | "legendario";
 
+// ── Dificultad por edades ────────────────────────────────────
+
+export type Difficulty = "facil" | "normal" | "dificil";
+
+export const DIFFICULTY_META: Record<
+  Difficulty,
+  { label: string; ages: string; emoji: string; desc: string; coinMult: number; timeBonus: number }
+> = {
+  facil: {
+    label: "Explorador",
+    ages: "5-7 años",
+    emoji: "🐣",
+    desc: "Números pequeños, ayudas para contar y menos opciones.",
+    coinMult: 1,
+    timeBonus: 10,
+  },
+  normal: {
+    label: "Aventurero",
+    ages: "8-10 años",
+    emoji: "🚀",
+    desc: "El desafío clásico de la academia.",
+    coinMult: 1.2,
+    timeBonus: 0,
+  },
+  dificil: {
+    label: "Maestro",
+    ages: "11+ años",
+    emoji: "🔥",
+    desc: "Números grandes, más opciones y menos tiempo. ¡Más monedas!",
+    coinMult: 1.5,
+    timeBonus: -7,
+  },
+};
+
 export const RARITY_META: Record<
   Rarity,
   { label: string; color: string; glow: string; order: number }
@@ -18,11 +52,17 @@ export const RARITY_META: Record<
 
 export type HairStyle =
   | "spiky" | "bob" | "long" | "ponytail" | "buns" | "curly" | "mohawk"
-  | "twintails" | "braid" | "afro" | "hime" | "wavy" | "topknot" | "messy";
+  | "twintails" | "braid" | "afro" | "hime" | "wavy" | "topknot" | "messy"
+  | "hero" | "emo" | "wolf" | "lowtail" | "sidetail" | "drills";
 
-export type EyeStyle = "normal" | "happy" | "determined" | "star" | "sleepy";
-export type MouthStyle = "smile" | "grin" | "cat" | "neutral" | "smirk";
+export type EyeStyle =
+  | "normal" | "happy" | "determined" | "star" | "sleepy"
+  | "wink" | "crying" | "angry" | "dizzy" | "heart";
+export type MouthStyle =
+  | "smile" | "grin" | "cat" | "neutral" | "smirk"
+  | "laugh" | "surprised" | "smug" | "tongue" | "pout";
 export type FaceMark = "none" | "freckles" | "blush" | "scar" | "star" | "heart";
+export type BodyType = "slim" | "regular" | "athletic" | "sturdy";
 
 export interface Character {
   skin: string; // color hex
@@ -32,6 +72,7 @@ export interface Character {
   eyeStyle: EyeStyle;
   mouth: MouthStyle;
   faceMark: FaceMark;
+  bodyType: BodyType;
   outfit: string; // item id
   weapon: string | null; // item id
   accessory: string | null; // item id
@@ -111,7 +152,7 @@ export interface LevelDef {
   emoji: string;
   desc: string;
   tier: 1 | 2 | 3; // dificultad → recompensas
-  gen: () => Question[]; // produce las preguntas de una sesión
+  gen: (d: Difficulty) => Question[]; // produce las preguntas de una sesión
 }
 
 export interface SubjectDef {
@@ -144,6 +185,7 @@ export interface Profile {
   name: string;
   created: number;
   character: Character;
+  difficulty: Difficulty;
   coins: number;
   gems: number;
   xp: number;

@@ -2,7 +2,8 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Profile, Question, SubjectDef } from "@/lib/types";
-import { checkTyped, shuffle } from "@/lib/content/utils";
+import { DIFFICULTY_META } from "@/lib/types";
+import { adaptQuestion, checkTyped, shuffle } from "@/lib/content/utils";
 import { TIER_COINS, TIER_XP, LESSON_BONUS, QUESTION_SECONDS, starsForErrors } from "@/lib/progression";
 import Avatar from "./Avatar";
 
@@ -30,7 +31,12 @@ const PRAISE = ["¡Correcto!", "¡Genial!", "¡Excelente!", "¡Muy bien!", "¡In
 
 export default function LessonPlayer({ subject, levelIdx, profile, onComplete, onExit }: Props) {
   const level = subject.levels[levelIdx];
-  const questions = useMemo(() => level.gen(), [level]);
+  const diff = profile.difficulty ?? "normal";
+  const dMeta = DIFFICULTY_META[diff];
+  const questions = useMemo(
+    () => level.gen(diff).map((q) => adaptQuestion(q, diff)),
+    [level, diff]
+  );
 
   const hasShield = profile.abilities.includes("ab_shield");
   const hasTime = profile.abilities.includes("ab_time");
@@ -40,7 +46,7 @@ export default function LessonPlayer({ subject, levelIdx, profile, onComplete, o
   const hasLucky = profile.abilities.includes("ab_lucky");
 
   const maxHearts = 3 + (hasShield ? 1 : 0);
-  const qSeconds = QUESTION_SECONDS + (hasTime ? 8 : 0);
+  const qSeconds = Math.max(12, QUESTION_SECONDS + dMeta.timeBonus + (hasTime ? 8 : 0));
 
   const [qi, setQi] = useState(0);
   const [phase, setPhase] = useState<Phase>("ask");
@@ -54,6 +60,7 @@ export default function LessonPlayer({ subject, levelIdx, profile, onComplete, o
   const [lastOk, setLastOk] = useState(false);
   const [lastGain, setLastGain] = useState(0);
   const [lucky, setLucky] = useState(false);
+  const [fast, setFast] = useState(false);
   const [timeLeft, setTimeLeft] = useState(qSeconds);
   const [hintUsed, setHintUsed] = useState(false);
   const [hidden, setHidden] = useState<string[]>([]);
@@ -138,6 +145,7 @@ export default function LessonPlayer({ subject, levelIdx, profile, onComplete, o
       setLastOk(ok);
       let gain = 0;
       let wasLucky = false;
+      let wasFast = false;
       const newCorrect = correctCount + (ok ? 1 : 0);
       const newErrors = errors + (ok ? 0 : 1);
       const newStreak = ok ? streak + 1 : 0;
@@ -145,12 +153,20 @@ export default function LessonPlayer({ subject, levelIdx, profile, onComplete, o
       const newHearts = ok ? hearts : hearts - 1;
       if (ok) {
         gain = TIER_COINS[level.tier] + Math.min(streak, 5);
+        // premio por velocidad: responder con más del 60% del tiempo restante
+        if (timeLeft > qSeconds * 0.6) {
+          gain += 3;
+          wasFast = true;
+        }
+        // premio por dificultad elegida
+        gain = Math.round(gain * dMeta.coinMult);
         if (hasLucky && Math.random() < 0.15) {
           gain *= 2;
           wasLucky = true;
         }
       }
       setLucky(wasLucky);
+      setFast(wasFast);
       setLastGain(gain);
       setCorrectCount(newCorrect);
       setErrors(newErrors);
@@ -177,7 +193,7 @@ export default function LessonPlayer({ subject, levelIdx, profile, onComplete, o
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
     },
-    [phase, correctCount, errors, streak, bestStreak, hearts, coins, xp, qi, level.tier, hasLucky, finish]
+    [phase, correctCount, errors, streak, bestStreak, hearts, coins, xp, qi, level.tier, hasLucky, finish, timeLeft, qSeconds, dMeta.coinMult]
   );
 
   const advance = useCallback(
@@ -307,6 +323,7 @@ export default function LessonPlayer({ subject, levelIdx, profile, onComplete, o
         </span>
         <span className="lesson-counters">
           {streak >= 3 && <span className="streak-flame">🔥 {streak}</span>}
+          <span className="pill small" title={`Modo ${dMeta.label}`}>{dMeta.emoji}</span>
           <span className="pill coin small">🪙 {coins}</span>
         </span>
       </div>
@@ -318,7 +335,7 @@ export default function LessonPlayer({ subject, levelIdx, profile, onComplete, o
 
       {/* pregunta */}
       <div className={`q-card panel ${phase === "feedback" ? (lastOk ? "flash-ok" : "flash-no") : ""}`}>
-        {q.visual && <div className="q-visual">{q.visual}</div>}
+        {q.visual && <div className={`q-visual ${q.visual.length > 10 ? "small" : ""}`}>{q.visual}</div>}
         <p className="q-prompt display">{q.prompt}</p>
 
         {q.kind === "mc" && (
@@ -490,10 +507,12 @@ export default function LessonPlayer({ subject, levelIdx, profile, onComplete, o
           <div className="sheet-inner">
             {lastOk ? (
               <div className="sheet-msg">
-                <span className="sheet-icon">{lucky ? "🍀" : "✨"}</span>
+                <span className="sheet-icon">{lucky ? "🍀" : fast ? "⚡" : "✨"}</span>
                 <div className="sheet-text">
-                  <b className="display">{lucky ? "¡SUERTE x2!" : praise}</b>
-                  <small>+{lastGain} 🪙</small>
+                  <b className="display">{lucky ? "¡SUERTE x2!" : fast ? "¡Súper veloz!" : praise}</b>
+                  <small>
+                    +{lastGain} 🪙{fast && " · bono de velocidad ⚡"}
+                  </small>
                 </div>
               </div>
             ) : (

@@ -195,6 +195,10 @@ export default function Game() {
           profile={profile}
           onOpenSubject={(id) => setScreen({ t: "subject", id })}
           onNav={(t) => setScreen({ t } as Screen)}
+          onDifficulty={(d) => {
+            updateProfile((p) => ({ ...p, difficulty: d }));
+            pushToast("🎚️", `Modo ${d === "facil" ? "Explorador" : d === "normal" ? "Aventurero" : "Maestro"}`, "Las lecciones se adaptan a este nivel");
+          }}
         />
       )}
 

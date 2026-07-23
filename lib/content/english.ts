@@ -1,5 +1,5 @@
-import type { LevelDef, Question } from "../types";
-import { pick, sample, session, shuffle, textMC, typed } from "./utils";
+import type { Difficulty, LevelDef, Question } from "../types";
+import { sample, session, shuffle, textMC, typed } from "./utils";
 
 // ─────────────────────────────────────────────────────────────
 // INGLÉS — 10 niveles. Vocabulario esencial + frases,
@@ -81,7 +81,7 @@ const GREETINGS: P[] = [
   ["¿Cómo se dice «lo siento»?", "sorry", ["please", "thank you", "excuse"], "😔"],
   ["«My name is Ana» significa…", "Me llamo Ana", ["Mi amiga es Ana", "Ana no está", "Yo veo a Ana"], "🙋‍♀️"],
   ["«How are you?» significa…", "¿Cómo estás?", ["¿Dónde estás?", "¿Quién eres?", "¿Cuántos años tienes?"], "🤔"],
-  ["«I am happy» significa…", "Estoy feliz", ["Estoy triste", "Estoy cansado", "Soy alto"], "😊"],
+  ["«I am happy» significa…", "Estoy feliz", ["Estoy triste", "Estoy cansado", "Soy alto"], "💬"],
   ["«How old are you?» significa…", "¿Cuántos años tienes?", ["¿Cómo te llamas?", "¿Dónde vives?", "¿Qué hora es?"], "🎂"],
   ["Para responder «¿cómo estás?» dices…", "I'm fine, thank you", ["My name is Leo", "It's a dog", "I am ten"], "😊"],
 ];
@@ -93,24 +93,24 @@ const PREPOSITIONS: P[] = [
   ["Estoy AL LADO de mi amigo. «Al lado» es…", "next to", ["under", "far", "inside"], "🧍"],
   ["La pelota está DETRÁS de la puerta. «Detrás» es…", "behind", ["in front of", "on", "in"], "🚪"],
   ["Estoy DELANTE del espejo. «Delante» es…", "in front of", ["behind", "under", "next to"], "🪞"],
-  ["«up» significa…", "arriba", ["abajo", "lejos", "cerca"], "⬆️"],
-  ["«down» significa…", "abajo", ["arriba", "dentro", "fuera"], "⬇️"],
-  ["«big» significa…", "grande", ["pequeño", "alto", "rápido"], "🐘"],
-  ["«small» significa…", "pequeño", ["grande", "largo", "lento"], "🐜"],
-  ["«fast» significa…", "rápido", ["lento", "fuerte", "feliz"], "🏎️"],
-  ["«slow» significa…", "lento", ["rápido", "corto", "frío"], "🐢"],
+  ["«up» significa…", "arriba", ["abajo", "lejos", "cerca"], "💬"],
+  ["«down» significa…", "abajo", ["arriba", "dentro", "fuera"], "💬"],
+  ["«big» significa…", "grande", ["pequeño", "alto", "rápido"], "💬"],
+  ["«small» significa…", "pequeño", ["grande", "largo", "lento"], "💬"],
+  ["«fast» significa…", "rápido", ["lento", "fuerte", "feliz"], "💬"],
+  ["«slow» significa…", "lento", ["rápido", "corto", "frío"], "💬"],
 ];
 
 const PHRASES: P[] = [
-  ["«The cat is black» significa…", "El gato es negro", ["El perro es negro", "El gato es blanco", "El gato está triste"], "🐱"],
+  ["«The cat is black» significa…", "El gato es negro", ["El perro es negro", "El gato es blanco", "El gato está triste"], "💬"],
   ["«I like apples» significa…", "Me gustan las manzanas", ["Como manzanas", "Tengo manzanas", "Veo manzanas"], "🍎"],
   ["«She is my sister» significa…", "Ella es mi hermana", ["Ella es mi madre", "Él es mi hermano", "Ella es mi amiga"], "👧"],
   ["«We play football» significa…", "Jugamos al fútbol", ["Vemos fútbol", "Nos gusta el fútbol", "Juegan al tenis"], "⚽"],
   ["«I have a dog» significa…", "Tengo un perro", ["Quiero un perro", "Veo un perro", "Ese es mi perro"], "🐶"],
-  ["«The sun is yellow» significa…", "El sol es amarillo", ["La luna es blanca", "El sol es rojo", "El cielo es azul"], "☀️"],
-  ["«I can swim» significa…", "Puedo nadar", ["Quiero nadar", "Voy a nadar", "Me gusta el agua"], "🏊"],
-  ["«It is raining» significa…", "Está lloviendo", ["Hace sol", "Hace frío", "Está nevando"], "🌧️"],
-  ["«I am hungry» significa…", "Tengo hambre", ["Tengo sed", "Tengo sueño", "Tengo frío"], "😋"],
+  ["«The sun is yellow» significa…", "El sol es amarillo", ["La luna es blanca", "El sol es rojo", "El cielo es azul"], "💬"],
+  ["«I can swim» significa…", "Puedo nadar", ["Quiero nadar", "Voy a nadar", "Me gusta el agua"], "💬"],
+  ["«It is raining» significa…", "Está lloviendo", ["Hace sol", "Hace frío", "Está nevando"], "💬"],
+  ["«I am hungry» significa…", "Tengo hambre", ["Tengo sed", "Tengo sueño", "Tengo frío"], "💬"],
   ["«Where is the school?» significa…", "¿Dónde está la escuela?", ["¿Cómo es la escuela?", "¿Cuándo hay escuela?", "¿Qué es una escuela?"], "🏫"],
   ["«This is my house» significa…", "Esta es mi casa", ["Esa es tu casa", "Mi casa es grande", "Estoy en casa"], "🏠"],
   ["«I read every day» significa…", "Leo todos los días", ["Leo a veces", "Me gusta leer", "Leo por la noche"], "📚"],
@@ -118,24 +118,31 @@ const PHRASES: P[] = [
 
 // ── constructores ────────────────────────────────────────────
 
-function vocabQuestions(bank: V[], typedCount = 2): Question[] {
+function vocabQuestions(bank: V[], d: Difficulty, typedCount = 2): Question[] {
   const englishPool = bank.map((v) => v[1]);
   const spanishPool = bank.map((v) => v[0]);
+  // en difícil hay más opciones para elegir y más escritura
+  const count = d === "dificil" ? 6 : 4;
+  const writeChance = d === "facil" ? 0 : d === "dificil" ? 0.25 : 0.1;
   const qs: Question[] = [];
   for (const [es, en, emoji] of sample(bank, 10)) {
     const mode = Math.random();
     if (mode < 0.45) {
-      qs.push(textMC(`¿Cómo se dice «${es}» en inglés?`, en, englishPool, { visual: emoji }));
-    } else if (mode < 0.9) {
-      qs.push(textMC(`«${en}» significa…`, es, spanishPool, { visual: emoji }));
+      // es → en: el emoji ilustra la palabra ya dicha en español (no revela)
+      qs.push(textMC(`¿Cómo se dice «${es}» en inglés?`, en, englishPool, { visual: emoji, count }));
+    } else if (mode < 1 - writeChance) {
+      // en → es: SIN emoji, porque revelaría el significado
+      qs.push(textMC(`«${en}» significa…`, es, spanishPool, { count }));
     } else {
       qs.push(typed(`Escribe en inglés: «${es}»`, en, { visual: emoji }));
     }
   }
-  // garantiza algo de escritura
-  const easy = bank.filter((v) => v[1].length <= 5);
-  for (const [es, en, emoji] of sample(easy.length ? easy : bank, typedCount)) {
-    qs.push(typed(`Escribe en inglés: «${es}»`, en, { visual: emoji }));
+  // garantiza algo de escritura (salvo en modo fácil)
+  if (d !== "facil") {
+    const easy = bank.filter((v) => v[1].length <= 5);
+    for (const [es, en, emoji] of sample(easy.length ? easy : bank, typedCount)) {
+      qs.push(typed(`Escribe en inglés: «${es}»`, en, { visual: emoji }));
+    }
   }
   return session(qs);
 }
@@ -153,13 +160,13 @@ function phraseQuestions(bank: P[]): Question[] {
 }
 
 export const ENGLISH_LEVELS: LevelDef[] = [
-  { name: "Colors & Numbers", emoji: "🌈", desc: "Colores y números del 1 al 10", tier: 1, gen: () => vocabQuestions(COLORS_NUMBERS) },
-  { name: "Animals", emoji: "🦁", desc: "Los animales en inglés", tier: 1, gen: () => vocabQuestions(ANIMALS) },
-  { name: "My Family", emoji: "👨‍👩‍👧‍👦", desc: "La familia y los amigos", tier: 1, gen: () => vocabQuestions(FAMILY) },
-  { name: "Food", emoji: "🍎", desc: "Comidas y bebidas", tier: 1, gen: () => vocabQuestions(FOOD) },
-  { name: "My Body", emoji: "🙌", desc: "Las partes del cuerpo", tier: 2, gen: () => vocabQuestions(BODY) },
-  { name: "School & Home", emoji: "🏫", desc: "Objetos de la escuela y la casa", tier: 2, gen: () => vocabQuestions(SCHOOL_HOME) },
-  { name: "Action Words", emoji: "🏃", desc: "Verbos de acción", tier: 2, gen: () => vocabQuestions(VERBS) },
+  { name: "Colors & Numbers", emoji: "🌈", desc: "Colores y números del 1 al 10", tier: 1, gen: (d) => vocabQuestions(COLORS_NUMBERS, d) },
+  { name: "Animals", emoji: "🦁", desc: "Los animales en inglés", tier: 1, gen: (d) => vocabQuestions(ANIMALS, d) },
+  { name: "My Family", emoji: "👨‍👩‍👧‍👦", desc: "La familia y los amigos", tier: 1, gen: (d) => vocabQuestions(FAMILY, d) },
+  { name: "Food", emoji: "🍎", desc: "Comidas y bebidas", tier: 1, gen: (d) => vocabQuestions(FOOD, d) },
+  { name: "My Body", emoji: "🙌", desc: "Las partes del cuerpo", tier: 2, gen: (d) => vocabQuestions(BODY, d) },
+  { name: "School & Home", emoji: "🏫", desc: "Objetos de la escuela y la casa", tier: 2, gen: (d) => vocabQuestions(SCHOOL_HOME, d) },
+  { name: "Action Words", emoji: "🏃", desc: "Verbos de acción", tier: 2, gen: (d) => vocabQuestions(VERBS, d) },
   { name: "Hello!", emoji: "👋", desc: "Saludos y presentaciones", tier: 2, gen: () => phraseQuestions(GREETINGS) },
   { name: "Where Is It?", emoji: "🧭", desc: "Posiciones y opuestos", tier: 3, gen: () => phraseQuestions(PREPOSITIONS) },
   { name: "Real Phrases", emoji: "💬", desc: "Frases completas de la vida real", tier: 3, gen: () => phraseQuestions(PHRASES) },

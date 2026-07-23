@@ -1,4 +1,4 @@
-import type { Character, Profile, RootSave } from "./types";
+import type { Character, Difficulty, Profile, RootSave } from "./types";
 
 const KEY = "academia-aventura-v1";
 const LEGACY_KEY = "anime-math-save-v1";
@@ -12,6 +12,7 @@ export const DEFAULT_CHARACTER: Character = {
   eyeStyle: "normal",
   mouth: "smile",
   faceMark: "none",
+  bodyType: "regular",
   outfit: "out_school",
   weapon: null,
   accessory: null,
@@ -20,12 +21,13 @@ export const DEFAULT_CHARACTER: Character = {
   background: null,
 };
 
-export function newProfile(name: string, character: Character): Profile {
+export function newProfile(name: string, character: Character, difficulty: Difficulty = "normal"): Profile {
   return {
     id: `p${Date.now().toString(36)}${Math.floor(Math.random() * 1e4).toString(36)}`,
     name,
     created: Date.now(),
     character,
+    difficulty,
     coins: 120, // regalo de bienvenida para probar la tienda
     gems: 3,
     xp: 0,
@@ -56,7 +58,11 @@ export function loadRoot(): RootSave {
     const profiles: RootSave["profiles"] = {};
     for (const id of ids) {
       const p = parsed.profiles[id];
-      profiles[id] = { ...p, character: { ...DEFAULT_CHARACTER, ...p.character } };
+      profiles[id] = {
+        ...p,
+        character: { ...DEFAULT_CHARACTER, ...p.character },
+        difficulty: p.difficulty ?? "normal",
+      };
     }
     return { v: 1, profiles, order };
   } catch {

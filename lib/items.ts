@@ -154,13 +154,19 @@ export const EYE_COLORS = [
 
 export const HAIR_STYLES: { id: import("./types").HairStyle; label: string }[] = [
   { id: "spiky", label: "Puntas" },
+  { id: "hero", label: "Héroe" },
   { id: "messy", label: "Despeinado" },
+  { id: "emo", label: "Sobre el ojo" },
+  { id: "wolf", label: "Lobo" },
   { id: "bob", label: "Corto" },
   { id: "long", label: "Largo" },
   { id: "wavy", label: "Ondulado" },
   { id: "hime", label: "Princesa" },
   { id: "ponytail", label: "Coleta" },
+  { id: "lowtail", label: "Coleta baja" },
+  { id: "sidetail", label: "Coleta lado" },
   { id: "twintails", label: "Dos coletas" },
+  { id: "drills", label: "Bucles" },
   { id: "braid", label: "Trenza" },
   { id: "buns", label: "Rodetes" },
   { id: "topknot", label: "Moño alto" },
@@ -169,12 +175,29 @@ export const HAIR_STYLES: { id: import("./types").HairStyle; label: string }[] =
   { id: "mohawk", label: "Cresta" },
 ];
 
+// ── Peinados en PNG (arte importado) ─────────────────────────
+// Para usar un peinado dibujado/generado como imagen:
+//  1. Guarda el PNG (fondo transparente) en public/hair/
+//     Lienzo: 400×520 px (equivale al viewBox 200×260 del avatar, escala 2x).
+//     La cara ocupa de x=110 a x=290 y de y=52 a y=236; centro de la cabeza (200,144).
+//  2. Regístralo aquí: front (delante de la cara) y opcional back (detrás del cuerpo).
+//  Nota: los PNG no cambian de color con el selector de color de pelo,
+//  así que conviene exportar una variante por color o usar tonos neutros.
+export const HAIR_PNG: Partial<Record<import("./types").HairStyle, { front: string; back?: string }>> = {
+  // ejemplo: spiky: { front: "/hair/spiky.png", back: "/hair/spiky_back.png" },
+};
+
 export const EYE_STYLES: { id: import("./types").EyeStyle; label: string; emoji: string }[] = [
   { id: "normal", label: "Normal", emoji: "👁️" },
   { id: "happy", label: "Feliz", emoji: "😊" },
   { id: "determined", label: "Decidido", emoji: "😤" },
   { id: "star", label: "Estrella", emoji: "🤩" },
   { id: "sleepy", label: "Tranquilo", emoji: "😌" },
+  { id: "wink", label: "Guiño", emoji: "😉" },
+  { id: "crying", label: "Llorón", emoji: "🥲" },
+  { id: "angry", label: "Enojado", emoji: "😠" },
+  { id: "dizzy", label: "Mareado", emoji: "😵" },
+  { id: "heart", label: "Enamorado", emoji: "😍" },
 ];
 
 export const MOUTH_STYLES: { id: import("./types").MouthStyle; label: string; emoji: string }[] = [
@@ -183,6 +206,18 @@ export const MOUTH_STYLES: { id: import("./types").MouthStyle; label: string; em
   { id: "cat", label: "Gatito", emoji: "😺" },
   { id: "neutral", label: "Serio", emoji: "😐" },
   { id: "smirk", label: "Pícaro", emoji: "😏" },
+  { id: "laugh", label: "Carcajada", emoji: "😆" },
+  { id: "surprised", label: "Sorprendido", emoji: "😮" },
+  { id: "smug", label: "Orgulloso", emoji: "😌" },
+  { id: "tongue", label: "Traviesa", emoji: "😝" },
+  { id: "pout", label: "Puchero", emoji: "😗" },
+];
+
+export const BODY_TYPES: { id: import("./types").BodyType; label: string; desc: string }[] = [
+  { id: "slim", label: "Delgado", desc: "Ágil y ligero." },
+  { id: "regular", label: "Normal", desc: "El clásico equilibrado." },
+  { id: "athletic", label: "Atlético", desc: "Hombros más anchos." },
+  { id: "sturdy", label: "Robusto", desc: "Fuerte y sólido." },
 ];
 
 export const FACE_MARKS: { id: import("./types").FaceMark; label: string; emoji: string }[] = [

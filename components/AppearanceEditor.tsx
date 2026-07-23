@@ -10,6 +10,7 @@ import {
   EYE_STYLES,
   MOUTH_STYLES,
   FACE_MARKS,
+  BODY_TYPES,
 } from "@/lib/items";
 import Avatar from "./Avatar";
 
@@ -35,6 +36,25 @@ export default function AppearanceEditor({ character: ch, onChange }: Props) {
                 <Avatar character={{ ...ch, hairStyle: h.id }} size={76} />
               </span>
               <span className="hair-label">{h.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="opt-group panel">
+        <h3 className="display">Cuerpo</h3>
+        <div className="opt-row hair-row">
+          {BODY_TYPES.map((b) => (
+            <button
+              key={b.id}
+              className={`hair-chip ${ch.bodyType === b.id ? "sel" : ""}`}
+              onClick={() => onChange({ bodyType: b.id })}
+              title={b.desc}
+            >
+              <span className="hair-thumb">
+                <Avatar character={{ ...ch, bodyType: b.id }} size={76} />
+              </span>
+              <span className="hair-label">{b.label}</span>
             </button>
           ))}
         </div>

@@ -549,6 +549,70 @@ button:disabled {
   margin-top: 6px;
 }
 
+/* ── selector de dificultad ──────────────── */
+.diff-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.diff-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 3px;
+  padding: 13px 10px;
+  border-radius: 15px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.04);
+  transition: all 0.12s;
+}
+.diff-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+.diff-card.sel {
+  border-color: var(--accent);
+  background: rgba(139, 92, 255, 0.16);
+  box-shadow: 0 0 0 2px rgba(139, 92, 255, 0.35);
+}
+.diff-emoji {
+  font-size: 26px;
+}
+.diff-card b {
+  font-size: 15px;
+}
+.diff-ages {
+  font-size: 11.5px;
+  font-weight: 800;
+  color: #7fd8ff;
+}
+.diff-card small {
+  color: var(--txt-dim);
+  font-size: 11.5px;
+  line-height: 1.35;
+}
+.diff-switch {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+  width: 100%;
+}
+.diff-chip {
+  flex: 1;
+  padding: 8px 4px;
+  border-radius: 11px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.04);
+  font-weight: 700;
+  font-size: 12px;
+  transition: all 0.12s;
+  white-space: nowrap;
+}
+.diff-chip.sel {
+  border-color: var(--accent);
+  background: rgba(139, 92, 255, 0.2);
+}
+
 /* ── dashboard ───────────────────────────── */
 .dash-grid {
   display: grid;
@@ -563,6 +627,12 @@ button:disabled {
   padding: 18px 14px;
   position: sticky;
   top: 90px;
+  min-width: 0;
+}
+.subjects-area {
+  /* sin esto, el auto-fill de .subject-grid fuerza a esta columna
+     (y a toda la página) a desbordar más allá del viewport en mobile */
+  min-width: 0;
 }
 .char-stage {
   border-radius: 16px;
@@ -926,6 +996,13 @@ button:disabled {
   text-align: center;
   margin-bottom: 6px;
 }
+/* visual largo (palitos para contar): más chico y con salto de línea */
+.q-visual.small {
+  font-size: 24px;
+  line-height: 1.5;
+  word-break: break-all;
+  letter-spacing: 2px;
+}
 .q-prompt {
   font-size: clamp(19px, 3.4vw, 26px);
   text-align: center;
@@ -1285,6 +1362,12 @@ button:disabled {
   padding: 20px 14px;
   position: sticky;
   top: 90px;
+  min-width: 0;
+}
+.shop-main {
+  /* clave: sin esto, el auto-fill del grid interno fuerza a esta
+     columna (y a toda la página) a desbordar más allá del viewport */
+  min-width: 0;
 }
 .shop-wallet {
   display: flex;
@@ -1733,10 +1816,61 @@ button:disabled {
   .shop-layout {
     grid-template-columns: 1fr;
   }
-  .creator-preview,
-  .char-panel,
-  .shop-preview {
+  .char-panel {
     position: static;
+  }
+  /* al editar el personaje, la vista previa queda SIEMPRE visible:
+     barra compacta pegada arriba mientras se navegan las opciones */
+  .creator-preview,
+  .shop-preview {
+    position: sticky;
+    z-index: 60;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+    padding: 8px 12px;
+    background: rgba(12, 12, 32, 0.94);
+    backdrop-filter: blur(12px);
+  }
+  .creator-preview {
+    top: 8px;
+  }
+  .shop-preview {
+    top: 76px; /* debajo de la barra superior */
+  }
+  .creator-preview .hero-stage,
+  .shop-preview .hero-stage {
+    width: auto;
+    padding: 0;
+    overflow: visible;
+  }
+  .creator-preview .stage-avatar svg,
+  .shop-preview .stage-avatar svg {
+    width: 84px;
+    height: 109px;
+  }
+  .creator-preview .stage-rays,
+  .creator-preview .stage-glow,
+  .creator-preview .stage-spark,
+  .creator-preview .stage-podium,
+  .shop-preview .stage-rays,
+  .shop-preview .stage-glow,
+  .shop-preview .stage-spark,
+  .shop-preview .stage-podium {
+    display: none;
+  }
+  .creator-preview .stage-name,
+  .shop-preview .stage-name {
+    margin-top: 2px;
+    font-size: 15px;
+  }
+  .creator-preview .name-input {
+    width: auto;
+    flex: 1;
+    max-width: 200px;
+    font-size: 15px;
+    padding: 10px 12px;
   }
   .char-panel {
     flex-direction: row;
@@ -1787,6 +1921,22 @@ button:disabled {
   }
   .lesson-companion {
     display: none;
+  }
+  /* respuesta escrita: input y botón en columna, siempre visibles */
+  .type-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .type-input {
+    max-width: none;
+    font-size: 18px;
+  }
+  .type-row .btn {
+    width: 100%;
+    padding: 14px;
+  }
+  .diff-row {
+    grid-template-columns: 1fr;
   }
   .numpad {
     grid-template-columns: repeat(3, 1fr);

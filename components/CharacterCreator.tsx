@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import type { Character, Profile } from "@/lib/types";
+import type { Character, Difficulty, Profile } from "@/lib/types";
+import { DIFFICULTY_META } from "@/lib/types";
 import { DEFAULT_CHARACTER, newProfile } from "@/lib/storage";
 import HeroStage from "./HeroStage";
 import AppearanceEditor from "./AppearanceEditor";
@@ -11,8 +12,11 @@ interface Props {
   onCancel: () => void;
 }
 
+const DIFFS = Object.keys(DIFFICULTY_META) as Difficulty[];
+
 export default function CharacterCreator({ onDone, onCancel }: Props) {
   const [name, setName] = useState("");
+  const [diff, setDiff] = useState<Difficulty>("normal");
   const [ch, setCh] = useState<Character>({ ...DEFAULT_CHARACTER });
 
   const set = (patch: Partial<Character>) => setCh((c) => ({ ...c, ...patch }));
@@ -35,6 +39,23 @@ export default function CharacterCreator({ onDone, onCancel }: Props) {
         </div>
 
         <div className="creator-options">
+          <div className="opt-group panel">
+            <h3 className="display">Nivel de aventura (según tu edad)</h3>
+            <div className="diff-row">
+              {DIFFS.map((k) => {
+                const m = DIFFICULTY_META[k];
+                return (
+                  <button key={k} className={`diff-card ${diff === k ? "sel" : ""}`} onClick={() => setDiff(k)}>
+                    <span className="diff-emoji">{m.emoji}</span>
+                    <b className="display">{m.label}</b>
+                    <span className="diff-ages">{m.ages}</span>
+                    <small>{m.desc}</small>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           <AppearanceEditor character={ch} onChange={set} />
 
           <div className="creator-actions">
@@ -44,7 +65,7 @@ export default function CharacterCreator({ onDone, onCancel }: Props) {
             <button
               className="btn primary big"
               disabled={!canSave}
-              onClick={() => canSave && onDone(newProfile(name.trim(), ch))}
+              onClick={() => canSave && onDone(newProfile(name.trim(), ch, diff))}
             >
               ¡Comenzar aventura! 🚀
             </button>

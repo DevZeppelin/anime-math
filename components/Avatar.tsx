@@ -2,7 +2,7 @@
 
 import React, { useId } from "react";
 import type { Character } from "@/lib/types";
-import { getItem } from "@/lib/items";
+import { getItem, HAIR_PNG } from "@/lib/items";
 
 // ─────────────────────────────────────────────────────────────
 // Avatar RPG de cuerpo completo, dibujado por capas SVG:
@@ -19,6 +19,14 @@ interface Props {
 
 const W = 200;
 const H = 260;
+
+// escala horizontal del torso/brazos y de las piernas según el tipo de cuerpo
+const BODY_SCALE: Record<import("@/lib/types").BodyType, { torso: number; legs: number }> = {
+  slim: { torso: 0.91, legs: 0.95 },
+  regular: { torso: 1, legs: 1 },
+  athletic: { torso: 1.08, legs: 1.02 },
+  sturdy: { torso: 1.17, legs: 1.08 },
+};
 
 function darken(hex: string, f = 0.75): string {
   const m = /^#?([0-9a-f]{6})$/i.exec(hex);
@@ -68,6 +76,7 @@ export default function Avatar({ character, size = 160, showBackground = false, 
   const variant = outfit?.variant ?? "suit";
   const isKimono = variant === "kimono";
   const isSkirt = variant === "dress" || variant === "robe" || isKimono;
+  const bs = BODY_SCALE[c.bodyType ?? "regular"];
 
   // ── fondo ──────────────────────────────────────────────────
   let bgArt: React.ReactNode = null;
@@ -189,21 +198,65 @@ export default function Avatar({ character, size = 160, showBackground = false, 
     strokeLinecap: "round" as const,
   };
 
+  /** Mechón afilado estilo anime: base ancha en (x0,y0), punta en (x1,y1).
+   *  `curve` arquea el mechón hacia un lado (perpendicular a su dirección). */
+  const lockPath = (x0: number, y0: number, x1: number, y1: number, w: number, curve = 0): string => {
+    const dx = x1 - x0;
+    const dy = y1 - y0;
+    const len = Math.hypot(dx, dy) || 1;
+    const px = -dy / len;
+    const py = dx / len;
+    const hw = w / 2;
+    const mx = x0 + dx * 0.5;
+    const my = y0 + dy * 0.5;
+    const f = (n: number) => Math.round(n * 10) / 10;
+    return (
+      `M${f(x0 + px * hw)},${f(y0 + py * hw)} ` +
+      `Q${f(mx + px * (hw * 0.9 + curve))},${f(my + py * (hw * 0.9 + curve))} ${f(x1)},${f(y1)} ` +
+      `Q${f(mx + px * (curve - hw * 0.9))},${f(my + py * (curve - hw * 0.9))} ${f(x0 - px * hw)},${f(y0 - py * hw)} Z`
+    );
+  };
+  /** [x0, y0, x1(punta), y1(punta), ancho, curva] */
+  type LockSpec = [number, number, number, number, number, number?];
+  const locks = (specs: LockSpec[], fill: string = hairG, outlined = true) => (
+    <g fill={fill} {...(outlined ? hs : {})}>
+      {specs.map((s, i) => (
+        <path key={i} d={lockPath(s[0], s[1], s[2], s[3], s[4], s[5] ?? 0)} />
+      ))}
+    </g>
+  );
+  // líneas internas de flujo (detalle de dibujo a mano)
+  const flow = (ds: string[], opacity = 0.45) => (
+    <g stroke={hairD} strokeWidth={1.1} fill="none" strokeLinecap="round" opacity={opacity}>
+      {ds.map((d, i) => (
+        <path key={i} d={d} />
+      ))}
+    </g>
+  );
+
+  // arte PNG importado para este peinado (si está registrado, reemplaza al SVG)
+  const hairPng = HAIR_PNG[c.hairStyle];
+
   // ── pelo trasero (masas que van DETRÁS del cuerpo) ─────────
   let hairBack: React.ReactNode = null;
-  switch (c.hairStyle) {
+  if (hairPng?.back) {
+    hairBack = <image href={hairPng.back} x={0} y={0} width={W} height={H} />;
+  } else switch (c.hairStyle) {
     case "long":
-      // melena suelta hasta la cintura con puntas
+      // melena suelta hasta la cintura que termina en puntas
       hairBack = (
-        <path
-          d="M54,58 Q38,120 48,168 Q52,180 62,172 L60,148 Q68,166 78,158 L74,94 L126,94 L122,158 Q132,166 140,148 L138,172 Q148,180 152,168 Q162,120 146,58 Z"
-          fill={hairD}
-          {...hs}
-        />
+        <g>
+          <path
+            d="M54,58 Q38,120 48,168 Q52,180 62,172 L60,148 Q68,166 78,158 L74,94 L126,94 L122,158 Q132,166 140,148 L138,172 Q148,180 152,168 Q162,120 146,58 Z"
+            fill={hairD}
+            {...hs}
+          />
+          {flow(["M56,92 Q50,130 56,160", "M144,92 Q150,130 144,160"], 0.6)}
+        </g>
       );
       break;
     case "wavy":
-      // cascada ondulada en forma de S a ambos lados
+      // cascada ondulada en S a ambos lados
       hairBack = (
         <g fill={hairD} {...hs}>
           <path d="M56,56 Q34,92 52,118 Q36,144 56,166 Q50,180 68,176 Q78,166 68,152 Q80,132 66,114 Q78,94 68,78 Z" />
@@ -214,15 +267,21 @@ export default function Avatar({ character, size = 160, showBackground = false, 
     case "hime":
       // panel largo y recto con corte horizontal
       hairBack = (
-        <path d="M56,56 Q46,130 52,178 L74,178 L76,92 L124,92 L126,178 L148,178 Q154,130 144,56 Z" fill={hairD} {...hs} />
+        <g>
+          <path d="M56,56 Q46,130 52,178 L74,178 L76,92 L124,92 L126,178 L148,178 Q154,130 144,56 Z" fill={hairD} {...hs} />
+          {flow(["M60,100 L58,168", "M140,100 L142,168"], 0.55)}
+        </g>
       );
       break;
     case "twintails":
       // dos coletas enormes con curva y volumen
       hairBack = (
-        <g fill={hairD} {...hs}>
-          <path d="M60,58 Q18,84 26,148 Q30,172 50,168 Q44,120 70,82 Z" />
-          <path d="M140,58 Q182,84 174,148 Q170,172 150,168 Q156,120 130,82 Z" />
+        <g>
+          <g fill={hairD} {...hs}>
+            <path d="M60,58 Q18,84 26,148 Q30,172 50,168 Q44,120 70,82 Z" />
+            <path d="M140,58 Q182,84 174,148 Q170,172 150,168 Q156,120 130,82 Z" />
+          </g>
+          {flow(["M40,96 Q32,128 40,156", "M160,96 Q168,128 160,156"], 0.6)}
         </g>
       );
       break;
@@ -232,12 +291,139 @@ export default function Avatar({ character, size = 160, showBackground = false, 
         <g>
           <path d="M134,42 Q176,40 176,94 Q176,142 150,162 Q162,120 150,84 Q144,58 130,52 Z" fill={hairG} {...hs} />
           <path d="M160,70 Q168,100 158,136 Q166,104 156,76 Z" fill={hairL} opacity={0.5} />
+          {flow(["M148,64 Q162,96 154,140"], 0.5)}
         </g>
+      );
+      break;
+    case "lowtail":
+      // coleta baja al estilo samurái errante
+      hairBack = (
+        <g>
+          <path d="M64,60 Q56,96 62,112 L138,112 Q144,96 136,60 Q100,82 64,60 Z" fill={hairD} />
+          <path d="M116,102 Q152,128 146,168 Q142,184 128,178 Q136,142 108,118 Z" fill={hairG} {...hs} />
+          <path d="M128,172 Q130,184 124,192 Q118,182 122,172 Z" fill={hairG} {...hs} />
+          <rect x={110} y={108} width={14} height={8} rx={4} fill={o3} stroke={darken(o3, 0.7)} strokeWidth={1.2} />
+          {flow(["M124,124 Q142,146 136,168"], 0.5)}
+        </g>
+      );
+      break;
+    case "sidetail":
+      // coleta alta a un costado, con caída dinámica
+      hairBack = (
+        <g>
+          <path d="M138,40 Q186,52 180,120 Q176,152 156,158 Q170,110 150,70 Q146,52 132,48 Z" fill={hairG} {...hs} />
+          <path d="M158,148 Q162,164 152,174 Q146,160 152,148 Z" fill={hairG} {...hs} />
+          <path d="M166,72 Q176,104 166,138 Q172,104 162,78 Z" fill={hairL} opacity={0.5} />
+          {flow(["M150,64 Q168,100 160,144"], 0.5)}
+        </g>
+      );
+      break;
+    case "wolf":
+      // corte lobo: mechones desmechados en la nuca
+      hairBack = (
+        <g>
+          {locks(
+            [
+              [66, 78, 42, 122, 15, -6],
+              [72, 92, 54, 136, 13, -5],
+              [82, 100, 74, 142, 12, -2],
+              [128, 92, 146, 136, 13, 5],
+              [134, 78, 158, 122, 15, 6],
+              [118, 100, 126, 142, 12, 2],
+            ],
+            hairD
+          )}
+        </g>
+      );
+      break;
+    case "emo":
+      // melenita corta que cae sobre la nuca
+      hairBack = (
+        <path d="M58,60 Q52,100 64,118 L136,118 Q148,100 142,60 Q100,84 58,60 Z" fill={hairD} {...hs} />
       );
       break;
   }
 
-  // ── piernas y zapatos ──────────────────────────────────────
+  // ── zapatos: silueta con cuña, suela y detalle, en vez de un óvalo plano ──
+  const shoeKind: "sandal" | "boot" | "flat" | "sneaker" = isKimono
+    ? "sandal"
+    : variant === "armor"
+      ? "boot"
+      : isSkirt
+        ? "flat"
+        : "sneaker";
+  function shoe(cx: number, mirror: boolean) {
+    const s = mirror ? 1 : -1; // la puntera mira hacia afuera del cuerpo
+    const base = darken(o3, 0.82);
+    const baseD = darken(base, 0.6);
+    if (shoeKind === "sandal") {
+      // geta/zori: suela plana de madera + tira en V
+      return (
+        <g key={cx}>
+          <ellipse cx={cx} cy={239} rx={14.5} ry={4.6} fill="#dcc088" stroke="#a8874f" strokeWidth={1.2} />
+          <ellipse cx={cx} cy={237.5} rx={12.5} ry={3} fill="#eaceA0" opacity={0.6} />
+          <path
+            d={`M${cx},227 L${cx - 5 * s},235 M${cx},227 L${cx + 6 * s},235`}
+            stroke="#3a2a1a"
+            strokeWidth={1.7}
+            strokeLinecap="round"
+            fill="none"
+          />
+          <circle cx={cx} cy={227} r={1.8} fill="#3a2a1a" />
+        </g>
+      );
+    }
+    const tall = shoeKind === "boot";
+    const yTop = tall ? 220 : 231;
+    const yBot = yTop + 17;
+    // cuerpo del zapato: talón redondeado detrás, puntera con leve voladizo adelante
+    const body = `
+      M${cx - 8 * s},${yTop}
+      Q${cx - 15 * s},${yTop + 6} ${cx - 14 * s},${yTop + 12}
+      Q${cx - 13 * s},${yBot - 2} ${cx - 8 * s},${yBot}
+      L${cx + 9 * s},${yBot}
+      Q${cx + 17 * s},${yBot - 1} ${cx + 16 * s},${yTop + 10}
+      Q${cx + 15 * s},${yTop + 2} ${cx + 5 * s},${yTop - 2}
+      L${cx - 2 * s},${yTop - 3}
+      Q${cx - 6 * s},${yTop - 2} ${cx - 8 * s},${yTop} Z`;
+    const sole = `
+      M${cx - 13 * s},${yBot - 3}
+      Q${cx - 14 * s},${yBot + 2.5} ${cx - 8 * s},${yBot + 3.5}
+      L${cx + 10 * s},${yBot + 3.5}
+      Q${cx + 18 * s},${yBot + 2.5} ${cx + 17 * s},${yBot - 2.5}
+      L${cx - 13 * s},${yBot - 3} Z`;
+    return (
+      <g key={cx}>
+        <path d={body} fill={tall ? "#5a5f6e" : base} stroke={tall ? darken("#5a5f6e", 0.6) : baseD} strokeWidth={1.3} />
+        {tall && (
+          <>
+            {/* caña de la bota, sube hasta cubrir el tobillo */}
+            <path
+              d={`M${cx - 8 * s},${yTop} L${cx - 7 * s},${yTop - 12} L${cx + 6 * s},${yTop - 12} L${cx + 5 * s},${yTop - 2} Z`}
+              fill="#6b7280"
+              stroke={darken("#6b7280", 0.6)}
+              strokeWidth={1.2}
+            />
+            <rect x={cx - 6 * s - (s < 0 ? 5 : 0)} y={yTop - 9} width={5} height={3} rx={1.3} fill={o3} />
+          </>
+        )}
+        <path d={sole} fill="#f2f2f2" stroke="#c9c9c9" strokeWidth={0.8} />
+        {shoeKind !== "flat" && (
+          <path
+            d={`M${cx - 4 * s},${yTop + 1} L${cx + 2 * s},${yTop + 4} M${cx - 2 * s},${yTop + 4} L${cx + 4 * s},${yTop + 7}`}
+            stroke={lighten(tall ? "#5a5f6e" : base, 0.45)}
+            strokeWidth={1.1}
+            strokeLinecap="round"
+            opacity={0.85}
+          />
+        )}
+        {shoeKind === "flat" && <ellipse cx={cx + 1 * s} cy={yTop + 5} rx={2} ry={2} fill={o3} opacity={0.9} />}
+        <ellipse cx={cx - 5 * s} cy={yTop + 3} rx={3.4} ry={2} fill="#fff" opacity={0.22} />
+      </g>
+    );
+  }
+
+  // ── piernas ─────────────────────────────────────────────────
   const legs = (
     <g>
       {variant === "sport" ? (
@@ -260,11 +446,8 @@ export default function Avatar({ character, size = 160, showBackground = false, 
           <rect x={102} y={218} width={19} height={8} rx={4} fill={darken(o2, 0.85)} />
         </>
       )}
-      {/* zapatos */}
-      <ellipse cx={88} cy={240} rx={15} ry={9} fill={darken(o3, 0.85)} />
-      <ellipse cx={112} cy={240} rx={15} ry={9} fill={darken(o3, 0.85)} />
-      <ellipse cx={86} cy={237} rx={7} ry={4} fill={lighten(darken(o3, 0.85), 0.25)} />
-      <ellipse cx={110} cy={237} rx={7} ry={4} fill={lighten(darken(o3, 0.85), 0.25)} />
+      {shoe(88, false)}
+      {shoe(112, true)}
     </g>
   );
 
@@ -330,7 +513,7 @@ export default function Avatar({ character, size = 160, showBackground = false, 
         <path d="M42,166 L79,172 L78,163 L44,158 Z" fill={darken(o1, 0.8)} />
         <path d="M158,166 L121,172 L122,163 L156,158 Z" fill={darken(o1, 0.8)} />
         {/* cuerpo del kimono */}
-        <path d="M74,118 L126,118 L138,212 Q100,224 62,212 Z" fill={o1} />
+        <path d="M74,118 L126,118 L138,212 Q100,224 62,212 Z" fill={o1} stroke={darken(o1, 0.65)} strokeWidth={1.5} />
         <path d="M74,118 L84,118 L70,205 Q65,209 62,212 Z" fill="#fff" opacity={0.08} />
         {/* cuello cruzado con juban blanco asomando */}
         <path d="M84,118 L100,143 L116,118" stroke="#fff8f0" strokeWidth={6} fill="none" />
@@ -347,10 +530,10 @@ export default function Avatar({ character, size = 160, showBackground = false, 
     torso = (
       <g>
         {/* camisa blanca */}
-        <rect x={74} y={118} width={52} height={54} rx={12} fill="#f6f8ff" />
+        <rect x={74} y={118} width={52} height={54} rx={12} fill="#f6f8ff" stroke="#b8c2dd" strokeWidth={1.4} />
         <rect x={78} y={122} width={8} height={44} rx={4} fill="#fff" opacity={0.65} />
         {/* falda tableada */}
-        <path d="M72,166 L128,166 L133,186 L67,186 Z" fill={o1} />
+        <path d="M72,166 L128,166 L133,186 L67,186 Z" fill={o1} stroke={darken(o1, 0.65)} strokeWidth={1.4} />
         {[79, 89, 99, 109, 119].map((x) => (
           <line key={x} x1={x} y1={168} x2={x - 1.5} y2={185} stroke={darken(o1, 0.75)} strokeWidth={1.4} />
         ))}
@@ -366,7 +549,7 @@ export default function Avatar({ character, size = 160, showBackground = false, 
   } else if (variant === "shinobi") {
     torso = (
       <g>
-        <rect x={74} y={118} width={52} height={66} rx={13} fill={o1} />
+        <rect x={74} y={118} width={52} height={66} rx={13} fill={o1} stroke={darken(o1, 0.6)} strokeWidth={1.4} />
         {/* chaleco cruzado */}
         <path d="M74,120 L100,150 L74,150 Z" fill={darken(o1, 0.8)} />
         <path d="M126,120 L100,150 L126,150 Z" fill={darken(o1, 0.7)} />
@@ -383,7 +566,7 @@ export default function Avatar({ character, size = 160, showBackground = false, 
   } else if (isSkirt) {
     torso = (
       <g>
-        <path d={`M76,122 L124,122 L140,214 Q100,226 60,214 Z`} fill={o1} />
+        <path d={`M76,122 L124,122 L140,214 Q100,226 60,214 Z`} fill={o1} stroke={darken(o1, 0.65)} strokeWidth={1.5} />
         <path d={`M76,122 L124,122 L128,150 L72,150 Z`} fill={darken(o1, 0.9)} />
         {variant === "robe" && <path d="M96,122 L104,122 L106,210 L94,210 Z" fill={o3} opacity={0.9} />}
         {variant === "dress" && (
@@ -399,7 +582,7 @@ export default function Avatar({ character, size = 160, showBackground = false, 
   } else if (variant === "armor") {
     torso = (
       <g>
-        <rect x={72} y={118} width={56} height={66} rx={14} fill={o1} />
+        <rect x={72} y={118} width={56} height={66} rx={14} fill={o1} stroke={darken(o1, 0.6)} strokeWidth={1.5} />
         <rect x={72} y={118} width={56} height={20} rx={10} fill={darken(o1, 0.85)} />
         <circle cx={100} cy={152} r={11} fill={o3} />
         <circle cx={100} cy={152} r={6} fill={darken(o3, 0.8)} />
@@ -412,7 +595,7 @@ export default function Avatar({ character, size = 160, showBackground = false, 
   } else {
     torso = (
       <g>
-        <rect x={74} y={118} width={52} height={66} rx={13} fill={o1} />
+        <rect x={74} y={118} width={52} height={66} rx={13} fill={o1} stroke={darken(o1, 0.65)} strokeWidth={1.5} />
         {variant === "sport" ? (
           <>
             <rect x={74} y={118} width={52} height={12} rx={6} fill={o3} />
@@ -435,16 +618,16 @@ export default function Avatar({ character, size = 160, showBackground = false, 
   const sleeve = variant === "sport" ? skin : variant === "seifuku" ? "#f6f8ff" : o1;
   const arms = (
     <g>
-      <rect x={56} y={122} width={16} height={52} rx={8} fill={sleeve} />
-      <rect x={128} y={122} width={16} height={52} rx={8} fill={sleeve} />
+      <rect x={56} y={122} width={16} height={52} rx={8} fill={sleeve} stroke={darken(sleeve, 0.7)} strokeWidth={1.2} />
+      <rect x={128} y={122} width={16} height={52} rx={8} fill={sleeve} stroke={darken(sleeve, 0.7)} strokeWidth={1.2} />
       {variant !== "sport" && (
         <>
           <rect x={56} y={158} width={16} height={10} fill={darken(sleeve, 0.85)} />
           <rect x={128} y={158} width={16} height={10} fill={darken(sleeve, 0.85)} />
         </>
       )}
-      <circle cx={64} cy={180} r={9} fill={skin} />
-      <circle cx={136} cy={180} r={9} fill={skin} />
+      <circle cx={64} cy={180} r={9} fill={skin} stroke={skinD} strokeWidth={1.2} />
+      <circle cx={136} cy={180} r={9} fill={skin} stroke={skinD} strokeWidth={1.2} />
       <circle cx={62} cy={178} r={3.5} fill={skinL} opacity={0.7} />
       <circle cx={134} cy={178} r={3.5} fill={skinL} opacity={0.7} />
     </g>
@@ -468,6 +651,23 @@ export default function Avatar({ character, size = 160, showBackground = false, 
         <circle cx={cx - 3 * s} cy={77.5} r={3.1} />
         <circle cx={cx + 3.5 * s} cy={88} r={1.7} opacity={0.9} />
         <ellipse cx={cx - 4.8 * s} cy={84} rx={1} ry={2.4} opacity={0.5} />
+      </g>
+    );
+    // ojo abierto estándar (reutilizado por "wink" en el lado que no guiña)
+    const defaultEye = () => (
+      <g>
+        {/* globo ocular alto */}
+        <path d={`M${cx - 10},71.5 Q${cx},65.5 ${cx + 10},71.5 L${cx + 10},88.5 Q${cx},96.5 ${cx - 10},88.5 Z`} fill="#fff" />
+        <ellipse cx={cx} cy={82} rx={7.4} ry={10.6} fill={irisG} />
+        {/* reflejo inferior claro del iris */}
+        <path d={`M${cx - 4.5},89 Q${cx},92.5 ${cx + 4.5},89 Q${cx},94.5 ${cx - 4.5},89 Z`} fill={lighten(eye, 0.55)} opacity={0.8} />
+        <ellipse cx={cx} cy={83.5} rx={3.4} ry={5.6} fill="#1c1626" />
+        {sparkle}
+        {topLash(68)}
+        {/* línea inferior suave */}
+        <path d={`M${cx - 8},92 Q${cx},95.5 ${cx + 8},92`} stroke={lineC} strokeWidth={1.5} strokeLinecap="round" fill="none" opacity={0.3} />
+        {/* pliegue del párpado */}
+        <path d={`M${cx - 7 * s},66 Q${cx},62.5 ${cx + 7 * s},66`} stroke={lineC} strokeWidth={1.2} fill="none" opacity={0.22} />
       </g>
     );
     switch (c.eyeStyle) {
@@ -516,23 +716,100 @@ export default function Avatar({ character, size = 160, showBackground = false, 
             {topLash(68)}
           </g>
         );
-      default:
-        return (
-          <g>
-            {/* globo ocular alto */}
-            <path d={`M${cx - 10},71.5 Q${cx},65.5 ${cx + 10},71.5 L${cx + 10},88.5 Q${cx},96.5 ${cx - 10},88.5 Z`} fill="#fff" />
-            <ellipse cx={cx} cy={82} rx={7.4} ry={10.6} fill={irisG} />
-            {/* reflejo inferior claro del iris */}
-            <path d={`M${cx - 4.5},89 Q${cx},92.5 ${cx + 4.5},89 Q${cx},94.5 ${cx - 4.5},89 Z`} fill={lighten(eye, 0.55)} opacity={0.8} />
-            <ellipse cx={cx} cy={83.5} rx={3.4} ry={5.6} fill="#1c1626" />
-            {sparkle}
-            {topLash(68)}
-            {/* línea inferior suave */}
-            <path d={`M${cx - 8},92 Q${cx},95.5 ${cx + 8},92`} stroke={lineC} strokeWidth={1.5} strokeLinecap="round" fill="none" opacity={0.3} />
-            {/* pliegue del párpado */}
-            <path d={`M${cx - 7 * s},66 Q${cx},62.5 ${cx + 7 * s},66`} stroke={lineC} strokeWidth={1.2} fill="none" opacity={0.22} />
+      case "wink":
+        // el ojo izquierdo (mirror=false) guiña cerrado; el derecho queda abierto
+        return mirror ? (
+          defaultEye()
+        ) : (
+          <g stroke={lineC} strokeWidth={3.4} strokeLinecap="round" fill="none">
+            <path d={`M${cx - 9},83.5 Q${cx},76.5 ${cx + 9},83.5`} />
+            <path d={`M${cx + 7.5},80.5 L${cx + 11},77`} strokeWidth={2.3} />
+            <path d={`M${cx + 3},82.5 L${cx + 5.5},78.5`} strokeWidth={1.8} />
           </g>
         );
+      case "crying":
+        return (
+          <g>
+            {defaultEye()}
+            {/* cejas caídas de pena */}
+            <path
+              d={`M${cx - 8 * s},64 Q${cx},70 ${cx + 8 * s},68`}
+              stroke={lineC}
+              strokeWidth={1.3}
+              fill="none"
+              strokeLinecap="round"
+              opacity={0.35}
+            />
+            {/* lágrima brillante */}
+            <path
+              d={`M${cx - 3},95 Q${cx - 6},101.5 ${cx - 2.5},105 Q${cx + 0.5},101.5 ${cx - 3},95 Z`}
+              fill="#8fd8ff"
+              stroke="#5fb8ea"
+              strokeWidth={0.6}
+              opacity={0.9}
+            />
+            <ellipse cx={cx - 3.6} cy={99} rx={0.8} ry={1.3} fill="#fff" opacity={0.7} />
+          </g>
+        );
+      case "angry":
+        return (
+          <g>
+            {/* párpado inclinado hacia adentro: ceño fruncido */}
+            <path d={`M${cx - 10 * s},87 L${cx + 10 * s},76 L${cx + 10 * s},91.5 Q${cx},96.5 ${cx - 10 * s},91.5 Z`} fill="#fff" />
+            <ellipse cx={cx + 1 * s} cy={85.5} rx={6} ry={7.2} fill={irisG} />
+            <ellipse cx={cx + 1 * s} cy={86.5} rx={2.7} ry={3.6} fill="#1c1626" />
+            <circle cx={cx - 1.2 * s} cy={82.5} r={1.8} fill="#fff" />
+            <path d={`M${cx - 10 * s},87 L${cx + 11 * s},75.5`} stroke={lineC} strokeWidth={3.4} strokeLinecap="round" />
+            <path
+              d={`M${cx - 8 * s},93.5 Q${cx},96.5 ${cx + 8 * s},93`}
+              stroke={lineC}
+              strokeWidth={1.4}
+              strokeLinecap="round"
+              fill="none"
+              opacity={0.3}
+            />
+          </g>
+        );
+      case "dizzy": {
+        // espiral cómica calculada punto a punto: el ojo se vuelve un remolino (mareado)
+        const turns = 1.6;
+        const steps = 32;
+        const pts = Array.from({ length: steps }, (_, i) => {
+          const t = (i / (steps - 1)) * turns * 2 * Math.PI;
+          const r = 0.8 + t * 0.62;
+          return [cx + Math.cos(t) * r, 82 + Math.sin(t) * r] as const;
+        });
+        const d = `M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)} ${pts
+          .slice(1)
+          .map(([x, y]) => `L${x.toFixed(1)},${y.toFixed(1)}`)
+          .join(" ")}`;
+        return (
+          <g stroke={lineC} strokeWidth={2} fill="none" strokeLinecap="round" strokeLinejoin="round">
+            <path d={d} />
+          </g>
+        );
+      }
+      case "heart":
+        return (
+          <g>
+            <path d={`M${cx - 10},71.5 Q${cx},65.5 ${cx + 10},71.5 L${cx + 10},88.5 Q${cx},96.5 ${cx - 10},88.5 Z`} fill="#fff" />
+            <ellipse cx={cx} cy={82} rx={7.4} ry={10.6} fill={irisG} />
+            {/* pupila con forma de corazón: ojos enamorados (cabe dentro del iris) */}
+            <path
+              d={`M${cx},90
+                  C${cx - 3},87 ${cx - 7},84 ${cx - 7},80.5
+                  C${cx - 7},77.5 ${cx - 3.5},76 ${cx},79.5
+                  C${cx + 3.5},76 ${cx + 7},77.5 ${cx + 7},80.5
+                  C${cx + 7},84 ${cx + 3},87 ${cx},90 Z`}
+              fill="#ff5f8f"
+              stroke="#c93a6e"
+              strokeWidth={0.5}
+            />
+            {topLash(68)}
+          </g>
+        );
+      default:
+        return defaultEye();
     }
   }
 
@@ -542,6 +819,16 @@ export default function Avatar({ character, size = 160, showBackground = false, 
       <g stroke={hairD} strokeWidth={3} fill="none" strokeLinecap="round">
         <path d="M72,58 L93,64" />
         <path d="M128,58 L107,64" />
+      </g>
+    ) : c.eyeStyle === "angry" ? (
+      <g stroke={hairD} strokeWidth={3} fill="none" strokeLinecap="round">
+        <path d="M74,61 L93,55" />
+        <path d="M126,61 L107,55" />
+      </g>
+    ) : c.eyeStyle === "crying" ? (
+      <g stroke={hairD} strokeWidth={2.4} fill="none" strokeLinecap="round" opacity={0.85}>
+        <path d="M74,58 Q83,62 92,60" />
+        <path d="M108,60 Q117,62 126,58" />
       </g>
     ) : (
       <g stroke={hairD} strokeWidth={2.6} fill="none" strokeLinecap="round">
@@ -573,6 +860,38 @@ export default function Avatar({ character, size = 160, showBackground = false, 
       break;
     case "smirk":
       mouthArt = <path d="M92,102 Q102,107 109,98.5" stroke={mC} strokeWidth={2.5} fill="none" strokeLinecap="round" />;
+      break;
+    case "laugh":
+      // carcajada: boca bien abierta con dientes superiores
+      mouthArt = (
+        <g>
+          <path d="M87,98 Q100,117 113,98 Z" fill="#7a3141" stroke={mC} strokeWidth={1.6} strokeLinejoin="round" />
+          <path d="M89.5,98.5 Q100,103 110.5,98.5 L109,101.5 Q100,105.5 91,101.5 Z" fill="#fff" />
+        </g>
+      );
+      break;
+    case "surprised":
+      // sorpresa: boca pequeña y redonda en "o"
+      mouthArt = <ellipse cx={100} cy={103} rx={4.4} ry={6} fill="#7a3141" stroke={mC} strokeWidth={1.3} />;
+      break;
+    case "smug":
+      // orgulloso: sonrisa asimétrica de satisfacción
+      mouthArt = (
+        <path d="M91,100.5 Q100,104.5 103,99 Q106.5,102.5 111,98.5" stroke={mC} strokeWidth={2.4} fill="none" strokeLinecap="round" />
+      );
+      break;
+    case "tongue":
+      // traviesa: sonrisa con la lengua afuera
+      mouthArt = (
+        <g>
+          <path d="M89,99 Q100,109 111,99 Z" fill="#8a3b4a" stroke={mC} strokeWidth={1.5} strokeLinejoin="round" />
+          <path d="M95,102 Q100,111 105,102 Q100,106.5 95,102 Z" fill="#ff7d9c" stroke="#c93a5c" strokeWidth={0.7} />
+        </g>
+      );
+      break;
+    case "pout":
+      // puchero: labios pequeños y fruncidos
+      mouthArt = <ellipse cx={100} cy={101.5} rx={3.4} ry={2.6} fill={mC} opacity={0.75} />;
       break;
     default:
       mouthArt = <path d="M92,100 Q100,107.5 108,100" stroke={mC} strokeWidth={2.6} fill="none" strokeLinecap="round" />;
@@ -669,72 +988,164 @@ export default function Avatar({ character, size = 160, showBackground = false, 
   // ── pelo delantero ─────────────────────────────────────────
   let hairArt: React.ReactNode = null;
   const shine = (d: string) => <path d={d} fill="#fff" opacity={0.22} />;
-  // flequillo de picos afilados que caen sobre los ojos (sello del anime)
-  const bangsSharp = (
-    <path
-      d="M55,72 Q50,28 100,22 Q150,28 145,72 L139,58 L131,67 L124,50 L116,67 L108,49 L100,67 L92,49 L84,67 L77,50 L69,67 L61,58 Z"
-      fill={hairG}
-      {...hs}
-    />
+  // base oscura que asoma ENTRE los mechones del flequillo (profundidad)
+  const capShadow = (
+    <path d="M55,72 Q49,22 100,17 Q151,22 145,72 Q120,52 100,54 Q80,52 55,72 Z" fill={hairD} />
   );
-  // flequillo de mechones redondeados barridos
-  const bangsSwept = (
-    <path
-      d="M55,72 Q50,26 100,20 Q150,26 145,72 Q141,58 133,54 Q126,68 115,58 Q104,72 90,60 Q76,70 67,58 Q58,60 55,72 Z"
-      fill={hairG}
-      {...hs}
-    />
-  );
+  // domo de volumen sobre el cráneo (el pelo anime nunca va pegado)
+  const crown = <path d="M57,56 Q52,14 100,10 Q148,14 143,56 Q100,34 57,56 Z" fill={hairG} {...hs} />;
+  // flequillo completo: abanico de mechones curvos que caen sobre los ojos
+  const bangsFan = locks([
+    [80, 34, 61, 70, 17, -3],
+    [92, 30, 79, 74, 16, -2],
+    [103, 29, 99, 76, 16, 1],
+    [114, 31, 119, 73, 16, 3],
+    [124, 35, 137, 68, 16, 4],
+    [86, 32, 71, 56, 9, -2],
+    [108, 30, 110, 58, 9, 1],
+    [120, 34, 129, 56, 9, 3],
+  ]);
+  // flequillo barrido hacia un lado
+  const bangsSide = locks([
+    [92, 30, 60, 66, 18, -8],
+    [100, 29, 78, 74, 16, -6],
+    [108, 29, 98, 78, 15, -3],
+    [116, 30, 118, 72, 15, 2],
+    [124, 33, 136, 64, 15, 6],
+    [128, 36, 143, 56, 10, 5],
+  ]);
+  // flequillo cortina con raya al medio
+  const bangsCurtain = locks([
+    [93, 30, 65, 72, 19, -7],
+    [97, 31, 80, 64, 12, -4],
+    [107, 30, 135, 72, 19, 7],
+    [103, 31, 120, 64, 12, 4],
+  ]);
   // antenita rebelde (ahoge)
-  const ahoge = <path d="M95,21 Q88,10 97,-2 Q94,10 101,16 Z" fill={hairG} {...hs} />;
+  const ahoge = <path d="M95,19 Q86,8 96,-6 Q93,8 101,14 Z" fill={hairG} {...hs} />;
 
-  switch (c.hairStyle) {
+  if (hairPng) {
+    hairArt = <image href={hairPng.front} x={0} y={0} width={W} height={H} />;
+  } else switch (c.hairStyle) {
     case "spiky":
-      // picos saiyan: capa oscura atrás, picos grandes con curva adelante
+      // saiyan: dos capas de picos curvos que irradian + flequillo en abanico
       hairArt = (
         <g>
-          <g fill={hairD}>
-            <path d="M60,58 Q42,44 36,22 Q58,32 66,44 Z" />
-            <path d="M140,58 Q158,44 164,22 Q142,32 134,44 Z" />
-            <path d="M78,34 Q68,14 72,-4 Q86,14 90,28 Z" />
-            <path d="M122,34 Q132,14 128,-4 Q114,14 110,28 Z" />
-          </g>
-          {bangsSharp}
-          <g fill={hairG} {...hs}>
-            <path d="M62,54 Q44,42 38,22 Q60,30 72,42 Z" />
-            <path d="M138,54 Q156,42 162,22 Q140,30 128,42 Z" />
-            <path d="M72,42 Q58,22 62,2 Q82,18 88,32 Z" />
-            <path d="M128,42 Q142,22 138,2 Q118,18 112,32 Z" />
-            <path d="M88,30 Q84,8 96,-10 Q100,10 101,26 Z" />
-            <path d="M112,30 Q116,8 104,-10 Q100,10 99,26 Z" />
-          </g>
-          {shine("M70,40 Q86,24 100,22 Q84,34 76,48 Z")}
+          {capShadow}
+          {locks(
+            [
+              [80, 40, 42, 8, 20, -7],
+              [120, 40, 158, 8, 20, 7],
+              [92, 36, 70, -8, 20, -5],
+              [108, 36, 130, -8, 20, 5],
+              [100, 34, 100, -16, 18, 0],
+            ],
+            hairD,
+            false
+          )}
+          {locks([
+            [78, 46, 38, 24, 22, -8],
+            [122, 46, 162, 24, 22, 8],
+            [86, 40, 58, -2, 22, -7],
+            [114, 40, 142, -2, 22, 7],
+            [98, 36, 90, -14, 20, -3],
+            [104, 36, 114, -10, 17, 4],
+          ])}
+          {bangsFan}
+          {shine("M76,34 Q92,20 106,20 Q88,28 82,44 Z")}
+        </g>
+      );
+      break;
+    case "hero":
+      // protagonista shonen: mechones barridos hacia arriba y atrás
+      hairArt = (
+        <g>
+          {crown}
+          {locks(
+            [
+              [70, 44, 44, 14, 18, 9],
+              [84, 36, 66, -6, 20, 8],
+              [102, 32, 98, -16, 20, 2],
+              [118, 36, 132, -8, 18, -6],
+              [132, 44, 156, 12, 16, -8],
+            ],
+            hairD,
+            false
+          )}
+          {locks([
+            [74, 46, 52, 20, 18, 8],
+            [88, 38, 74, -8, 20, 7],
+            [104, 34, 106, -14, 20, -2],
+            [120, 40, 140, -2, 18, -7],
+            [134, 48, 158, 22, 15, -8],
+          ])}
+          {locks([
+            [78, 42, 62, 64, 12, -5],
+            [90, 38, 82, 60, 11, -3],
+            [102, 36, 104, 58, 11, 1],
+            [114, 38, 122, 60, 11, 3],
+            [124, 42, 138, 64, 12, 5],
+          ])}
+          {shine("M88,26 Q100,16 112,22 Q100,26 94,36 Z")}
         </g>
       );
       break;
     case "messy":
-      // despeinado de protagonista: mechones hacia todos lados + ahoge
+      // despeinado: mechones medianos hacia todos lados + ahoge
       hairArt = (
         <g>
-          <g fill={hairD}>
-            <path d="M64,42 Q52,30 50,16 Q64,24 72,34 Z" />
-            <path d="M136,42 Q148,30 150,16 Q136,24 128,34 Z" />
-          </g>
-          {bangsSharp}
-          <g fill={hairG} {...hs}>
-            <path d="M56,66 Q40,62 32,50 Q48,50 60,56 Z" />
-            <path d="M144,66 Q160,62 168,50 Q152,50 140,56 Z" />
-            <path d="M76,30 Q68,14 76,0 Q86,14 88,26 Z" />
-            <path d="M124,30 Q132,14 124,0 Q114,14 112,26 Z" />
-            <path d="M98,24 Q94,8 104,-6 Q110,12 104,24 Z" />
-          </g>
+          {capShadow}
+          {locks([
+            [70, 48, 40, 40, 16, -6],
+            [130, 48, 160, 40, 16, 6],
+            [80, 36, 58, 10, 17, -6],
+            [120, 36, 142, 10, 17, 6],
+            [96, 32, 88, 2, 16, -3],
+            [106, 32, 118, 4, 14, 4],
+          ])}
+          {bangsFan}
           {ahoge}
-          {shine("M68,42 Q88,26 112,28 Q88,34 76,50 Z")}
+          {shine("M74,34 Q92,22 110,24 Q90,30 80,44 Z")}
+        </g>
+      );
+      break;
+    case "emo":
+      // gran mechón lateral que tapa un ojo
+      hairArt = (
+        <g>
+          {crown}
+          {capShadow}
+          {locks([
+            [104, 28, 56, 86, 26, -12],
+            [112, 28, 78, 94, 18, -8],
+            [118, 30, 102, 72, 14, -4],
+            [124, 32, 128, 66, 13, 3],
+            [130, 36, 142, 58, 11, 5],
+          ])}
+          {flow(["M96,36 Q76,58 66,80"], 0.5)}
+          {shine("M90,26 Q106,20 118,24 Q104,28 96,34 Z")}
+        </g>
+      );
+      break;
+    case "wolf":
+      // corte lobo: capas desmechadas arriba y a los costados
+      hairArt = (
+        <g>
+          {capShadow}
+          {locks([
+            [62, 58, 44, 92, 14, -6],
+            [66, 70, 52, 108, 12, -5],
+            [138, 58, 156, 92, 14, 6],
+            [134, 70, 148, 108, 12, 5],
+          ])}
+          {bangsFan}
+          {ahoge}
+          {shine("M74,32 Q92,20 112,22 Q90,28 80,42 Z")}
         </g>
       );
       break;
     case "bob":
-      // bob con cortinas que enmarcan la cara y puntas hacia adentro
+      // bob con cortinas que enmarcan la cara + flequillo en abanico
       hairArt = (
         <g>
           <path
@@ -747,72 +1158,134 @@ export default function Avatar({ character, size = 160, showBackground = false, 
             fill={hairG}
             {...hs}
           />
-          <path d="M70,80 Q70,98 78,106 Q68,102 66,84 Z" fill={hairD} opacity={0.5} />
-          <path d="M130,80 Q130,98 122,106 Q132,102 134,84 Z" fill={hairD} opacity={0.5} />
-          {bangsSwept}
-          {shine("M66,44 Q90,28 116,30 Q90,36 74,52 Z")}
+          {capShadow}
+          {bangsFan}
+          {flow(["M66,60 Q64,88 72,104", "M134,60 Q136,88 128,104"])}
+          {shine("M66,42 Q88,26 112,28 Q88,34 74,50 Z")}
         </g>
       );
       break;
     case "long":
-      // melena larga: mechones laterales con punta + flequillo de picos
+      // melena larga: mechones laterales con punta + flequillo en abanico
       hairArt = (
         <g>
-          <path d="M56,58 Q48,100 52,146 Q54,164 66,158 Q60,116 64,84 Z" fill={hairG} {...hs} />
-          <path d="M144,58 Q152,100 148,146 Q146,164 134,158 Q140,116 136,84 Z" fill={hairG} {...hs} />
-          {bangsSharp}
+          {locks([
+            [60, 62, 50, 150, 17, -5],
+            [66, 74, 64, 156, 12, -3],
+            [140, 62, 150, 150, 17, 5],
+            [134, 74, 136, 156, 12, 3],
+          ])}
+          {capShadow}
+          {bangsFan}
           {ahoge}
-          {shine("M64,44 Q86,26 112,28 Q86,34 72,52 Z")}
+          {shine("M66,40 Q88,24 112,26 Q88,32 74,48 Z")}
         </g>
       );
       break;
     case "wavy":
-      // ondulado: mechones en S por delante de los hombros
+      // ondulado: cortinas en S + flequillo cortina
       hairArt = (
         <g>
           <path d="M54,60 Q42,88 54,106 Q44,126 58,142 Q66,134 60,118 Q70,102 58,84 Z" fill={hairG} {...hs} />
           <path d="M146,60 Q158,88 146,106 Q156,126 142,142 Q134,134 140,118 Q130,102 142,84 Z" fill={hairG} {...hs} />
-          {bangsSwept}
-          {shine("M64,44 Q90,28 118,32 Q90,38 72,54 Z")}
+          {capShadow}
+          {bangsCurtain}
+          {shine("M64,42 Q90,26 118,30 Q90,36 72,52 Z")}
         </g>
       );
       break;
     case "hime":
-      // corte hime: flequillo recto con muescas + mechones a la mejilla
+      // corte hime: flequillo recto, mechones a la mejilla, líneas internas
       hairArt = (
         <g>
           <path d="M48,54 L68,56 Q70,96 66,122 L58,134 L50,122 Q44,96 48,54 Z" fill={hairG} {...hs} />
           <path d="M152,54 L132,56 Q130,96 134,122 L142,134 L150,122 Q156,96 152,54 Z" fill={hairG} {...hs} />
+          {crown}
           <path
             d="M56,70 Q52,24 100,20 Q148,24 144,70 L136,62 L128,67 L120,62 L112,67 L104,62 L96,67 L88,62 L80,67 L72,62 L64,67 Z"
             fill={hairG}
             {...hs}
           />
-          {shine("M66,42 Q94,32 124,36 Q96,38 74,48 Z")}
+          {flow(["M80,34 L80,60", "M100,30 L100,62", "M120,34 L120,60"], 0.35)}
+          {shine("M66,40 Q94,30 124,34 Q96,36 74,46 Z")}
         </g>
       );
       break;
     case "ponytail":
-      // coleta alta deportiva: flequillo barrido + coletero
+      // coleta alta: flequillo barrido + coletero
       hairArt = (
         <g>
-          {bangsSwept}
-          <path d="M92,20 Q98,4 112,2 Q102,12 104,22 Z" fill={hairG} {...hs} />
-          <circle cx={138} cy={46} r={7} fill={o3} stroke={darken(o3, 0.7)} strokeWidth={1.5} />
-          {shine("M66,44 Q90,28 116,30 Q90,36 74,52 Z")}
+          {crown}
+          {capShadow}
+          {bangsSide}
+          <circle cx={138} cy={44} r={7} fill={o3} stroke={darken(o3, 0.7)} strokeWidth={1.5} />
+          {shine("M80,26 Q98,18 116,22 Q96,26 86,34 Z")}
+        </g>
+      );
+      break;
+    case "lowtail":
+      // coleta baja: cortina al medio + mechones sueltos a los lados
+      hairArt = (
+        <g>
+          {crown}
+          {capShadow}
+          {bangsCurtain}
+          {locks([
+            [62, 56, 54, 96, 12, -4],
+            [138, 56, 146, 96, 12, 4],
+          ])}
+          {shine("M74,30 Q94,20 116,24 Q94,28 82,38 Z")}
+        </g>
+      );
+      break;
+    case "sidetail":
+      // coleta lateral alta con mechón suelto
+      hairArt = (
+        <g>
+          {crown}
+          {capShadow}
+          {bangsSide}
+          {locks([[58, 58, 50, 92, 11, -4]])}
+          <circle cx={142} cy={42} r={7.5} fill={o3} stroke={darken(o3, 0.7)} strokeWidth={1.5} />
+          {shine("M78,26 Q96,18 114,22 Q94,26 84,34 Z")}
         </g>
       );
       break;
     case "twintails":
-      // dos coletas: flequillo de picos + coleteros + mechones al frente
+      // dos coletas: flequillo en abanico + mechones al frente + coleteros
       hairArt = (
         <g>
-          {bangsSharp}
-          <path d="M58,66 Q46,92 54,116 Q62,108 60,90 Z" fill={hairG} {...hs} />
-          <path d="M142,66 Q154,92 146,116 Q138,108 140,90 Z" fill={hairG} {...hs} />
-          <circle cx={60} cy={60} r={6.5} fill={o3} stroke={darken(o3, 0.7)} strokeWidth={1.4} />
-          <circle cx={140} cy={60} r={6.5} fill={o3} stroke={darken(o3, 0.7)} strokeWidth={1.4} />
-          {shine("M68,44 Q92,28 118,32 Q92,38 76,52 Z")}
+          {capShadow}
+          {bangsFan}
+          {locks([
+            [58, 64, 50, 112, 13, -5],
+            [142, 64, 150, 112, 13, 5],
+          ])}
+          <circle cx={58} cy={58} r={6.5} fill={o3} stroke={darken(o3, 0.7)} strokeWidth={1.4} />
+          <circle cx={142} cy={58} r={6.5} fill={o3} stroke={darken(o3, 0.7)} strokeWidth={1.4} />
+          {shine("M70,32 Q92,22 116,26 Q92,30 78,40 Z")}
+        </g>
+      );
+      break;
+    case "drills":
+      // bucles taladro de señorita elegante
+      hairArt = (
+        <g>
+          {crown}
+          {capShadow}
+          {bangsCurtain}
+          <g fill={hairG} {...hs}>
+            <path d="M40,58 Q34,72 46,76 Q58,80 62,70 L60,56 Z" />
+            <path d="M42,76 Q38,88 48,92 Q60,94 62,84 L60,74 Z" />
+            <path d="M44,92 Q42,102 50,106 Q60,108 60,98 L58,90 Z" />
+            <path d="M48,106 Q48,118 54,122 L58,104 Z" />
+            <path d="M160,58 Q166,72 154,76 Q142,80 138,70 L140,56 Z" />
+            <path d="M158,76 Q162,88 152,92 Q140,94 138,84 L140,74 Z" />
+            <path d="M156,92 Q158,102 150,106 Q140,108 140,98 L142,90 Z" />
+            <path d="M152,106 Q152,118 146,122 L142,104 Z" />
+          </g>
+          {flow(["M44,70 Q52,74 60,68", "M46,86 Q54,90 60,84", "M156,70 Q148,74 140,68", "M154,86 Q146,90 140,84"], 0.5)}
+          {shine("M76,30 Q96,20 118,24 Q94,28 84,38 Z")}
         </g>
       );
       break;
@@ -820,7 +1293,8 @@ export default function Avatar({ character, size = 160, showBackground = false, 
       // trenza lateral sobre el hombro, eslabones decrecientes
       hairArt = (
         <g>
-          {bangsSwept}
+          {capShadow}
+          {bangsCurtain}
           <g fill={hairG} {...hs}>
             <ellipse cx={139} cy={68} rx={9} ry={7} transform="rotate(28 139 68)" />
             <ellipse cx={146} cy={82} rx={8.5} ry={6.5} transform="rotate(12 146 82)" />
@@ -836,20 +1310,21 @@ export default function Avatar({ character, size = 160, showBackground = false, 
           </g>
           <rect x={137} y={126} width={10} height={5.5} rx={2.7} fill={o3} transform="rotate(-24 142 129)" />
           <path d="M137,131 Q134,146 141,153 Q146,144 145,133 Z" fill={hairD} {...hs} />
-          {shine("M66,44 Q90,28 116,30 Q90,36 74,52 Z")}
+          {shine("M70,30 Q92,20 116,24 Q92,28 78,38 Z")}
         </g>
       );
       break;
     case "buns":
-      // rodetes espaciales con espiral + flequillo de picos
+      // rodetes espaciales con espiral + flequillo en abanico
       hairArt = (
         <g>
           <circle cx={60} cy={30} r={15} fill={hairG} {...hs} />
           <circle cx={140} cy={30} r={15} fill={hairG} {...hs} />
           <path d="M52,30 Q58,20 68,24 M54,36 Q62,40 68,34" stroke={hairD} strokeWidth={1.6} fill="none" strokeLinecap="round" />
           <path d="M148,30 Q142,20 132,24 M146,36 Q138,40 132,34" stroke={hairD} strokeWidth={1.6} fill="none" strokeLinecap="round" />
-          {bangsSharp}
-          {shine("M68,44 Q92,28 118,32 Q92,38 76,52 Z")}
+          {capShadow}
+          {bangsFan}
+          {shine("M70,32 Q92,22 116,26 Q92,30 78,40 Z")}
         </g>
       );
       break;
@@ -862,12 +1337,13 @@ export default function Avatar({ character, size = 160, showBackground = false, 
           <path d="M55,70 Q50,24 100,20 Q150,24 145,70 Q142,44 104,42 L100,52 L96,42 Q58,44 55,70 Z" fill={hairG} {...hs} />
           <path d="M56,62 Q58,84 64,94 L68,64 Z" fill={hairG} {...hs} />
           <path d="M144,62 Q142,84 136,94 L132,64 Z" fill={hairG} {...hs} />
+          {flow(["M70,32 Q86,26 100,26", "M130,32 Q114,26 100,26"], 0.4)}
           {shine("M66,40 Q90,26 118,30 Q92,34 74,46 Z")}
         </g>
       );
       break;
     case "curly":
-      // nube de rulos con bucles marcados
+      // nube de rulos con bucles marcados y mechones que escapan
       hairArt = (
         <g>
           <g fill={hairG} {...hs}>
@@ -879,6 +1355,12 @@ export default function Avatar({ character, size = 160, showBackground = false, 
             <circle cx={56} cy={72} r={12} />
             <circle cx={144} cy={72} r={12} />
           </g>
+          {locks([
+            [62, 64, 46, 76, 9, -4],
+            [138, 64, 154, 76, 9, 4],
+            [72, 28, 60, 14, 9, -4],
+            [128, 28, 140, 14, 9, 4],
+          ])}
           <g fill={hairG} {...hs}>
             <circle cx={74} cy={58} r={10} />
             <circle cx={92} cy={52} r={11} />
@@ -1272,12 +1754,15 @@ export default function Avatar({ character, size = 160, showBackground = false, 
       {bgArt}
       {auraArt}
       <g className={idle ? "avatar-idle" : undefined}>
-        <ellipse cx={100} cy={246} rx={46} ry={9} fill="#000" opacity={0.22} />
+        <ellipse cx={100} cy={246} rx={46 * bs.legs} ry={9} fill="#000" opacity={0.22} />
         {backAcc}
         {hairBack}
-        {legs}
-        {arms}
-        {torso}
+        {/* el tipo de cuerpo ensancha/afina piernas y torso+brazos por separado */}
+        <g transform={`translate(100,205) scale(${bs.legs},1) translate(-100,-205)`}>{legs}</g>
+        <g transform={`translate(100,152) scale(${bs.torso},1) translate(-100,-152)`}>
+          {arms}
+          {torso}
+        </g>
         {head}
         {hairArt}
         {/* "angel ring": banda de brillo anime sobre el pelo */}
@@ -1287,7 +1772,8 @@ export default function Avatar({ character, size = 160, showBackground = false, 
         {frontAcc && (
           <g style={{ filter: "drop-shadow(0 2px 2px rgba(0,0,0,0.35))" }}>{frontAcc}</g>
         )}
-        {weaponArt}
+        {/* misma transformación que torso/brazos para que el arma siga a la mano */}
+        <g transform={`translate(100,152) scale(${bs.torso},1) translate(-100,-152)`}>{weaponArt}</g>
       </g>
       {petArt}
     </svg>
