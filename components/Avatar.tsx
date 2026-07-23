@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useId } from "react";
-import type { Character } from "@/lib/types";
+import type { Character, ItemDef } from "@/lib/types";
 import { getItem, HAIR_PNG } from "@/lib/items";
 
 // ─────────────────────────────────────────────────────────────
@@ -48,12 +48,187 @@ function lighten(hex: string, f = 0.35): string {
   return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, "0")}`;
 }
 
+// Dibuja la forma del arma en su propio espacio local (mano en 0,0, hoja hacia arriba).
+// Reutilizado tanto para la mano principal como para la secundaria (combate a dos armas).
+function buildWeaponShape(weapon: ItemDef): React.ReactNode {
+  const w1 = weapon.c1 ?? "#ccc";
+  const w2 = weapon.c2 ?? "#888";
+  switch (weapon.variant) {
+    case "stick":
+      return <rect x={-4} y={-58} width={8} height={78} rx={4} fill={w1} stroke={w2} strokeWidth={1.5} />;
+    case "sword":
+      return (
+        <g>
+          <path d="M0,-70 L7,-56 L7,-6 L-7,-6 L-7,-56 Z" fill={w1} stroke={darken(w1, 0.7)} strokeWidth={1} />
+          <path d="M0,-70 L2,-56 L2,-6 L0,-6 Z" fill="#fff" opacity={0.5} />
+          <rect x={-15} y={-8} width={30} height={7} rx={3} fill={w2} />
+          <rect x={-4} y={-1} width={8} height={20} rx={3} fill={darken(w2, 0.75)} />
+        </g>
+      );
+    case "katana":
+      return (
+        <g transform="rotate(-6)">
+          {/* hoja curvada */}
+          <path d="M-2,-84 Q10,-46 5,-9 L-4,-9 Q-9,-46 -2,-84 Z" fill={w1} stroke={darken(w1, 0.72)} strokeWidth={1.2} />
+          {/* hamon: línea del temple */}
+          <path d="M-1.5,-78 Q7,-45 3,-12" stroke="#fff" strokeWidth={1.3} fill="none" opacity={0.85} />
+          {/* brillo de la punta */}
+          <path d="M-2,-84 L1.5,-72 L-3.5,-70 Z" fill="#fff" opacity={0.55} />
+          {/* habaki dorado */}
+          <rect x={-5} y={-12} width={10} height={5} rx={1} fill="#d8b84a" />
+          {/* tsuba */}
+          <ellipse cx={0} cy={-5} rx={11} ry={4.2} fill={w2} stroke={darken(w2, 0.7)} strokeWidth={1} />
+          {/* tsuka con trenzado de rombos */}
+          <rect x={-4.2} y={-2} width={8.4} height={26} rx={3.6} fill={darken(w2, 0.78)} />
+          <path d="M-4,2 L4,7.5 M4,2 L-4,7.5 M-4,10 L4,15.5 M4,10 L-4,15.5 M-4,18 L4,23" stroke={w1} strokeWidth={1.3} opacity={0.9} />
+          <rect x={-4.6} y={21.5} width={9.2} height={4.5} rx={2} fill={w2} />
+          {weapon.motif === "petalos" && (
+            <g fill="#ff9ec4" opacity={0.95}>
+              <ellipse cx={10} cy={-64} rx={3} ry={2} transform="rotate(-30 10 -64)" />
+              <ellipse cx={-9} cy={-46} rx={2.6} ry={1.7} transform="rotate(24 -9 -46)" />
+              <ellipse cx={12} cy={-30} rx={2.4} ry={1.6} transform="rotate(-18 12 -30)" />
+              <ellipse cx={-7} cy={-68} rx={2.2} ry={1.5} transform="rotate(40 -7 -68)" />
+            </g>
+          )}
+          {weapon.motif === "llama" && (
+            <path
+              d="M4,-72 Q10,-63 5,-55 Q12,-48 6,-38 Q11,-31 5,-23"
+              stroke="#ff7a3c"
+              strokeWidth={2.2}
+              fill="none"
+              strokeLinecap="round"
+              opacity={0.85}
+            />
+          )}
+          {weapon.motif === "luna" && (
+            <path d="M10,-74 A6,6 0 1 0 10,-62 A4.6,4.6 0 1 1 10,-74 Z" fill="#fff6c9" opacity={0.95} />
+          )}
+          {weapon.motif === "sombra" && (
+            <g stroke="#8b5cff" strokeWidth={2} fill="none" strokeLinecap="round" opacity={0.8}>
+              <path d="M-8,-66 Q-13,-58 -8,-50" />
+              <path d="M9,-52 Q14,-44 9,-36" />
+              <path d="M-7,-34 Q-11,-28 -7,-22" opacity={0.6} />
+            </g>
+          )}
+        </g>
+      );
+    case "kunai":
+      return (
+        <g>
+          <path d="M0,-52 L9,-28 L3.5,-12 L-3.5,-12 L-9,-28 Z" fill={w1} stroke={darken(w1, 0.7)} strokeWidth={1.2} />
+          <line x1={0} y1={-49} x2={0} y2={-14} stroke="#fff" strokeWidth={1.2} opacity={0.6} />
+          <rect x={-3.2} y={-12} width={6.4} height={18} rx={3} fill={w2} />
+          <path d="M-3,-8 L3,-4 M3,-8 L-3,-4 M-3,-1 L3,3" stroke={w1} strokeWidth={1.1} opacity={0.8} />
+          <circle cx={0} cy={11} r={4.5} fill="none" stroke={w2} strokeWidth={2.4} />
+        </g>
+      );
+    case "wand":
+      return (
+        <g>
+          <rect x={-3} y={-46} width={6} height={62} rx={3} fill={w1} />
+          <path d="M0,-66 L5,-54 L18,-52 L8,-44 L11,-31 L0,-38 L-11,-31 L-8,-44 L-18,-52 L-5,-54 Z" fill={w2} />
+        </g>
+      );
+    case "staff":
+      return (
+        <g>
+          <rect x={-4} y={-62} width={8} height={86} rx={4} fill={w1} />
+          <circle cx={0} cy={-68} r={12} fill={w2} opacity={0.95} />
+          <circle cx={0} cy={-68} r={6} fill="#fff" opacity={0.6} />
+        </g>
+      );
+    case "bow":
+      return (
+        <g>
+          <path d="M0,-58 Q34,-16 0,26" fill="none" stroke={w1} strokeWidth={6} strokeLinecap="round" />
+          <line x1={0} y1={-58} x2={0} y2={26} stroke={w2} strokeWidth={2} />
+        </g>
+      );
+    case "hammer":
+      return (
+        <g>
+          <rect x={-4} y={-48} width={8} height={70} rx={4} fill={w2} />
+          <rect x={-22} y={-64} width={44} height={22} rx={7} fill={w1} />
+          <rect x={-22} y={-64} width={44} height={8} rx={4} fill={darken(w1, 0.8)} />
+        </g>
+      );
+    case "book":
+      return (
+        <g transform="rotate(12)">
+          <rect x={-20} y={-30} width={40} height={30} rx={4} fill={w1} />
+          <rect x={-16} y={-26} width={32} height={22} rx={2} fill="#fff" opacity={0.9} />
+          <line x1={0} y1={-26} x2={0} y2={-4} stroke={w1} strokeWidth={2} />
+          <polygon points="-6,-38 0,-30 6,-38" fill={w2} />
+        </g>
+      );
+    case "slingshot":
+      return (
+        <g>
+          <rect x={-3.5} y={-16} width={7} height={36} rx={3} fill={w1} />
+          <path d="M0,-14 Q-16,-30 -14,-44 M0,-14 Q16,-30 14,-44" fill="none" stroke={w1} strokeWidth={6} strokeLinecap="round" />
+          <path d="M-14,-44 Q0,-34 14,-44" fill="none" stroke={w2} strokeWidth={2.5} />
+        </g>
+      );
+    case "guitar":
+      return (
+        <g transform="rotate(18)">
+          <ellipse cx={0} cy={4} rx={20} ry={16} fill={w1} />
+          <circle cx={0} cy={4} r={6} fill={darken(w1, 0.6)} />
+          <rect x={-3.5} y={-58} width={7} height={62} rx={3} fill={w2} />
+          <rect x={-7} y={-62} width={14} height={9} rx={3} fill={darken(w2, 0.8)} />
+          {[-1.6, 0, 1.6].map((dx, i) => (
+            <line key={i} x1={dx} y1={-54} x2={dx} y2={16} stroke="#fff" strokeWidth={0.7} opacity={0.8} />
+          ))}
+        </g>
+      );
+    case "trident":
+      return (
+        <g>
+          <rect x={-3.5} y={-52} width={7} height={78} rx={3} fill={w2} />
+          <path d="M-16,-52 Q-16,-72 -12,-76 L-9,-56 L-3,-56 L-3,-80 Q0,-86 3,-80 L3,-56 L9,-56 L12,-76 Q16,-72 16,-52 L8,-48 L-8,-48 Z" fill={w1} />
+        </g>
+      );
+    default:
+      return null;
+  }
+}
+
+// Coloca el arma en una mano con una inclinación dinámica de "pose de acción"
+// (mucho más ladeada que recta hacia arriba), en vez de recta.
+// La mano izquierda usa el mismo dibujo espejado, para poder empuñar dos armas a la vez.
+function weaponGroup(
+  weapon: ItemDef | undefined,
+  hand: "right" | "left",
+  skin: string,
+  skinD: string
+): React.ReactNode {
+  if (!weapon) return null;
+  const shape = buildWeaponShape(weapon);
+  const cx = hand === "right" ? 136 : 64;
+  const angle = hand === "right" ? 33 : -33;
+  const mirror = hand === "left" ? -1 : 1;
+  return (
+    <g
+      transform={`translate(${cx},180) rotate(${angle}) scale(${mirror},1)`}
+      style={{ filter: "drop-shadow(0 3px 3px rgba(0,0,0,0.35))" }}
+    >
+      {shape}
+      <circle cx={0} cy={5} r={8.5} fill={skin} stroke={skinD} strokeWidth={1.2} />
+      <path d="M-6,1.5 L6,1.5 M-6.5,5 L6.5,5 M-6,8.5 L6,8.5" stroke={skinD} strokeWidth={1} opacity={0.5} fill="none" />
+    </g>
+  );
+}
+
 export default function Avatar({ character, size = 160, showBackground = false, idle = false }: Props) {
   const uid = useId().replace(/[^a-zA-Z0-9]/g, "");
   const c = character;
   const outfit = getItem(c.outfit);
   const weapon = getItem(c.weapon);
+  const weapon2 = getItem(c.weapon2);
   const accessory = getItem(c.accessory);
+  const back = getItem(c.back);
+  const necklace = getItem(c.necklace);
+  const ring = getItem(c.ring);
   const pet = getItem(c.pet);
   const aura = getItem(c.aura);
   const bg = showBackground ? getItem(c.background) : undefined;
@@ -169,26 +344,130 @@ export default function Avatar({ character, size = 160, showBackground = false, 
 
   // ── accesorios traseros (capa, alas) ───────────────────────
   let backAcc: React.ReactNode = null;
-  if (accessory?.variant === "cape") {
+  if (back?.variant === "cape") {
     backAcc = (
       <path
         d={`M72,120 Q100,110 128,120 L142,215 Q100,232 58,215 Z`}
-        fill={accessory.c1}
-        stroke={darken(accessory.c1 ?? "#c00", 0.7)}
+        fill={back.c1}
+        stroke={darken(back.c1 ?? "#c00", 0.7)}
         strokeWidth={2}
       />
     );
-  } else if (accessory?.variant === "wings") {
-    const w1 = accessory.c1 ?? "#bfe9ff";
-    backAcc = (
-      <g opacity={0.92}>
-        <path d="M70,130 Q20,90 12,140 Q38,150 62,158 Z" fill={w1} />
-        <path d="M70,145 Q26,130 24,172 Q48,172 66,168 Z" fill={accessory.c2 ?? w1} />
-        <path d="M130,130 Q180,90 188,140 Q162,150 138,158 Z" fill={w1} />
-        <path d="M130,145 Q174,130 176,172 Q152,172 134,168 Z" fill={accessory.c2 ?? w1} />
-      </g>
-    );
+  } else if (back?.variant === "wings") {
+    const w1 = back.c1 ?? "#bfe9ff";
+    const w2 = back.c2 ?? w1;
+    switch (back.motif) {
+      case "angel":
+        // alas de plumas grandes, blancas, con vetas doradas
+        backAcc = (
+          <g opacity={0.97} style={{ filter: "drop-shadow(0 4px 8px rgba(255,246,201,0.35))" }}>
+            <path
+              d="M72,132 Q30,72 -8,86 Q8,106 26,118 Q4,126 -14,144 Q12,152 34,150 Q14,166 2,188 Q28,192 50,178 Q56,168 72,160 Z"
+              fill={w1}
+              stroke={darken(w1, 0.82)}
+              strokeWidth={1}
+            />
+            <path d="M64,140 Q30,132 8,152" stroke={w2} strokeWidth={2} fill="none" opacity={0.65} />
+            <path d="M66,150 Q34,146 14,168" stroke={w2} strokeWidth={2} fill="none" opacity={0.55} />
+            <path d="M68,160 Q40,160 22,182" stroke={w2} strokeWidth={2} fill="none" opacity={0.45} />
+            <path
+              d="M128,132 Q170,72 208,86 Q192,106 174,118 Q196,126 214,144 Q188,152 166,150 Q186,166 198,188 Q172,192 150,178 Q144,168 128,160 Z"
+              fill={w1}
+              stroke={darken(w1, 0.82)}
+              strokeWidth={1}
+            />
+            <path d="M136,140 Q170,132 192,152" stroke={w2} strokeWidth={2} fill="none" opacity={0.65} />
+            <path d="M134,150 Q166,146 186,168" stroke={w2} strokeWidth={2} fill="none" opacity={0.55} />
+            <path d="M132,160 Q160,160 178,182" stroke={w2} strokeWidth={2} fill="none" opacity={0.45} />
+          </g>
+        );
+        break;
+      case "demonio":
+        // alas de murciélago, membrana oscura y huesos filosos
+        backAcc = (
+          <g opacity={0.96}>
+            <path
+              d="M70,128 Q40,108 6,116 L18,132 Q-4,140 -14,162 L8,160 Q-6,180 -10,202 L16,190 Q12,204 6,220 L32,198 Q44,182 70,164 Z"
+              fill={w1}
+              stroke={darken(w1, 0.55)}
+              strokeWidth={1.5}
+            />
+            <path d="M68,132 L12,124 M62,148 L0,150 M60,166 L2,184 M58,182 L12,206" stroke={darken(w1, 0.4)} strokeWidth={1.3} opacity={0.85} fill="none" />
+            <path d="M8,116 L16,132 M-14,162 L8,160 M-10,202 L16,190" stroke={w2} strokeWidth={1.4} opacity={0.7} fill="none" />
+            <path
+              d="M130,128 Q160,108 194,116 L182,132 Q204,140 214,162 L192,160 Q206,180 210,202 L184,190 Q188,204 194,220 L168,198 Q156,182 130,164 Z"
+              fill={w1}
+              stroke={darken(w1, 0.55)}
+              strokeWidth={1.5}
+            />
+            <path d="M132,132 L188,124 M138,148 L200,150 M140,166 L198,184 M142,182 L188,206" stroke={darken(w1, 0.4)} strokeWidth={1.3} opacity={0.85} fill="none" />
+            <path d="M192,116 L184,132 M214,162 L192,160 M210,202 L184,190" stroke={w2} strokeWidth={1.4} opacity={0.7} fill="none" />
+          </g>
+        );
+        break;
+      case "grande":
+        // alas grandiosas, mucho más grandes que las demás
+        backAcc = (
+          <g opacity={0.95}>
+            <path
+              d="M72,126 Q8,74 -34,98 Q-12,124 16,138 Q-22,148 -50,180 Q-16,192 14,182 Q-10,208 -18,236 Q20,232 44,206 Q52,192 72,170 Z"
+              fill={w1}
+              stroke={darken(w1, 0.78)}
+              strokeWidth={1.2}
+            />
+            <path d="M58,140 Q6,130 -24,158 M56,160 Q2,158 -30,192 M54,180 Q4,182 -20,212" stroke={w2} strokeWidth={2.4} fill="none" opacity={0.55} />
+            <path
+              d="M128,126 Q192,74 234,98 Q212,124 184,138 Q218,148 246,180 Q212,192 182,182 Q206,208 214,236 Q176,232 152,206 Q144,192 128,170 Z"
+              fill={w1}
+              stroke={darken(w1, 0.78)}
+              strokeWidth={1.2}
+            />
+            <path d="M142,140 Q194,130 224,158 M144,160 Q198,158 226,192 M146,180 Q196,182 220,212" stroke={w2} strokeWidth={2.4} fill="none" opacity={0.55} />
+          </g>
+        );
+        break;
+      case "sutil":
+        // alas pequeñas y delicadas, casi translúcidas, pegadas al cuerpo
+        backAcc = (
+          <g opacity={0.62}>
+            <path d="M74,138 Q50,114 32,122 Q40,140 52,148 Q36,152 26,166 Q44,172 58,166 Z" fill={w1} stroke={darken(w1, 0.85)} strokeWidth={0.8} />
+            <path d="M126,138 Q150,114 168,122 Q160,140 148,148 Q164,152 174,166 Q156,172 142,166 Z" fill={w1} stroke={darken(w1, 0.85)} strokeWidth={0.8} />
+          </g>
+        );
+        break;
+      default:
+        // "hada" — alas de hada originales
+        backAcc = (
+          <g opacity={0.92}>
+            <path d="M70,130 Q20,90 12,140 Q38,150 62,158 Z" fill={w1} />
+            <path d="M70,145 Q26,130 24,172 Q48,172 66,168 Z" fill={w2} />
+            <path d="M130,130 Q180,90 188,140 Q162,150 138,158 Z" fill={w1} />
+            <path d="M130,145 Q174,130 176,172 Q152,172 134,168 Z" fill={w2} />
+          </g>
+        );
+    }
   }
+
+  // ── collar y anillo ─────────────────────────────────────────
+  const necklaceArt = necklace ? (
+    <g style={{ filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.3))" }}>
+      <path d="M82,107 Q100,120 118,107" stroke={necklace.c1 ?? "#d4af37"} strokeWidth={3} fill="none" strokeLinecap="round" />
+      <circle cx={100} cy={119} r={5} fill={necklace.c2 ?? necklace.c1 ?? "#ff5a8a"} stroke={darken(necklace.c2 ?? necklace.c1 ?? "#ff5a8a", 0.7)} strokeWidth={1} />
+    </g>
+  ) : null;
+
+  const ringArt = ring ? (
+    <ellipse
+      cx={136}
+      cy={172}
+      rx={6}
+      ry={3}
+      fill="none"
+      stroke={ring.c1 ?? "#d4af37"}
+      strokeWidth={2.6}
+      transform="rotate(-12 136 172)"
+    />
+  ) : null;
 
   // trazo de contorno del pelo: da el acabado "figura de anime"
   const hs = {
@@ -1551,169 +1830,9 @@ export default function Avatar({ character, size = 160, showBackground = false, 
     }
   }
 
-  // ── arma ───────────────────────────────────────────────────
-  let weaponArt: React.ReactNode = null;
-  if (weapon) {
-    const w1 = weapon.c1 ?? "#ccc";
-    const w2 = weapon.c2 ?? "#888";
-    let shape: React.ReactNode = null;
-    switch (weapon.variant) {
-      case "stick":
-        shape = <rect x={-4} y={-58} width={8} height={78} rx={4} fill={w1} stroke={w2} strokeWidth={1.5} />;
-        break;
-      case "sword":
-        shape = (
-          <g>
-            <path d="M0,-70 L7,-56 L7,-6 L-7,-6 L-7,-56 Z" fill={w1} stroke={darken(w1, 0.7)} strokeWidth={1} />
-            <path d="M0,-70 L2,-56 L2,-6 L0,-6 Z" fill="#fff" opacity={0.5} />
-            <rect x={-15} y={-8} width={30} height={7} rx={3} fill={w2} />
-            <rect x={-4} y={-1} width={8} height={20} rx={3} fill={darken(w2, 0.75)} />
-          </g>
-        );
-        break;
-      case "katana":
-        shape = (
-          <g transform="rotate(-6)">
-            {/* hoja curvada */}
-            <path d="M-2,-84 Q10,-46 5,-9 L-4,-9 Q-9,-46 -2,-84 Z" fill={w1} stroke={darken(w1, 0.72)} strokeWidth={1.2} />
-            {/* hamon: línea del temple */}
-            <path d="M-1.5,-78 Q7,-45 3,-12" stroke="#fff" strokeWidth={1.3} fill="none" opacity={0.85} />
-            {/* brillo de la punta */}
-            <path d="M-2,-84 L1.5,-72 L-3.5,-70 Z" fill="#fff" opacity={0.55} />
-            {/* habaki dorado */}
-            <rect x={-5} y={-12} width={10} height={5} rx={1} fill="#d8b84a" />
-            {/* tsuba */}
-            <ellipse cx={0} cy={-5} rx={11} ry={4.2} fill={w2} stroke={darken(w2, 0.7)} strokeWidth={1} />
-            {/* tsuka con trenzado de rombos */}
-            <rect x={-4.2} y={-2} width={8.4} height={26} rx={3.6} fill={darken(w2, 0.78)} />
-            <path d="M-4,2 L4,7.5 M4,2 L-4,7.5 M-4,10 L4,15.5 M4,10 L-4,15.5 M-4,18 L4,23" stroke={w1} strokeWidth={1.3} opacity={0.9} />
-            <rect x={-4.6} y={21.5} width={9.2} height={4.5} rx={2} fill={w2} />
-            {weapon.motif === "petalos" && (
-              <g fill="#ff9ec4" opacity={0.95}>
-                <ellipse cx={10} cy={-64} rx={3} ry={2} transform="rotate(-30 10 -64)" />
-                <ellipse cx={-9} cy={-46} rx={2.6} ry={1.7} transform="rotate(24 -9 -46)" />
-                <ellipse cx={12} cy={-30} rx={2.4} ry={1.6} transform="rotate(-18 12 -30)" />
-                <ellipse cx={-7} cy={-68} rx={2.2} ry={1.5} transform="rotate(40 -7 -68)" />
-              </g>
-            )}
-            {weapon.motif === "llama" && (
-              <path
-                d="M4,-72 Q10,-63 5,-55 Q12,-48 6,-38 Q11,-31 5,-23"
-                stroke="#ff7a3c"
-                strokeWidth={2.2}
-                fill="none"
-                strokeLinecap="round"
-                opacity={0.85}
-              />
-            )}
-            {weapon.motif === "luna" && (
-              <path d="M10,-74 A6,6 0 1 0 10,-62 A4.6,4.6 0 1 1 10,-74 Z" fill="#fff6c9" opacity={0.95} />
-            )}
-            {weapon.motif === "sombra" && (
-              <g stroke="#8b5cff" strokeWidth={2} fill="none" strokeLinecap="round" opacity={0.8}>
-                <path d="M-8,-66 Q-13,-58 -8,-50" />
-                <path d="M9,-52 Q14,-44 9,-36" />
-                <path d="M-7,-34 Q-11,-28 -7,-22" opacity={0.6} />
-              </g>
-            )}
-          </g>
-        );
-        break;
-      case "kunai":
-        shape = (
-          <g>
-            <path d="M0,-52 L9,-28 L3.5,-12 L-3.5,-12 L-9,-28 Z" fill={w1} stroke={darken(w1, 0.7)} strokeWidth={1.2} />
-            <line x1={0} y1={-49} x2={0} y2={-14} stroke="#fff" strokeWidth={1.2} opacity={0.6} />
-            <rect x={-3.2} y={-12} width={6.4} height={18} rx={3} fill={w2} />
-            <path d="M-3,-8 L3,-4 M3,-8 L-3,-4 M-3,-1 L3,3" stroke={w1} strokeWidth={1.1} opacity={0.8} />
-            <circle cx={0} cy={11} r={4.5} fill="none" stroke={w2} strokeWidth={2.4} />
-          </g>
-        );
-        break;
-      case "wand":
-        shape = (
-          <g>
-            <rect x={-3} y={-46} width={6} height={62} rx={3} fill={w1} />
-            <path d="M0,-66 L5,-54 L18,-52 L8,-44 L11,-31 L0,-38 L-11,-31 L-8,-44 L-18,-52 L-5,-54 Z" fill={w2} />
-          </g>
-        );
-        break;
-      case "staff":
-        shape = (
-          <g>
-            <rect x={-4} y={-62} width={8} height={86} rx={4} fill={w1} />
-            <circle cx={0} cy={-68} r={12} fill={w2} opacity={0.95} />
-            <circle cx={0} cy={-68} r={6} fill="#fff" opacity={0.6} />
-          </g>
-        );
-        break;
-      case "bow":
-        shape = (
-          <g>
-            <path d="M0,-58 Q34,-16 0,26" fill="none" stroke={w1} strokeWidth={6} strokeLinecap="round" />
-            <line x1={0} y1={-58} x2={0} y2={26} stroke={w2} strokeWidth={2} />
-          </g>
-        );
-        break;
-      case "hammer":
-        shape = (
-          <g>
-            <rect x={-4} y={-48} width={8} height={70} rx={4} fill={w2} />
-            <rect x={-22} y={-64} width={44} height={22} rx={7} fill={w1} />
-            <rect x={-22} y={-64} width={44} height={8} rx={4} fill={darken(w1, 0.8)} />
-          </g>
-        );
-        break;
-      case "book":
-        shape = (
-          <g transform="rotate(12)">
-            <rect x={-20} y={-30} width={40} height={30} rx={4} fill={w1} />
-            <rect x={-16} y={-26} width={32} height={22} rx={2} fill="#fff" opacity={0.9} />
-            <line x1={0} y1={-26} x2={0} y2={-4} stroke={w1} strokeWidth={2} />
-            <polygon points="-6,-38 0,-30 6,-38" fill={w2} />
-          </g>
-        );
-        break;
-      case "slingshot":
-        shape = (
-          <g>
-            <rect x={-3.5} y={-16} width={7} height={36} rx={3} fill={w1} />
-            <path d="M0,-14 Q-16,-30 -14,-44 M0,-14 Q16,-30 14,-44" fill="none" stroke={w1} strokeWidth={6} strokeLinecap="round" />
-            <path d="M-14,-44 Q0,-34 14,-44" fill="none" stroke={w2} strokeWidth={2.5} />
-          </g>
-        );
-        break;
-      case "guitar":
-        shape = (
-          <g transform="rotate(18)">
-            <ellipse cx={0} cy={4} rx={20} ry={16} fill={w1} />
-            <circle cx={0} cy={4} r={6} fill={darken(w1, 0.6)} />
-            <rect x={-3.5} y={-58} width={7} height={62} rx={3} fill={w2} />
-            <rect x={-7} y={-62} width={14} height={9} rx={3} fill={darken(w2, 0.8)} />
-            {[-1.6, 0, 1.6].map((dx, i) => (
-              <line key={i} x1={dx} y1={-54} x2={dx} y2={16} stroke="#fff" strokeWidth={0.7} opacity={0.8} />
-            ))}
-          </g>
-        );
-        break;
-      case "trident":
-        shape = (
-          <g>
-            <rect x={-3.5} y={-52} width={7} height={78} rx={3} fill={w2} />
-            <path d="M-16,-52 Q-16,-72 -12,-76 L-9,-56 L-3,-56 L-3,-80 Q0,-86 3,-80 L3,-56 L9,-56 L12,-76 Q16,-72 16,-52 L8,-48 L-8,-48 Z" fill={w1} />
-          </g>
-        );
-        break;
-    }
-    // el arma va EN la mano derecha, con la mano empuñándola encima
-    weaponArt = (
-      <g transform="translate(136,180) rotate(8)" style={{ filter: "drop-shadow(0 3px 3px rgba(0,0,0,0.35))" }}>
-        {shape}
-        <circle cx={0} cy={5} r={8.5} fill={skin} stroke={skinD} strokeWidth={1.2} />
-        <path d="M-6,1.5 L6,1.5 M-6.5,5 L6.5,5 M-6,8.5 L6,8.5" stroke={skinD} strokeWidth={1} opacity={0.5} fill="none" />
-      </g>
-    );
-  }
+  // ── arma(s): mano principal + mano secundaria (dos armas) ────
+  const weaponArt = weaponGroup(weapon, "right", skin, skinD);
+  const weapon2Art = weaponGroup(weapon2, "left", skin, skinD);
 
   // ── mascota ────────────────────────────────────────────────
   const petArt = pet ? (
@@ -1762,6 +1881,7 @@ export default function Avatar({ character, size = 160, showBackground = false, 
         <g transform={`translate(100,152) scale(${bs.torso},1) translate(-100,-152)`}>
           {arms}
           {torso}
+          {necklaceArt}
         </g>
         {head}
         {hairArt}
@@ -1772,8 +1892,12 @@ export default function Avatar({ character, size = 160, showBackground = false, 
         {frontAcc && (
           <g style={{ filter: "drop-shadow(0 2px 2px rgba(0,0,0,0.35))" }}>{frontAcc}</g>
         )}
-        {/* misma transformación que torso/brazos para que el arma siga a la mano */}
-        <g transform={`translate(100,152) scale(${bs.torso},1) translate(-100,-152)`}>{weaponArt}</g>
+        {/* misma transformación que torso/brazos para que las armas y el anillo sigan a las manos */}
+        <g transform={`translate(100,152) scale(${bs.torso},1) translate(-100,-152)`}>
+          {ringArt}
+          {weaponArt}
+          {weapon2Art}
+        </g>
       </g>
       {petArt}
     </svg>

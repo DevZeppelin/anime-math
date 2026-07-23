@@ -74,8 +74,12 @@ export interface Character {
   faceMark: FaceMark;
   bodyType: BodyType;
   outfit: string; // item id
-  weapon: string | null; // item id
+  weapon: string | null; // item id (mano principal)
+  weapon2: string | null; // item id (mano secundaria, para combate a dos armas)
   accessory: string | null; // item id
+  back: string | null; // item id (capas, alas)
+  necklace: string | null; // item id
+  ring: string | null; // item id
   pet: string | null; // item id
   aura: string | null; // item id
   background: string | null; // item id
@@ -83,7 +87,7 @@ export interface Character {
 
 // ── Ítems ────────────────────────────────────────────────────
 
-export type ItemType = "outfit" | "weapon" | "accessory" | "pet" | "aura" | "background";
+export type ItemType = "outfit" | "weapon" | "accessory" | "back" | "necklace" | "ring" | "pet" | "aura" | "background";
 
 export interface ItemDef {
   id: string;

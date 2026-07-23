@@ -12,13 +12,18 @@ interface Props {
   onBack: () => void;
 }
 
-const TABS: (ItemType | "ability")[] = ["outfit", "weapon", "accessory", "pet", "aura", "background", "ability"];
+const TABS: (ItemType | "ability")[] = [
+  "outfit", "weapon", "accessory", "back", "necklace", "ring", "pet", "aura", "background", "ability",
+];
 
 function equipPatch(item: ItemDef): Partial<Profile["character"]> {
   switch (item.type) {
     case "outfit": return { outfit: item.id };
     case "weapon": return { weapon: item.id };
     case "accessory": return { accessory: item.id };
+    case "back": return { back: item.id };
+    case "necklace": return { necklace: item.id };
+    case "ring": return { ring: item.id };
     case "pet": return { pet: item.id };
     case "aura": return { aura: item.id };
     case "background": return { background: item.id };
@@ -28,7 +33,8 @@ function equipPatch(item: ItemDef): Partial<Profile["character"]> {
 export function isEquipped(p: Profile, item: ItemDef): boolean {
   const c = p.character;
   return (
-    c.outfit === item.id || c.weapon === item.id || c.accessory === item.id ||
+    c.outfit === item.id || c.weapon === item.id || c.weapon2 === item.id || c.accessory === item.id ||
+    c.back === item.id || c.necklace === item.id || c.ring === item.id ||
     c.pet === item.id || c.aura === item.id || c.background === item.id
   );
 }

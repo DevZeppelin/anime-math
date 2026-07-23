@@ -1489,6 +1489,30 @@ button:disabled {
 .none-card {
   border-top-color: var(--txt-faint);
 }
+.weapon-hands-hint {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--line);
+  font-size: 13.5px;
+  color: var(--txt-dim);
+}
+.weapon-hands-hint b {
+  color: var(--txt);
+}
+.hand-btns {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+}
+.hand-btns .btn {
+  flex: 1;
+  padding: 6px 4px;
+}
 .look-panels {
   display: flex;
   flex-direction: column;

@@ -15,7 +15,11 @@ export const DEFAULT_CHARACTER: Character = {
   bodyType: "regular",
   outfit: "out_school",
   weapon: null,
+  weapon2: null,
   accessory: null,
+  back: null,
+  necklace: null,
+  ring: null,
   pet: null,
   aura: null,
   background: null,
@@ -58,9 +62,15 @@ export function loadRoot(): RootSave {
     const profiles: RootSave["profiles"] = {};
     for (const id of ids) {
       const p = parsed.profiles[id];
+      const character: Character = { ...DEFAULT_CHARACTER, ...p.character };
+      // las capas y alas vivían antes en el slot "accessory"; ahora tienen su propio slot "back"
+      if (!character.back && (character.accessory === "ac_cape" || character.accessory === "ac_wings")) {
+        character.back = character.accessory;
+        character.accessory = null;
+      }
       profiles[id] = {
         ...p,
-        character: { ...DEFAULT_CHARACTER, ...p.character },
+        character,
         difficulty: p.difficulty ?? "normal",
       };
     }

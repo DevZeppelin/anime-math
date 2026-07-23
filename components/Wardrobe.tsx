@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import type { ItemType, Profile } from "@/lib/types";
 import { RARITY_META } from "@/lib/types";
-import { ALL_ITEMS, ITEM_TYPE_META } from "@/lib/items";
+import { ALL_ITEMS, ITEM_TYPE_META, getItem } from "@/lib/items";
 import HeroStage from "./HeroStage";
 import AppearanceEditor from "./AppearanceEditor";
 
@@ -14,12 +14,15 @@ interface Props {
 }
 
 type Tab = "look" | ItemType;
-const TABS: Tab[] = ["look", "outfit", "weapon", "accessory", "pet", "aura", "background"];
+const TABS: Tab[] = ["look", "outfit", "weapon", "accessory", "back", "necklace", "ring", "pet", "aura", "background"];
 
 const SLOT: Record<ItemType, keyof Profile["character"]> = {
   outfit: "outfit",
   weapon: "weapon",
   accessory: "accessory",
+  back: "back",
+  necklace: "necklace",
+  ring: "ring",
   pet: "pet",
   aura: "aura",
   background: "background",
@@ -62,6 +65,55 @@ export default function Wardrobe({ profile, updateProfile, onBack }: Props) {
             (() => {
               const t = tab as ItemType;
               const ownedItems = ALL_ITEMS.filter((i) => i.type === t && profile.owned.includes(i.id));
+
+              if (t === "weapon") {
+                const mainItem = getItem(ch.weapon);
+                const offItem = getItem(ch.weapon2);
+                return (
+                  <div className="shop-grid">
+                    <div className="weapon-hands-hint">
+                      <span>✋ Mano principal: <b>{mainItem?.name ?? "Ninguna"}</b></span>
+                      <span>🤚 Mano secundaria: <b>{offItem?.name ?? "Ninguna"}</b></span>
+                    </div>
+                    {ownedItems.map((item) => {
+                      const rar = RARITY_META[item.rarity];
+                      const inMain = ch.weapon === item.id;
+                      const inOff = ch.weapon2 === item.id;
+                      return (
+                        <div
+                          key={item.id}
+                          className={`shop-card panel ${inMain || inOff ? "equipped" : ""}`}
+                          style={{ ["--rar" as never]: rar.color }}
+                        >
+                          <span className="rarity-tag" style={{ color: rar.color }}>{rar.label}</span>
+                          <span className="shop-emoji">{item.emoji}</span>
+                          <b className="display">{item.name}</b>
+                          <div className="hand-btns">
+                            <button
+                              className={`btn small ${inMain ? "equip" : "ghost"}`}
+                              onClick={() => setChar({ weapon: inMain ? null : item.id })}
+                            >
+                              {inMain ? "✋ Quitar" : "✋ Principal"}
+                            </button>
+                            <button
+                              className={`btn small ${inOff ? "equip" : "ghost"}`}
+                              onClick={() => setChar({ weapon2: inOff ? null : item.id })}
+                            >
+                              {inOff ? "🤚 Quitar" : "🤚 Secundaria"}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {ownedItems.length === 0 && (
+                      <p className="empty-hint">
+                        Aún no tienes {ITEM_TYPE_META[t].label.toLowerCase()}. ¡Gana monedas en las lecciones y visita la tienda! 🛒
+                      </p>
+                    )}
+                  </div>
+                );
+              }
+
               const slot = SLOT[t];
               const current = ch[slot];
               return (

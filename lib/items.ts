@@ -51,13 +51,37 @@ export const ACCESSORIES: ItemDef[] = [
   { id: "ac_catears", type: "accessory", name: "Orejas de Neko", emoji: "🐱", rarity: "raro", price: 280, desc: "¡Nyan! Se mueven cuando piensas.", variant: "catears", c1: "#ff8fc4", c2: "#ffc7e0" },
   { id: "ac_kanzashi", type: "accessory", name: "Kanzashi de Sakura", emoji: "🌸", rarity: "raro", price: 300, desc: "Horquilla de flores con pétalos colgantes.", variant: "kanzashi", c1: "#ff8fc4", c2: "#ffd24d" },
   { id: "ac_wizardhat", type: "accessory", name: "Sombrero de Mago", emoji: "🎩", rarity: "raro", price: 320, desc: "Con estrellas bordadas.", variant: "wizardhat", c1: "#5d3fd3", c2: "#ffd24d" },
-  { id: "ac_cape", type: "accessory", name: "Capa de Héroe", emoji: "🦸", rarity: "raro", price: 350, desc: "Ondea con el viento.", variant: "cape", c1: "#ff5a5a", c2: "#c93a3a" },
   { id: "ac_kitsune", type: "accessory", name: "Máscara Kitsune", emoji: "🦊", rarity: "epico", price: 650, desc: "La máscara del zorro de los festivales.", variant: "kitsune", c1: "#fff4f0", c2: "#e8433c" },
   { id: "ac_helmet", type: "accessory", name: "Casco Vikingo", emoji: "⛑️", rarity: "epico", price: 600, desc: "Con cuernos legendarios.", variant: "helmet", c1: "#aeb8cc", c2: "#e8d9a0" },
-  { id: "ac_wings", type: "accessory", name: "Alas de Hada", emoji: "🧚", rarity: "epico", price: 700, desc: "Brillan con polvo mágico.", variant: "wings", c1: "#bfe9ff", c2: "#e0c9ff" },
   { id: "ac_halo", type: "accessory", name: "Halo Dorado", emoji: "😇", rarity: "epico", price: 700, desc: "Un aro de pura luz.", variant: "halo", c1: "#ffd24d" },
   { id: "ac_crown", type: "accessory", name: "Corona Real", emoji: "👑", rarity: "legendario", price: 1300, desc: "Digna de la realeza del saber.", variant: "crown", c1: "#ffd24d", c2: "#ff5a5a" },
   { id: "ac_dragonhorns", type: "accessory", name: "Cuernos de Dragón", emoji: "🐲", rarity: "legendario", price: 0, gems: 18, desc: "Rugen con poder ancestral.", variant: "dragonhorns", c1: "#ff3b3b", c2: "#a11414" },
+];
+
+// ── Espalda: capas y alas (slot propio, separado de accesorios) ──
+export const BACKS: ItemDef[] = [
+  { id: "ac_cape", type: "back", name: "Capa de Héroe", emoji: "🦸", rarity: "raro", price: 350, desc: "Ondea con el viento.", variant: "cape", c1: "#ff5a5a", c2: "#c93a3a" },
+  { id: "bk_wings_subtle", type: "back", name: "Alas Sutiles", emoji: "🪽", rarity: "raro", price: 380, desc: "Pequeñas, delicadas, casi transparentes.", variant: "wings", motif: "sutil", c1: "#e8f4ff", c2: "#cfe0ff" },
+  { id: "ac_wings", type: "back", name: "Alas de Hada", emoji: "🧚", rarity: "epico", price: 700, desc: "Brillan con polvo mágico.", variant: "wings", c1: "#bfe9ff", c2: "#e0c9ff" },
+  { id: "bk_wings_angel", type: "back", name: "Alas de Ángel", emoji: "👼", rarity: "epico", price: 900, desc: "Plumaje blanco puro, bordes dorados.", variant: "wings", motif: "angel", c1: "#fffdf5", c2: "#ffd24d" },
+  { id: "bk_wings_demon", type: "back", name: "Alas de Demonio", emoji: "😈", rarity: "epico", price: 900, desc: "Membrana oscura y huesos filosos.", variant: "wings", motif: "demonio", c1: "#5a1a2e", c2: "#ff3b3b" },
+  { id: "bk_wings_big", type: "back", name: "Alas Grandiosas", emoji: "🦅", rarity: "legendario", price: 1450, desc: "Enormes, imponentes, dignas de leyenda.", variant: "wings", motif: "grande", c1: "#bfe9ff", c2: "#7d9bf0" },
+];
+
+// ── Collares (visibles en el cuello) ──────────────────────────
+export const NECKLACES: ItemDef[] = [
+  { id: "nk_pearl", type: "necklace", name: "Perlas de Luna", emoji: "🦪", rarity: "comun", price: 140, desc: "Un clásico elegante.", c1: "#f5f0e0", c2: "#e8ecff" },
+  { id: "nk_gold", type: "necklace", name: "Cadena Dorada", emoji: "📿", rarity: "raro", price: 320, desc: "Brilla bajo cualquier luz.", c1: "#ffd24d", c2: "#c98a1e" },
+  { id: "nk_gem", type: "necklace", name: "Gargantilla de Gema", emoji: "💎", rarity: "epico", price: 680, desc: "Una gema mágica late en tu pecho.", c1: "#41b6ff", c2: "#8b5cff" },
+  { id: "nk_dragon", type: "necklace", name: "Colmillo de Dragón", emoji: "🐉", rarity: "legendario", price: 0, gems: 16, desc: "Un amuleto tallado en colmillo ancestral.", c1: "#ff3b3b", c2: "#33334d" },
+];
+
+// ── Anillos ────────────────────────────────────────────────────
+export const RINGS: ItemDef[] = [
+  { id: "rg_silver", type: "ring", name: "Anillo de Plata", emoji: "💍", rarity: "comun", price: 120, desc: "Simple y pulido.", c1: "#d8dee8" },
+  { id: "rg_ruby", type: "ring", name: "Anillo Rubí", emoji: "❤️‍🔥", rarity: "raro", price: 300, desc: "Una gema roja en banda dorada.", c1: "#ffd24d", c2: "#ff3b3b" },
+  { id: "rg_sapphire", type: "ring", name: "Anillo Zafiro", emoji: "💠", rarity: "epico", price: 660, desc: "Fría chispa azul de poder.", c1: "#e8ecff", c2: "#41b6ff" },
+  { id: "rg_phoenix", type: "ring", name: "Anillo Fénix", emoji: "🔥", rarity: "legendario", price: 0, gems: 16, desc: "Nunca se apaga su brasa interior.", c1: "#ffd24d", c2: "#ff7a3c" },
 ];
 
 export const PETS: ItemDef[] = [
@@ -99,6 +123,9 @@ export const ALL_ITEMS: ItemDef[] = [
   ...OUTFITS,
   ...WEAPONS,
   ...ACCESSORIES,
+  ...BACKS,
+  ...NECKLACES,
+  ...RINGS,
   ...PETS,
   ...AURAS,
   ...BACKGROUNDS,
@@ -114,6 +141,9 @@ export const ITEM_TYPE_META: Record<ItemDef["type"], { label: string; emoji: str
   outfit: { label: "Trajes", emoji: "👕" },
   weapon: { label: "Armas y herramientas", emoji: "⚔️" },
   accessory: { label: "Accesorios", emoji: "🎩" },
+  back: { label: "Capas y alas", emoji: "🪽" },
+  necklace: { label: "Collares", emoji: "📿" },
+  ring: { label: "Anillos", emoji: "💍" },
   pet: { label: "Mascotas", emoji: "🐾" },
   aura: { label: "Auras", emoji: "✨" },
   background: { label: "Fondos", emoji: "🖼️" },
