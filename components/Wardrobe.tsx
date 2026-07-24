@@ -14,7 +14,7 @@ interface Props {
 }
 
 type Tab = "look" | ItemType;
-const TABS: Tab[] = ["look", "outfit", "weapon", "accessory", "back", "necklace", "ring", "pet", "aura", "background"];
+const TABS: Tab[] = ["look", "outfit", "weapon", "accessory", "back", "necklace", "ring", "boots", "pet", "aura", "background"];
 
 const SLOT: Record<ItemType, keyof Profile["character"]> = {
   outfit: "outfit",
@@ -23,6 +23,7 @@ const SLOT: Record<ItemType, keyof Profile["character"]> = {
   back: "back",
   necklace: "necklace",
   ring: "ring",
+  boots: "boots",
   pet: "pet",
   aura: "aura",
   background: "background",

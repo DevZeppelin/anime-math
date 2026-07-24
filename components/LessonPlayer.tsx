@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Profile, Question, SubjectDef } from "@/lib/types";
 import { DIFFICULTY_META } from "@/lib/types";
-import { adaptQuestion, checkTyped, shuffle } from "@/lib/content/utils";
+import { adaptQuestion, checkTyped, isSymbolOption, shuffle } from "@/lib/content/utils";
 import { TIER_COINS, TIER_XP, LESSON_BONUS, QUESTION_SECONDS, starsForErrors } from "@/lib/progression";
 import { speak, speechAvailable, stopSpeaking } from "@/lib/speech";
 import Avatar from "./Avatar";
@@ -211,7 +211,11 @@ export default function LessonPlayer({ subject, levelIdx, profile, onComplete, o
       }
       setPhase("feedback");
       if (ok) {
-        setTimeout(() => advance(answered, newErrors, newCorrect, newCoins, newXp, newBest), 1000);
+        // más tiempo para releer la pregunta/respuesta antes de avanzar: las
+        // preguntas más largas (materias teóricas como IA) necesitan más lectura,
+        // sobre todo en modos con poco tiempo (Genios/Maestros) donde iría muy rápido
+        const readMs = Math.min(3200, Math.max(1400, 900 + (q?.prompt.length ?? 0) * 9));
+        setTimeout(() => advance(answered, newErrors, newCorrect, newCoins, newXp, newBest), readMs);
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
     },
@@ -377,7 +381,7 @@ export default function LessonPlayer({ subject, levelIdx, profile, onComplete, o
               return (
                 <button
                   key={opt}
-                  className={`mc-btn ${diff === "facil" ? "kids" : ""} ${showState} ${isHidden ? "hidden-opt" : ""}`}
+                  className={`mc-btn ${diff === "facil" ? "kids" : ""} ${isSymbolOption(opt) ? "emoji-opt" : ""} ${showState} ${isHidden ? "hidden-opt" : ""}`}
                   disabled={phase !== "ask" || isHidden}
                   onClick={() => resolve(opt === q.answer)}
                 >

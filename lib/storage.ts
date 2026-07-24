@@ -20,6 +20,7 @@ export const DEFAULT_CHARACTER: Character = {
   back: null,
   necklace: null,
   ring: null,
+  boots: null,
   pet: null,
   aura: null,
   background: null,

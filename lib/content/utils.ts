@@ -96,6 +96,15 @@ export function normalize(s: string): string {
     .replace(/\s+/g, " ");
 }
 
+/** Detecta opciones de multiple choice que son solo un emoji/símbolo (sin letras
+ *  ni números), para que la UI las muestre con letra bien grande y legible.
+ *  Evita \p{...} de regex unicode por compatibilidad con navegadores móviles viejos. */
+export function isSymbolOption(opt: string): boolean {
+  const trimmed = opt.trim();
+  if (!trimmed || trimmed.length > 8) return false;
+  return !/[a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ]/.test(trimmed);
+}
+
 export function checkTyped(q: Extract<Question, { kind: "type" }>, input: string): boolean {
   const norm = normalize(input);
   if (q.numeric) return norm !== "" && Number(norm.replace(",", ".")) === Number(q.answer);

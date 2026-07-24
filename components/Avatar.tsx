@@ -229,6 +229,7 @@ export default function Avatar({ character, size = 160, showBackground = false, 
   const back = getItem(c.back);
   const necklace = getItem(c.necklace);
   const ring = getItem(c.ring);
+  const boots = getItem(c.boots);
   const pet = getItem(c.pet);
   const aura = getItem(c.aura);
   const bg = showBackground ? getItem(c.background) : undefined;
@@ -624,13 +625,18 @@ export default function Avatar({ character, size = 160, showBackground = false, 
   }
 
   // ── zapatos: silueta con cuña, suela y detalle, en vez de un óvalo plano ──
-  const shoeKind: "sandal" | "boot" | "flat" | "sneaker" = isKimono
-    ? "sandal"
-    : variant === "armor"
-      ? "boot"
-      : isSkirt
-        ? "flat"
-        : "sneaker";
+  // las botas equipadas (slot propio) mandan sobre el calzado del traje
+  const shoeKind: "sandal" | "boot" | "flat" | "sneaker" = boots
+    ? "boot"
+    : isKimono
+      ? "sandal"
+      : variant === "armor"
+        ? "boot"
+        : isSkirt
+          ? "flat"
+          : "sneaker";
+  const bootColor = boots?.c1 ?? "#5a5f6e";
+  const bootCuff = boots?.c2 ?? "#6b7280";
   function shoe(cx: number, mirror: boolean) {
     const s = mirror ? 1 : -1; // la puntera mira hacia afuera del cuerpo
     const base = darken(o3, 0.82);
@@ -673,14 +679,14 @@ export default function Avatar({ character, size = 160, showBackground = false, 
       L${cx - 13 * s},${yBot - 3} Z`;
     return (
       <g key={cx}>
-        <path d={body} fill={tall ? "#5a5f6e" : base} stroke={tall ? darken("#5a5f6e", 0.6) : baseD} strokeWidth={1.3} />
+        <path d={body} fill={tall ? bootColor : base} stroke={tall ? darken(bootColor, 0.6) : baseD} strokeWidth={1.3} />
         {tall && (
           <>
             {/* caña de la bota, sube hasta cubrir el tobillo */}
             <path
               d={`M${cx - 8 * s},${yTop} L${cx - 7 * s},${yTop - 12} L${cx + 6 * s},${yTop - 12} L${cx + 5 * s},${yTop - 2} Z`}
-              fill="#6b7280"
-              stroke={darken("#6b7280", 0.6)}
+              fill={bootCuff}
+              stroke={darken(bootCuff, 0.6)}
               strokeWidth={1.2}
             />
             <rect x={cx - 6 * s - (s < 0 ? 5 : 0)} y={yTop - 9} width={5} height={3} rx={1.3} fill={o3} />
@@ -690,7 +696,7 @@ export default function Avatar({ character, size = 160, showBackground = false, 
         {shoeKind !== "flat" && (
           <path
             d={`M${cx - 4 * s},${yTop + 1} L${cx + 2 * s},${yTop + 4} M${cx - 2 * s},${yTop + 4} L${cx + 4 * s},${yTop + 7}`}
-            stroke={lighten(tall ? "#5a5f6e" : base, 0.45)}
+            stroke={lighten(tall ? bootColor : base, 0.45)}
             strokeWidth={1.1}
             strokeLinecap="round"
             opacity={0.85}
@@ -1766,6 +1772,39 @@ export default function Avatar({ character, size = 160, showBackground = false, 
             <path d="M55,64 L145,64 L145,54 Q100,44 55,54 Z" fill={darken(a1, 0.75)} />
             <path d="M58,44 Q34,26 40,6 Q52,18 62,30 Z" fill={a2} />
             <path d="M142,44 Q166,26 160,6 Q148,18 138,30 Z" fill={a2} />
+          </g>
+        );
+        break;
+      case "spartan_helmet":
+        // casco corintio: cúpula que baja hasta cubrir mejillas, nariguera central
+        // y una cresta de crin que corre de la frente a la nuca
+        frontAcc = (
+          <g>
+            <path d="M52,92 Q47,18 100,16 Q153,18 148,92 L148,56 Q100,40 52,56 Z" fill={a1} />
+            <path d="M50,58 Q47,80 56,94 L70,94 Q63,76 65,54 Z" fill={a1} />
+            <path d="M150,58 Q153,80 144,94 L130,94 Q137,76 135,54 Z" fill={a1} />
+            <path d="M50,58 Q47,80 56,94 L64,94 Q58,78 60,56 Z" fill={darken(a1, 0.78)} />
+            <path d="M150,58 Q153,80 144,94 L136,94 Q142,78 140,56 Z" fill={darken(a1, 0.78)} />
+            <rect x={97} y={58} width={6} height={30} rx={2} fill={darken(a1, 0.7)} />
+            <path
+              d="M100,4 Q112,4 116,16 Q120,32 112,48 L100,52 L88,48 Q80,32 84,16 Q88,4 100,4 Z"
+              fill={a2}
+            />
+            <path d="M100,8 L100,48" stroke={darken(a2, 0.65)} strokeWidth={1.4} opacity={0.7} />
+          </g>
+        );
+        break;
+      case "medieval_helmet":
+        // yelmo cerrado: cúpula angulosa, cresta central, visera con ranura y remaches
+        frontAcc = (
+          <g>
+            <path d="M54,72 Q49,15 100,11 Q151,15 146,72 L146,52 Q100,36 54,52 Z" fill={a1} />
+            <path d="M54,72 L146,72 L146,60 Q100,46 54,60 Z" fill={darken(a1, 0.7)} />
+            <path d="M96,11 Q100,6 104,11 L105,54 L95,54 Z" fill={darken(a1, 0.55)} />
+            <path d="M60,58 Q100,66 140,58 L140,66 Q100,74 60,66 Z" fill={darken(a1, 0.5)} />
+            <circle cx={60} cy={56} r={2.2} fill={a2} />
+            <circle cx={140} cy={56} r={2.2} fill={a2} />
+            <circle cx={100} cy={16} r={2.4} fill={a2} />
           </g>
         );
         break;

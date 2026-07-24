@@ -88,6 +88,7 @@ export interface Character {
   back: string | null; // item id (capas, alas)
   necklace: string | null; // item id
   ring: string | null; // item id
+  boots: string | null; // item id (calzado, independiente del traje)
   pet: string | null; // item id
   aura: string | null; // item id
   background: string | null; // item id
@@ -95,7 +96,7 @@ export interface Character {
 
 // ── Ítems ────────────────────────────────────────────────────
 
-export type ItemType = "outfit" | "weapon" | "accessory" | "back" | "necklace" | "ring" | "pet" | "aura" | "background";
+export type ItemType = "outfit" | "weapon" | "accessory" | "back" | "necklace" | "ring" | "boots" | "pet" | "aura" | "background";
 
 export interface ItemDef {
   id: string;

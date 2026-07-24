@@ -20,6 +20,8 @@ export const OUTFITS: ItemDef[] = [
   { id: "out_astronaut", type: "outfit", name: "Traje Espacial", emoji: "🚀", rarity: "epico", price: 780, desc: "Listo para tocar las estrellas.", variant: "suit", c1: "#e8ecf5", c2: "#b8c2d8", c3: "#ff7a3c" },
   { id: "out_kimono_dragon", type: "outfit", name: "Kimono del Dragón Dorado", emoji: "🐲", rarity: "epico", price: 850, desc: "Un dragón de oro serpentea en tinta negra.", variant: "kimono", c1: "#2b2b3d", c2: "#1a1a29", c3: "#ffd24d", motif: "dragon" },
   { id: "out_knight", type: "outfit", name: "Armadura de Caballero", emoji: "🛡️", rarity: "epico", price: 850, desc: "Forjada en las montañas de acero.", variant: "armor", c1: "#aeb8cc", c2: "#7c88a0", c3: "#ffd24d" },
+  { id: "out_ironplate", type: "outfit", name: "Armadura de Hierro", emoji: "⚔️", rarity: "raro", price: 500, desc: "Placas de hierro remachado, curtidas en cien batallas.", variant: "armor", c1: "#6b7280", c2: "#454b57", c3: "#c9a227" },
+  { id: "out_tournament", type: "outfit", name: "Armadura de Torneo Real", emoji: "🏆", rarity: "epico", price: 900, desc: "Bruñida para desfiles y justas de la corte medieval.", variant: "armor", c1: "#e8ecf5", c2: "#a8b2c8", c3: "#ffd24d" },
   { id: "out_robot", type: "outfit", name: "Exotraje Robot", emoji: "🤖", rarity: "epico", price: 850, desc: "Tecnología del futuro.", variant: "armor", c1: "#4dd7e8", c2: "#2a9cb0", c3: "#f5f5f5" },
   { id: "out_dragon", type: "outfit", name: "Armadura de Dragón", emoji: "🐉", rarity: "legendario", price: 1500, desc: "Escamas de dragón carmesí.", variant: "armor", c1: "#ff3b3b", c2: "#a11414", c3: "#ffd24d" },
   { id: "out_kimono_moon", type: "outfit", name: "Kimono Luna de Medianoche", emoji: "🌙", rarity: "legendario", price: 1600, desc: "La luna y las estrellas cosidas en índigo.", variant: "kimono", c1: "#2d2d5e", c2: "#1c1c40", c3: "#f5e6b8", motif: "luna" },
@@ -53,6 +55,10 @@ export const ACCESSORIES: ItemDef[] = [
   { id: "ac_wizardhat", type: "accessory", name: "Sombrero de Mago", emoji: "🎩", rarity: "raro", price: 320, desc: "Con estrellas bordadas.", variant: "wizardhat", c1: "#5d3fd3", c2: "#ffd24d" },
   { id: "ac_kitsune", type: "accessory", name: "Máscara Kitsune", emoji: "🦊", rarity: "epico", price: 650, desc: "La máscara del zorro de los festivales.", variant: "kitsune", c1: "#fff4f0", c2: "#e8433c" },
   { id: "ac_helmet", type: "accessory", name: "Casco Vikingo", emoji: "⛑️", rarity: "epico", price: 600, desc: "Con cuernos legendarios.", variant: "helmet", c1: "#aeb8cc", c2: "#e8d9a0" },
+  { id: "ac_helmet_viking_bronze", type: "accessory", name: "Casco Vikingo de Bronce", emoji: "🪖", rarity: "raro", price: 380, desc: "Curtido por mil batallas en el mar del norte.", variant: "helmet", c1: "#8a6d3b", c2: "#3a3a3a" },
+  { id: "ac_helmet_spartan", type: "accessory", name: "Casco Espartano", emoji: "⚔️", rarity: "epico", price: 680, desc: "Bronce pulido con cresta de crin escarlata.", variant: "spartan_helmet", c1: "#c98a3a", c2: "#a1281f" },
+  { id: "ac_helmet_medieval", type: "accessory", name: "Yelmo de Hierro", emoji: "🛡️", rarity: "raro", price: 420, desc: "El yelmo clásico de todo escudero medieval.", variant: "medieval_helmet", c1: "#8b93a3", c2: "#4f5561" },
+  { id: "ac_helmet_medieval_royal", type: "accessory", name: "Yelmo Real Medieval", emoji: "👑", rarity: "legendario", price: 1350, desc: "Acero pulido con ribetes de oro, digno de un rey.", variant: "medieval_helmet", c1: "#e8ecf5", c2: "#ffd24d" },
   { id: "ac_halo", type: "accessory", name: "Halo Dorado", emoji: "😇", rarity: "epico", price: 700, desc: "Un aro de pura luz.", variant: "halo", c1: "#ffd24d" },
   { id: "ac_crown", type: "accessory", name: "Corona Real", emoji: "👑", rarity: "legendario", price: 1300, desc: "Digna de la realeza del saber.", variant: "crown", c1: "#ffd24d", c2: "#ff5a5a" },
   { id: "ac_dragonhorns", type: "accessory", name: "Cuernos de Dragón", emoji: "🐲", rarity: "legendario", price: 0, gems: 18, desc: "Rugen con poder ancestral.", variant: "dragonhorns", c1: "#ff3b3b", c2: "#a11414" },
@@ -82,6 +88,14 @@ export const RINGS: ItemDef[] = [
   { id: "rg_ruby", type: "ring", name: "Anillo Rubí", emoji: "❤️‍🔥", rarity: "raro", price: 300, desc: "Una gema roja en banda dorada.", c1: "#ffd24d", c2: "#ff3b3b" },
   { id: "rg_sapphire", type: "ring", name: "Anillo Zafiro", emoji: "💠", rarity: "epico", price: 660, desc: "Fría chispa azul de poder.", c1: "#e8ecff", c2: "#41b6ff" },
   { id: "rg_phoenix", type: "ring", name: "Anillo Fénix", emoji: "🔥", rarity: "legendario", price: 0, gems: 16, desc: "Nunca se apaga su brasa interior.", c1: "#ffd24d", c2: "#ff7a3c" },
+];
+
+// ── Botas: calzado propio, independiente del traje ───────────
+export const BOOTS: ItemDef[] = [
+  { id: "bt_leather", type: "boots", name: "Botas de Cuero", emoji: "👢", rarity: "comun", price: 130, desc: "Resistentes para largas caminatas de aventura.", c1: "#8a6238", c2: "#5d4226" },
+  { id: "bt_iron", type: "boots", name: "Botas de Hierro", emoji: "🥾", rarity: "raro", price: 340, desc: "Pesadas, pero paran cualquier golpe.", c1: "#6b7280", c2: "#454b57" },
+  { id: "bt_knight", type: "boots", name: "Botas de Caballero", emoji: "🛡️", rarity: "epico", price: 620, desc: "A juego con la mejor armadura medieval.", c1: "#c9a227", c2: "#7c6a1c" },
+  { id: "bt_dragon", type: "boots", name: "Botas de Escama de Dragón", emoji: "🐉", rarity: "legendario", price: 0, gems: 14, desc: "Escamas carmesí que nunca se queman.", c1: "#ff3b3b", c2: "#a11414" },
 ];
 
 export const PETS: ItemDef[] = [
@@ -126,6 +140,7 @@ export const ALL_ITEMS: ItemDef[] = [
   ...BACKS,
   ...NECKLACES,
   ...RINGS,
+  ...BOOTS,
   ...PETS,
   ...AURAS,
   ...BACKGROUNDS,
@@ -144,6 +159,7 @@ export const ITEM_TYPE_META: Record<ItemDef["type"], { label: string; emoji: str
   back: { label: "Capas y alas", emoji: "🪽" },
   necklace: { label: "Collares", emoji: "📿" },
   ring: { label: "Anillos", emoji: "💍" },
+  boots: { label: "Botas", emoji: "👢" },
   pet: { label: "Mascotas", emoji: "🐾" },
   aura: { label: "Auras", emoji: "✨" },
   background: { label: "Fondos", emoji: "🖼️" },
