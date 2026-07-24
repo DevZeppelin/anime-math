@@ -1,4 +1,4 @@
-import type { Difficulty, LevelDef, Question } from "../types";
+import type { Difficulty, LevelDef, MapPoint, Question } from "../types";
 import { pick, pickEmojiMC, sample, session, shuffle } from "./utils";
 
 // ─────────────────────────────────────────────────────────────
@@ -121,6 +121,75 @@ const GEO_FACTS_MC: MC[] = [
   ["¿Cuál es el país con más habitantes del mundo?", "India", ["Estados Unidos", "Rusia", "Brasil"], "🌏"],
 ];
 
+// ── mapa del mundo: tocar el lugar correcto ────────────────────
+// Coordenadas equirectangulares aproximadas (viewBox 1000×500 de
+// WorldMap.tsx): x = (longitud+180)/360×1000, y = (90−latitud)/180×500.
+// Reutiliza los mismos 20 países de FLAGS para que lo aprendido
+// ahí (bandera ↔ país) se conecte con "¿y dónde está en el mapa?".
+
+const WORLD_POINTS: MapPoint[] = [
+  { id: "Argentina", label: "Argentina", x: 322, y: 344 },
+  { id: "Brasil", label: "Brasil", x: 347, y: 278 },
+  { id: "México", label: "México", x: 217, y: 186 },
+  { id: "España", label: "España", x: 489, y: 139 },
+  { id: "Estados Unidos", label: "Estados Unidos", x: 228, y: 142 },
+  { id: "Francia", label: "Francia", x: 506, y: 122 },
+  { id: "Italia", label: "Italia", x: 533, y: 131 },
+  { id: "Japón", label: "Japón", x: 883, y: 150 },
+  { id: "China", label: "China", x: 786, y: 153 },
+  { id: "Canadá", label: "Canadá", x: 206, y: 94 },
+  { id: "Alemania", label: "Alemania", x: 528, y: 108 },
+  { id: "Reino Unido", label: "Reino Unido", x: 494, y: 100 },
+  { id: "Colombia", label: "Colombia", x: 300, y: 239 },
+  { id: "Chile", label: "Chile", x: 303, y: 347 },
+  { id: "Perú", label: "Perú", x: 289, y: 278 },
+  { id: "Egipto", label: "Egipto", x: 583, y: 175 },
+  { id: "India", label: "India", x: 717, y: 192 },
+  { id: "Australia", label: "Australia", x: 875, y: 319 },
+  { id: "Corea del Sur", label: "Corea del Sur", x: 856, y: 150 },
+  { id: "Rusia", label: "Rusia", x: 606, y: 94 },
+];
+
+const CONTINENT_POINTS: MapPoint[] = [
+  { id: "namerica", label: "América del Norte", x: 190, y: 130 },
+  { id: "samerica", label: "América del Sur", x: 300, y: 320 },
+  { id: "europe", label: "Europa", x: 515, y: 115 },
+  { id: "africa", label: "África", x: 545, y: 240 },
+  { id: "asia", label: "Asia", x: 760, y: 130 },
+  { id: "oceania", label: "Oceanía", x: 870, y: 320 },
+];
+
+function qContinentMap(): Question {
+  const target = pick(CONTINENT_POINTS);
+  return {
+    kind: "map",
+    prompt: `Toca ${target.label} en el mapa`,
+    points: CONTINENT_POINTS,
+    answer: target.id,
+    big: true,
+  };
+}
+
+function qCountryMap(d: D): Question {
+  const target = pick(WORLD_POINTS);
+  const howMany = d === "dificil" ? 6 : 4;
+  const distractors = sample(
+    WORLD_POINTS.filter((p) => p.id !== target.id),
+    howMany - 1
+  );
+  return {
+    kind: "map",
+    prompt: `Toca ${target.label} en el mapa`,
+    points: shuffle([target, ...distractors]),
+    answer: target.id,
+  };
+}
+
+function genWorldMap(d: D): Question[] {
+  if (d === "facil") return session(Array.from({ length: 8 }, qContinentMap));
+  return session(Array.from({ length: 10 }, () => qCountryMap(d)));
+}
+
 // ── generadores ──────────────────────────────────────────────
 
 function genFlags(d: D): Question[] {
@@ -164,7 +233,7 @@ export const GEOGRAPHY_LEVELS: LevelDef[] = [
   { name: "Animales del Mundo", emoji: "🦘", desc: "¿Dónde vive cada animal salvaje?", tier: 1, gen: genAnimals },
   { name: "Sabores del Mundo", emoji: "🍕", desc: "Comidas típicas de cada país", tier: 1, gen: genFood },
   { name: "Monumentos Famosos", emoji: "🗼", desc: "Los lugares más famosos del planeta", tier: 2, gen: genLandmarks },
-  { name: "Más Banderas", emoji: "🌐", desc: "Sigue conociendo países y banderas", tier: 2, gen: genFlags },
+  { name: "Mapa del Mundo", emoji: "🗺️", desc: "Toca el país o continente correcto en el mapa", tier: 2, gen: genWorldMap },
   { name: "Tierra, Mar y Selva", emoji: "🌊", desc: "Océanos, desiertos, montañas y selvas", tier: 2, gen: genHabitats },
   { name: "Continentes y Océanos", emoji: "🗺️", desc: "Los datos más grandes del planeta", tier: 3, gen: genHabitats },
   { name: "Datos Curiosos del Mundo", emoji: "🌏", desc: "Países, ríos y montañas increíbles", tier: 3, gen: (d) => (d === "facil" ? genLandmarks(d) : buildMC(GEO_FACTS_MC, d)) },

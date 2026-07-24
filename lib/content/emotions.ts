@@ -89,7 +89,57 @@ function qSafety(): Question {
   return { kind: "mc", prompt, options: shuffle([correct, wrong]), answer: correct };
 }
 
+// ── resolver pequeños conflictos (menores de 5) ────────────────
+
+const CONFLICT_VISUAL: [string, string, string][] = [
+  ["Dos niños quieren el mismo columpio 🛝. ¿Qué es lo mejor?", "🔄 Turnarse", "😤 Pelear por él"],
+  ["Tú y tu amigo quieren el mismo juguete 🧸 a la vez. ¿Qué haces?", "🤝 Jugarlo juntos", "🥊 Quitárselo"],
+  ["Sin querer chocaste con un amigo y se cayó. ¿Qué le dices?", "😔 Perdón, ¿estás bien?", "🙈 Nada, sigo caminando"],
+  ["Dos amigos no se ponen de acuerdo en qué jugar. ¿Qué es lo mejor?", "🗣️ Hablarlo entre los dos", "😡 Gritar más fuerte"],
+  ["Un amigo está enojado contigo por algo que hiciste. ¿Qué haces?", "🙏 Pedir disculpas", "🤷 Ignorarlo"],
+];
+function qConflictVisual(): Question {
+  const [prompt, correct, wrong] = pick(CONFLICT_VISUAL);
+  return { kind: "mc", prompt, options: shuffle([correct, wrong]), answer: correct };
+}
+
+// ── uso de pantallas (menores de 5) ────────────────────────────
+
+const DIGITAL_VISUAL: [string, string, string][] = [
+  ["Jugaste mucho rato con la tablet 📱. ¿Qué haces ahora?", "🌳 Salgo a jugar afuera", "📱 Sigo jugando más"],
+  ["Es de noche y hay que dormir 😴. ¿Qué haces con la pantalla?", "🌙 La apago", "📱 Sigo mirando"],
+  ["Estás comiendo con tu familia 🍽️. ¿Usas la pantalla?", "🙅 No, como sin pantalla", "📱 Sí, todo el tiempo"],
+  ["Ya jugaste tu tiempo de pantalla de hoy ⏰. ¿Qué haces?", "🧩 Juego con otra cosa", "😭 Pido más tiempo llorando"],
+];
+function qDigitalVisual(): Question {
+  const [prompt, correct, wrong] = pick(DIGITAL_VISUAL);
+  return { kind: "mc", prompt, options: shuffle([correct, wrong]), answer: correct };
+}
+
+// ── honestidad y responsabilidad (menores de 5) ────────────────
+
+const HONESTY_VISUAL: [string, string, string][] = [
+  ["Encontraste una moneda 🪙 que no es tuya. ¿Qué haces?", "🙋 Pregunto de quién es", "🤐 Me la quedo callado"],
+  ["Rompiste un juguete sin querer 🧸. ¿Qué dices?", "😔 Digo la verdad", "🤥 Digo que no fui yo"],
+  ["Un amigo te presta su libro 📖. ¿Qué haces al terminar?", "🤲 Se lo devuelvo con cuidado", "🗑️ Lo dejo tirado"],
+  ["Viste basura tirada en el piso 🗑️. ¿Qué haces?", "🚮 La levanto y la tiro en su lugar", "🤷 Hago como que no la vi"],
+  ["Ganaste un juego pero tu amigo perdió y está triste 😢. ¿Qué haces?", "🤗 Lo consuelo y sigo jugando con él", "😝 Me burlo de él"],
+];
+function qHonestyVisual(): Question {
+  const [prompt, correct, wrong] = pick(HONESTY_VISUAL);
+  return { kind: "mc", prompt, options: shuffle([correct, wrong]), answer: correct };
+}
+
 // ── bancos clásicos para "Aventureros" y "Genios" ──────────────
+
+const SCENARIO_MC: MC[] = [
+  ["Nadie quiso sentarse con Tomás en el almuerzo. Probablemente se siente…", "Solo o triste", ["Emocionado", "Orgulloso", "Aburrido"], "🍱"],
+  ["Valentina practicó mucho para el examen y le fue muy bien. Se siente…", "Orgullosa", ["Avergonzada", "Asustada", "Enojada"], "📝"],
+  ["A Hugo se le perdió su mascota. Es probable que sienta…", "Preocupación", ["Alegría", "Aburrimiento", "Calma"], "🐾"],
+  ["Emma tuvo que hablar frente a toda la clase por primera vez. Antes de empezar, probablemente sintió…", "Nervios", ["Enojo", "Sueño", "Hambre"], "🎤"],
+  ["Nico rompió sin querer el juguete de su hermano. Lo correcto es sentir…", "Culpa, y pedir disculpas", ["Orgullo", "Alegría", "Indiferencia"], "🧸"],
+  ["Sofía ayudó a un compañero que se había caído. Después probablemente se sintió…", "Bien consigo misma", ["Avergonzada", "Enojada", "Aburrida"], "🤝"],
+];
 
 const EMOTION_MC: MC[] = [
   ["Ana perdió su juguete favorito. ¿Cómo se siente probablemente?", "Triste", ["Feliz", "Aburrida", "Orgullosa"], "😢"],
@@ -150,7 +200,7 @@ function genFaces(d: D): Question[] {
 
 function genScenarioEmotion(d: D): Question[] {
   if (d === "facil") return session(Array.from({ length: 10 }, qScenarioEmotion));
-  return buildMC(EMOTION_MC, d);
+  return buildMC(SCENARIO_MC, d, SCENARIO_MC.length);
 }
 
 function genHelp(d: D): Question[] {
@@ -169,17 +219,17 @@ function genSafety(d: D): Question[] {
 }
 
 function genConflict(d: D): Question[] {
-  if (d === "facil") return genHelp(d);
+  if (d === "facil") return session(Array.from({ length: 10 }, qConflictVisual));
   return buildMC(CONFLICT_MC, d, CONFLICT_MC.length);
 }
 
 function genDigital(d: D): Question[] {
-  if (d === "facil") return genSafety(d);
+  if (d === "facil") return session(Array.from({ length: 10 }, qDigitalVisual));
   return buildMC(DIGITAL_MC, d, DIGITAL_MC.length);
 }
 
 function genValues(d: D): Question[] {
-  if (d === "facil") return genManners(d);
+  if (d === "facil") return session(Array.from({ length: 10 }, qHonestyVisual));
   return buildMC([...HELP_MC.slice(0, 3), ...CONFLICT_MC.slice(0, 3)], d);
 }
 

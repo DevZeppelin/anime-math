@@ -7,6 +7,7 @@ import { adaptQuestion, checkTyped, shuffle } from "@/lib/content/utils";
 import { TIER_COINS, TIER_XP, LESSON_BONUS, QUESTION_SECONDS, starsForErrors } from "@/lib/progression";
 import { speak, speechAvailable, stopSpeaking } from "@/lib/speech";
 import Avatar from "./Avatar";
+import WorldMap from "./WorldMap";
 
 export interface LessonResult {
   passed: boolean;
@@ -68,6 +69,7 @@ export default function LessonPlayer({ subject, levelIdx, profile, onComplete, o
   const [typedVal, setTypedVal] = useState("");
   const [orderPool, setOrderPool] = useState<string[]>([]);
   const [orderSel, setOrderSel] = useState<string[]>([]);
+  const [mapPicked, setMapPicked] = useState<string | null>(null);
 
   const doneRef = useRef(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -79,6 +81,7 @@ export default function LessonPlayer({ subject, levelIdx, profile, onComplete, o
     if (!q) return;
     setTypedVal("");
     setHidden([]);
+    setMapPicked(null);
     if (q.kind === "order") {
       setOrderPool(shuffle(q.items));
       setOrderSel([]);
@@ -265,6 +268,7 @@ export default function LessonPlayer({ subject, levelIdx, profile, onComplete, o
     if (q.kind === "mc") return q.answer;
     if (q.kind === "type") return q.answer;
     if (q.kind === "tf") return q.answer ? "Verdadero" : "Falso";
+    if (q.kind === "map") return q.points.find((p) => p.id === q.answer)?.label ?? q.answer;
     return q.items.join(" → ");
   })();
 
@@ -365,7 +369,7 @@ export default function LessonPlayer({ subject, levelIdx, profile, onComplete, o
         </div>
 
         {q.kind === "mc" && (
-          <div className={`mc-grid ${q.options.some((o) => o.length > 18) ? "long" : ""}`}>
+          <div className={`mc-grid ${diff === "facil" ? "kids" : ""} ${q.options.some((o) => o.length > 18) ? "long" : ""}`}>
             {q.options.map((opt) => {
               const isHidden = hidden.includes(opt);
               const showState =
@@ -373,7 +377,7 @@ export default function LessonPlayer({ subject, levelIdx, profile, onComplete, o
               return (
                 <button
                   key={opt}
-                  className={`mc-btn ${showState} ${isHidden ? "hidden-opt" : ""}`}
+                  className={`mc-btn ${diff === "facil" ? "kids" : ""} ${showState} ${isHidden ? "hidden-opt" : ""}`}
                   disabled={phase !== "ask" || isHidden}
                   onClick={() => resolve(opt === q.answer)}
                 >
@@ -505,6 +509,23 @@ export default function LessonPlayer({ subject, levelIdx, profile, onComplete, o
                 ↺ Reiniciar
               </button>
             </div>
+          </div>
+        )}
+
+        {q.kind === "map" && (
+          <div className="map-area">
+            <WorldMap
+              points={q.points}
+              answer={q.answer}
+              picked={mapPicked}
+              reveal={phase === "feedback"}
+              big={q.big}
+              onPick={(id) => {
+                if (phase !== "ask") return;
+                setMapPicked(id);
+                resolve(id === q.answer);
+              }}
+            />
           </div>
         )}
 

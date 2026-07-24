@@ -147,7 +147,23 @@ export type Question =
       visual?: string;
       items: string[]; // en el orden CORRECTO; se barajan al mostrar
       explain?: string;
+    }
+  | {
+      kind: "map"; // tocar el lugar correcto en el mapa del mundo
+      prompt: string;
+      visual?: string;
+      points: MapPoint[]; // los pines/regiones que se muestran (solo uno es correcto)
+      answer: string; // debe ser el id de uno de los points
+      big?: boolean; // pines grandes (continentes) en vez de chicos (países)
+      explain?: string;
     };
+
+export interface MapPoint {
+  id: string;
+  label: string; // nombre real, se revela recién en el feedback (nunca antes)
+  x: number; // 0..1000, coordenadas equirectangulares del mapa estilizado
+  y: number; // 0..500
+}
 
 // ── Currículo ────────────────────────────────────────────────
 

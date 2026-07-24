@@ -107,6 +107,24 @@ export function session(qs: Question[]): Question[] {
   return shuffle(qs).slice(0, SESSION_SIZE);
 }
 
+/** Combina varios generadores de preguntas evitando usar el mismo
+ *  generador (el mismo "tipo" de ejercicio) dos veces seguidas, para que
+ *  una sesión nunca repita el mismo ejercicio en fila. */
+export function varied(fns: readonly (() => Question)[], count: number = SESSION_SIZE): Question[] {
+  const out: Question[] = [];
+  let prevIdx = -1;
+  for (let i = 0; i < count; i++) {
+    let idx = ri(0, fns.length - 1);
+    if (fns.length > 1) {
+      let guard = 0;
+      while (idx === prevIdx && guard++ < 20) idx = ri(0, fns.length - 1);
+    }
+    out.push(fns[idx]());
+    prevIdx = idx;
+  }
+  return out;
+}
+
 /** Repite un emoji n veces (separado por espacios) para mostrar una
  *  cantidad de forma 100% visual — clave para el modo "Pequeños". */
 export function repeatEmoji(emoji: string, n: number): string {

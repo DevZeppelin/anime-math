@@ -367,14 +367,17 @@ function qGeometry(d: D): Question {
   return numMC(`¿Cuántos lados tiene un ${name}?`, sides, { spread: 2 });
 }
 
+// caritas de reloj analógico en punto, una por cada hora (1..12)
+const CLOCK_FACES = ["🕛", "🕐", "🕑", "🕒", "🕓", "🕔", "🕕", "🕖", "🕗", "🕘", "🕙", "🕚"];
+
 function qTime(d: D): Question {
   const kind = ri(1, 2);
   if (kind === 1) {
     const h = ri(1, 12);
     return {
       kind: "mc",
-      prompt: `Son las ${h} en punto. ¿Qué reloj lo muestra?`,
-      visual: "🕐",
+      prompt: "¿Qué hora muestra este reloj?",
+      visual: CLOCK_FACES[h % 12],
       options: shuffle3(String(h)),
       answer: String(h),
       explain: "Cuando el minutero apunta al 12, es una hora en punto.",

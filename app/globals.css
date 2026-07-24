@@ -1058,15 +1058,30 @@ button:disabled {
   padding: 15px 14px;
   border-radius: 15px;
   border: 1px solid var(--line-strong);
-  background: rgba(255, 255, 255, 0.055);
+  /* fondo bien opaco: garantiza contraste del texto/emoji sin importar
+     qué haya detrás (los degradados de color de fondo de la página) */
+  background: rgba(12, 10, 28, 0.75);
+  color: var(--txt);
   font-size: 17px;
   font-weight: 700;
   transition: all 0.12s;
 }
 .mc-btn:hover:not(:disabled) {
-  background: rgba(139, 92, 255, 0.22);
+  background: rgba(139, 92, 255, 0.32);
   border-color: var(--accent);
   transform: translateY(-2px);
+}
+/* modo Pequeños: opciones grandes, bien contrastadas y fáciles de tocar
+   — muchas son un solo emoji, así que necesitan verse grandes */
+.mc-grid.kids {
+  gap: 14px;
+}
+.mc-btn.kids {
+  min-height: 88px;
+  padding: 14px;
+  font-size: 42px;
+  border-width: 2px;
+  background: rgba(10, 8, 24, 0.82);
 }
 .mc-btn.good {
   background: rgba(61, 240, 154, 0.22);
@@ -1186,6 +1201,22 @@ button:disabled {
 .order-opt {
   font-size: 14.5px;
   padding: 11px 14px;
+}
+.map-area {
+  display: flex;
+  justify-content: center;
+}
+.world-map-svg {
+  width: 100%;
+  max-width: 560px;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+.map-pin circle {
+  transition: r 0.12s, opacity 0.15s;
+}
+.map-pin:hover circle:first-of-type {
+  filter: brightness(1.15);
 }
 .order-actions {
   display: flex;
