@@ -50,14 +50,15 @@ function qProfessionVisual(): Question {
   return pickEmojiMC(PROFESSIONS_ID, (name) => `¿Quién es ${name}?`);
 }
 
+const SAVE_VISUAL_FACIL: [string, string, string[], string?][] = [
+  ["¿Dónde guardamos el dinero para que esté seguro?", "🐷", ["🔥", "🚽"], "El dinero se guarda en una alcancía o en el banco, ¡nunca en el fuego!"],
+  ["¿Qué es mejor hacer antes de gastar todas tus monedas?", "🤔", ["😤", "🎉"], "Pensarlo bien te ayuda a no arrepentirte después."],
+  ["Si quieres algo caro, ¿qué es mejor hacer poco a poco?", "🐷", ["🍬", "😢"], "Ahorrar de a poco te ayuda a juntar para lo que quieres."],
+  ["Antes de comprar algo, ¿qué es sabio hacer primero?", "🔍", ["🏃", "😴"], "Mirar bien antes de comprar te ayuda a elegir mejor."],
+];
 function qStorageVisual(): Question {
-  return {
-    kind: "mc",
-    prompt: "¿Dónde guardamos el dinero para que esté seguro?",
-    options: shuffle(["🐷", "🔥", "🚽"]),
-    answer: "🐷",
-    explain: "El dinero se guarda en una alcancía o en el banco, ¡nunca en el fuego!",
-  };
+  const [prompt, answer, wrong, explain] = pick(SAVE_VISUAL_FACIL);
+  return { kind: "mc", prompt, options: shuffle([answer, ...wrong]), answer, explain };
 }
 
 function qLemonadeVisual(): Question {
@@ -179,8 +180,8 @@ const CONCEPTS_BANK: MC[] = [
 
 function qBudget(): Question {
   const income = pick([50, 60, 80, 100]);
-  const a = ri(10, 30);
-  const b = ri(10, 30);
+  const a = ri(10, Math.min(30, income - 20));
+  const b = ri(10, Math.min(30, income - a - 1));
   const spent = a + b;
   const kind = ri(1, 2);
   if (kind === 1) {
@@ -241,18 +242,186 @@ function buildMC(bank: MC[]): Question[] {
   );
 }
 
-function genProc(facilFn: () => Question, restFn: () => Question): (d: D) => Question[] {
-  return (d) => session(Array.from({ length: 10 }, () => (d === "facil" ? facilFn() : restFn())));
+function genProc(facilFn: () => Question, restFn: () => Question, expertoFn?: () => Question): (d: D) => Question[] {
+  return (d) => session(Array.from({ length: 10 }, () => (d === "facil" ? facilFn() : d === "experto" && expertoFn ? expertoFn() : restFn())));
+}
+
+// ═════════════════════════════════════════════════════════════
+// CONTENIDO DE "MAESTROS" (experto) — finanzas reales para
+// adultos: ingresos, presupuesto, interés compuesto y crédito.
+// ═════════════════════════════════════════════════════════════
+
+const BILL_VALUES = [5, 10, 20, 50, 100];
+function qCountBills(): Question {
+  const n = ri(4, 7);
+  const bills = Array.from({ length: n }, () => pick(BILL_VALUES));
+  const total = bills.reduce((a, b) => a + b, 0);
+  const list = bills.map((b) => `$${b}`).join(" + ");
+  return typed(`Tienes estos billetes: ${list}. ¿Cuánto dinero tienes en total?`, total, { visual: "💵" });
+}
+
+const SHOP_PRICES = [10, 12, 15, 18, 20, 25, 28, 30, 35];
+function qShoppingTotal(): Question {
+  const prices = sample(SHOP_PRICES, ri(3, 4));
+  const total = prices.reduce((a, b) => a + b, 0);
+  const paid = pick([150, 200, 250].filter((b) => b > total));
+  return typed(
+    `Compras estos productos: ${prices.map((p) => `$${p}`).join(", ")}.\nPagas con $${paid}. ¿Cuánto cambio recibes?`,
+    paid - total,
+    { visual: "🛍️", explain: `Total: ${prices.join(" + ")} = ${total}. Cambio: ${paid} − ${total} = ${paid - total}.` }
+  );
+}
+
+function genShopExperto(): Question {
+  return Math.random() < 0.5 ? qCountBills() : qShoppingTotal();
+}
+
+const NEEDS_ADULT: string[] = [
+  "pagar el alquiler o la hipoteca 🏠",
+  "el seguro de salud 🏥",
+  "la comida del mes 🛒",
+  "pagar las cuentas de luz y agua 💡",
+  "el transporte para ir a trabajar 🚌",
+  "ahorrar para una emergencia médica 🆘",
+];
+const WANTS_ADULT: string[] = [
+  "una suscripción de streaming extra 📺",
+  "salir a comer afuera seguido 🍽️",
+  "el último modelo de celular 📱",
+  "unas vacaciones de lujo ✈️",
+  "ropa de marca cara 👗",
+  "un auto más caro del que necesitas 🚗",
+];
+function qNeedWantExperto(): Question {
+  if (Math.random() < 0.5) {
+    const item = pick(NEEDS_ADULT);
+    return {
+      kind: "mc",
+      prompt: `${item[0].toUpperCase()}${item.slice(1)}\n¿Es una NECESIDAD o un DESEO?`,
+      options: ["❤️ Necesidad", "⭐ Deseo"],
+      answer: "❤️ Necesidad",
+      explain: "Las necesidades son gastos sin los que tu vida o tu estabilidad se ven afectadas.",
+    };
+  }
+  const item = pick(WANTS_ADULT);
+  return {
+    kind: "mc",
+    prompt: `${item[0].toUpperCase()}${item.slice(1)}\n¿Es una NECESIDAD o un DESEO?`,
+    options: ["❤️ Necesidad", "⭐ Deseo"],
+    answer: "⭐ Deseo",
+    explain: "Los deseos mejoran tu vida pero podrías vivir bien sin ellos.",
+  };
+}
+
+const CONCEPTS_WORK_EXPERTO: MC[] = [
+  ["¿Qué diferencia hay entre el salario BRUTO y el NETO?", "El bruto es antes de descuentos; el neto es lo que realmente recibes en la mano", ["Son exactamente lo mismo", "El neto siempre es mayor que el bruto", "El bruto solo aplica a los freelancers"], "💵"],
+  ["¿Qué es un CURRÍCULUM (CV)?", "Un resumen de tu experiencia y estudios para buscar trabajo", ["Un tipo de contrato legal", "El horario de la empresa", "Un préstamo bancario"], "📄"],
+  ["¿Qué son los BENEFICIOS LABORALES?", "Ventajas extra al salario, como seguro médico o vacaciones pagas", ["Un impuesto que se descuenta del sueldo", "El nombre del jefe", "Una multa por llegar tarde"], "🎁"],
+  ["¿Qué significa trabajar como FREELANCE o independiente?", "Trabajar por proyectos para distintos clientes, sin un solo empleador fijo", ["Trabajar gratis por experiencia", "No poder cobrar por el trabajo", "Trabajar solo los fines de semana"], "💻"],
+  ["¿Por qué conviene investigar el salario promedio del mercado antes de negociar el propio?", "Para pedir un monto justo e informado, ni muy bajo ni irreal", ["No sirve de nada investigar", "Para copiar el sueldo de un amigo", "Es ilegal hacerlo"], "🤝"],
+  ["¿Qué es la JUBILACIÓN o pensión?", "El ingreso que recibes al dejar de trabajar, tras ahorrar durante tu vida laboral", ["Un tipo de préstamo", "Una multa por dejar el trabajo", "Un bono único al empezar a trabajar"], "👴"],
+];
+
+function qSavingsExperto(): Question {
+  const kind = ri(1, 2);
+  if (kind === 1) {
+    const monthly = pick([50, 80, 100, 150, 200]);
+    const months = ri(4, 12);
+    return typed(`Ahorras $${monthly} por mes. ¿Cuánto tendrás en ${months} meses?`, monthly * months, {
+      visual: "🐷",
+      explain: `${monthly} × ${months} = ${monthly * months}.`,
+    });
+  }
+  const goal = pick([600, 900, 1200, 1500, 2400, 3000]);
+  const monthly = pick([100, 150, 200, 300].filter((m) => goal % m === 0));
+  return typed(`Quieres ahorrar $${goal} para un objetivo. Si guardas $${monthly} por mes, ¿cuántos meses necesitas?`, goal / monthly, {
+    visual: "🎯",
+    explain: `${goal} ÷ ${monthly} = ${goal / monthly} meses.`,
+  });
+}
+
+const CONCEPTS_SAVE_EXPERTO: MC[] = [
+  ["¿Qué es un FONDO DE EMERGENCIA?", "Ahorros guardados para gastos inesperados, como una reparación o pérdida de trabajo", ["Dinero que se gasta apenas se recibe", "Un préstamo del banco", "Un impuesto obligatorio"], "🆘"],
+  ["¿Qué es la INFLACIÓN?", "La subida general de precios con el tiempo, que reduce el valor del dinero", ["Una bajada de precios permanente", "Un tipo de ahorro seguro", "Un impuesto sobre el salario"], "📈"],
+  ["¿Qué significa 'diversificar' tus ahorros o inversiones?", "No poner todo el dinero en un solo lugar, para repartir el riesgo", ["Gastar todo en una sola cosa", "Guardar todo en efectivo bajo el colchón", "Prestarle todo tu dinero a una sola persona"], "🧺"],
+  ["¿Qué es el COSTO DE OPORTUNIDAD de un gasto?", "Lo que dejas de poder hacer con ese dinero al gastarlo en otra cosa", ["El precio con impuestos incluidos", "Un descuento especial", "El costo de envío"], "⚖️"],
+  ["¿Por qué las deudas de tarjeta de crédito con intereses altos son peligrosas?", "Porque la deuda puede crecer rápido si no se paga a tiempo", ["Porque las tarjetas se rompen fácil", "No tienen ningún riesgo real", "Porque solo se pueden usar una vez"], "💳"],
+  ["Regla general: ¿cuántos meses de gastos se recomienda tener guardados en un fondo de emergencia?", "Entre 3 y 6 meses de gastos", ["Solo 1 día", "20 años", "No hace falta ahorrar nada"], "🗓️"],
+];
+
+function qBudgetRule(): Question {
+  const income = pick([1000, 1200, 1500, 2000, 2500, 3000]);
+  const part = pick([
+    { pct: 20, label: "ahorrar" },
+    { pct: 50, label: "gastar en necesidades" },
+    { pct: 30, label: "gastar en deseos" },
+  ]);
+  const amount = (income * part.pct) / 100;
+  return numMC(
+    `Ganas $${income} al mes y sigues la regla 50/30/20 (necesidades / deseos / ahorro).\n¿Cuánto deberías ${part.label} (${part.pct}%)?`,
+    amount,
+    { spread: Math.max(20, Math.round(amount * 0.2)), explain: `${part.pct}% de ${income} = ${amount}.` }
+  );
+}
+
+function qBudgetBig(): Question {
+  const income = pick([1500, 1800, 2000, 2200, 2500]);
+  const rent = pick([500, 600, 700, 800]);
+  const other = ri(200, 500);
+  return typed(`Ganas $${income} al mes. Pagas $${rent} de alquiler y $${other} en otros gastos fijos.\n¿Cuánto te queda para ahorrar o gastar libremente?`, income - rent - other, {
+    visual: "📒",
+    explain: `${income} − ${rent} − ${other} = ${income - rent - other}.`,
+  });
+}
+
+function genBudgetExperto(): Question {
+  return Math.random() < 0.5 ? qBudgetRule() : qBudgetBig();
+}
+
+function qCompoundInterest(): Question {
+  const principal = pick([100, 200, 300, 500, 800, 1000]);
+  const year1 = principal + principal / 10;
+  const year2 = year1 + year1 / 10;
+  return numMC(`Ahorras $${principal} a un interés compuesto del 10% anual, durante 2 años (sin retirar nada). ¿Cuánto tienes al final?`, year2, {
+    spread: Math.max(15, Math.round(year2 * 0.15)),
+    explain: `Año 1: ${principal} + 10% = ${year1}. Año 2: ${year1} + 10% = ${year2}. El interés compuesto también gana interés sobre el interés anterior.`,
+  });
+}
+
+const CONCEPTS_INVEST_EXPERTO: MC[] = [
+  ["¿Qué es una ACCIÓN (stock) de una empresa?", "Una pequeña parte de propiedad de esa empresa", ["Un préstamo que le haces al gobierno", "Un tipo de moneda extranjera", "Un impuesto sobre las ventas"], "📈"],
+  ["¿Qué es el INTERÉS COMPUESTO?", "Ganar interés no solo sobre tu dinero inicial, sino también sobre los intereses ya generados", ["Un interés que nunca cambia", "Un impuesto especial del banco", "Un descuento por ahorrar"], "💰"],
+  ["¿Qué es un PUNTAJE DE CRÉDITO (credit score)?", "Un número que refleja qué tan confiable eres para pagar deudas", ["La cantidad de dinero en tu cuenta", "El nombre de tu banco", "Un tipo de tarjeta física"], "📊"],
+  ["Entre dos préstamos con la MISMA cuota mensual, ¿cuál conviene más?", "El que tenga la tasa de interés más baja", ["El que tenga el plazo más largo, siempre", "El del banco más conocido", "No hay diferencia entre ellos"], "🏦"],
+  ["¿Qué es diversificar una inversión?", "Repartir el dinero en distintos activos para reducir el riesgo", ["Invertir todo en una sola empresa", "Guardar todo en efectivo", "Pedir un préstamo grande"], "🧺"],
+  ["¿Qué es un PRESUPUESTO PERSONAL?", "Un plan de cuánto ganas y gastas para controlar tu dinero", ["Un tipo de cuenta bancaria especial", "Un impuesto anual obligatorio", "Un préstamo sin intereses"], "📒"],
+];
+
+function genBankExperto(): Question[] {
+  const conceptQs = sample(CONCEPTS_INVEST_EXPERTO, 5).map(([prompt, answer, wrong, visual, explain]) => ({
+    kind: "mc" as const,
+    prompt,
+    visual,
+    options: shuffle([answer, ...wrong]),
+    answer,
+    explain,
+  }));
+  const interestQs = Array.from({ length: 5 }, qCompoundInterest);
+  const out: Question[] = [];
+  for (let i = 0; i < 5; i++) {
+    out.push(conceptQs[i], interestQs[i]);
+  }
+  return out;
 }
 
 export const FINANCE_LEVELS: LevelDef[] = [
-  { name: "Contando Monedas", emoji: "🪙", desc: "Suma monedas y billetes", tier: 1, gen: genProc(qCoinCountVisual, qCountMoney) },
-  { name: "La Tienda", emoji: "🛒", desc: "Pagar, recibir cambio y saber si alcanza", tier: 1, gen: genProc(qCoinCompareVisual, () => (Math.random() < 0.5 ? qChange() : qEnough())) },
-  { name: "¿Necesito o Deseo?", emoji: "🤔", desc: "Diferencia necesidades de deseos", tier: 1, gen: genProc(qNeedWant, qNeedWant) },
-  { name: "El Mundo del Trabajo", emoji: "💼", desc: "Oficios, salarios y emprendedores", tier: 1, gen: (d) => (d === "facil" ? session(Array.from({ length: 10 }, qProfessionVisual)) : buildMC(CONCEPTS_WORK)) },
-  { name: "La Alcancía", emoji: "🐷", desc: "Metas de ahorro y cuánto falta", tier: 2, gen: genProc(qCoinCountVisual, qSavings) },
-  { name: "Sabio Ahorrador", emoji: "🧠", desc: "Buenas decisiones con el dinero", tier: 2, gen: (d) => (d === "facil" ? session(Array.from({ length: 10 }, qStorageVisual)) : buildMC(CONCEPTS_SAVE)) },
-  { name: "Mi Presupuesto", emoji: "📒", desc: "Planifica tus gastos de la semana", tier: 3, gen: genProc(qEnoughVisual, qBudget) },
+  { name: "Contando Monedas", emoji: "🪙", desc: "Suma monedas y billetes", tier: 1, gen: genProc(qCoinCountVisual, qCountMoney, qCountBills) },
+  { name: "La Tienda", emoji: "🛒", desc: "Pagar, recibir cambio y saber si alcanza", tier: 1, gen: genProc(qCoinCompareVisual, () => (Math.random() < 0.5 ? qChange() : qEnough()), genShopExperto) },
+  { name: "¿Necesito o Deseo?", emoji: "🤔", desc: "Diferencia necesidades de deseos", tier: 1, gen: genProc(qNeedWant, qNeedWant, qNeedWantExperto) },
+  { name: "El Mundo del Trabajo", emoji: "💼", desc: "Oficios, salarios y emprendedores", tier: 1, gen: (d) => (d === "facil" ? session(Array.from({ length: 10 }, qProfessionVisual)) : d === "experto" ? buildMC(CONCEPTS_WORK_EXPERTO) : buildMC(CONCEPTS_WORK)) },
+  { name: "La Alcancía", emoji: "🐷", desc: "Metas de ahorro y cuánto falta", tier: 2, gen: genProc(qCoinCountVisual, qSavings, qSavingsExperto) },
+  { name: "Sabio Ahorrador", emoji: "🧠", desc: "Buenas decisiones con el dinero", tier: 2, gen: (d) => (d === "facil" ? session(Array.from({ length: 10 }, qStorageVisual)) : d === "experto" ? buildMC(CONCEPTS_SAVE_EXPERTO) : buildMC(CONCEPTS_SAVE)) },
+  { name: "Mi Presupuesto", emoji: "📒", desc: "Planifica tus gastos de la semana", tier: 3, gen: genProc(qEnoughVisual, qBudget, genBudgetExperto) },
   {
     name: "Banco y Negocios",
     emoji: "🏦",
@@ -261,6 +430,8 @@ export const FINANCE_LEVELS: LevelDef[] = [
     gen: (d) =>
       d === "facil"
         ? session(Array.from({ length: 10 }, qLemonadeVisual))
-        : session([...sample(CONCEPTS_BANK, 6).map(([prompt, answer, wrong, visual, explain]) => ({ kind: "mc" as const, prompt, visual, options: shuffle([answer, ...wrong]), answer, explain })), ...Array.from({ length: 5 }, qBusiness)]),
+        : d === "experto"
+          ? genBankExperto()
+          : session([...sample(CONCEPTS_BANK, 6).map(([prompt, answer, wrong, visual, explain]) => ({ kind: "mc" as const, prompt, visual, options: shuffle([answer, ...wrong]), answer, explain })), ...Array.from({ length: 5 }, qBusiness)]),
   },
 ];

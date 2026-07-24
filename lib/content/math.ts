@@ -13,14 +13,18 @@ import { ri, pick, sample, numMC, typed, tf, session, repeatEmoji, SHAPES } from
 
 type D = Difficulty;
 
-/** Elige un valor según la dificultad. */
-function byD<T>(d: D, facil: T, normal: T, dificil: T): T {
-  return d === "facil" ? facil : d === "dificil" ? dificil : normal;
+/** Elige un valor según la dificultad. "experto" (Maestros, sin
+ *  límite de edad) usa `experto` si se da, si no cae en `dificil`. */
+function byD<T>(d: D, facil: T, normal: T, dificil: T, experto?: T): T {
+  if (d === "facil") return facil;
+  if (d === "dificil") return dificil;
+  if (d === "experto") return experto ?? dificil;
+  return normal;
 }
 
 /** Probabilidad de pregunta escrita (vs opción múltiple). */
 function typedChance(d: D): number {
-  return byD(d, 0, 0.5, 0.65);
+  return byD(d, 0, 0.5, 0.65, 0.75);
 }
 
 const OBJS = ["🍎", "🍌", "🐟", "🐝", "🚗", "⭐", "🎈", "🍪", "🧸", "🐬"];
@@ -180,15 +184,15 @@ function qSum20(d: D): Question {
 }
 
 function qSum2d(d: D): Question {
-  const a = ri(byD(d, 11, 15, 25), byD(d, 40, 78, 88));
-  const b = ri(byD(d, 11, 13, 25), Math.max(14, byD(d, 89, 99, 199) - a));
+  const a = ri(byD(d, 11, 15, 25, 100), byD(d, 40, 78, 88, 500));
+  const b = ri(byD(d, 11, 13, 25, 100), Math.max(14, byD(d, 89, 99, 199, 999) - a));
   return Math.random() < typedChance(d)
     ? typed(`${a} + ${b} = ?`, a + b)
     : numMC(`${a} + ${b} = ?`, a + b, { spread: 8 });
 }
 
 function qSub2d(d: D): Question {
-  const a = ri(byD(d, 20, 30, 50), byD(d, 60, 99, 199));
+  const a = ri(byD(d, 20, 30, 50, 200), byD(d, 60, 99, 199, 999));
   const b = ri(11, a - 10);
   return Math.random() < typedChance(d)
     ? typed(`${a} − ${b} = ?`, a - b)
@@ -197,7 +201,7 @@ function qSub2d(d: D): Question {
 
 function qMulEasy(d: D): Question {
   const a = pick([2, 3, 4, 5, 10]);
-  const b = ri(1, byD(d, 5, 10, 12));
+  const b = ri(1, byD(d, 5, 10, 12, 20));
   return Math.random() < typedChance(d)
     ? typed(`${a} × ${b} = ?`, a * b, { explain: `Son ${a} grupos de ${b}.` })
     : numMC(`${a} × ${b} = ?`, a * b, { spread: Math.max(3, a), explain: `Son ${a} grupos de ${b}.` });
@@ -205,15 +209,15 @@ function qMulEasy(d: D): Question {
 
 function qMulHard(d: D): Question {
   const a = pick([6, 7, 8, 9]);
-  const b = ri(2, byD(d, 5, 10, 12));
+  const b = ri(2, byD(d, 5, 10, 12, 20));
   return Math.random() < typedChance(d)
     ? typed(`${a} × ${b} = ?`, a * b)
     : numMC(`${a} × ${b} = ?`, a * b, { spread: a });
 }
 
 function qDiv(d: D): Question {
-  const b = ri(2, byD(d, 5, 9, 9));
-  const q = ri(2, byD(d, 5, 10, 12));
+  const b = ri(2, byD(d, 5, 9, 9, 15));
+  const q = ri(2, byD(d, 5, 10, 12, 20));
   const a = b * q;
   return Math.random() < typedChance(d)
     ? typed(`${a} ÷ ${b} = ?`, q, { explain: `Porque ${b} × ${q} = ${a}.` })
@@ -221,8 +225,8 @@ function qDiv(d: D): Question {
 }
 
 function qCompare(d: D): Question {
-  const lo = byD(d, 10, 100, 1000);
-  const hi = byD(d, 99, 9999, 99999);
+  const lo = byD(d, 10, 100, 1000, 10000);
+  const hi = byD(d, 99, 9999, 99999, 9999999);
   const a = ri(lo, hi);
   let b = ri(lo, hi);
   if (b === a) b += 7;
@@ -237,7 +241,15 @@ function qCompare(d: D): Question {
 }
 
 function qRound(d: D): Question {
-  if (d === "dificil" && Math.random() < 0.5) {
+  if ((d === "dificil" || d === "experto") && Math.random() < 0.5) {
+    if (d === "experto" && Math.random() < 0.5) {
+      const a = ri(10100, 98999);
+      const near = Math.round(a / 1000) * 1000;
+      return numMC(`Redondea ${a} al millar más cercano`, near, {
+        spread: 1000,
+        explain: `Mira las centenas: ${a} está más cerca de ${near}.`,
+      });
+    }
     const a = ri(1010, 9899);
     const near = Math.round(a / 100) * 100;
     return numMC(`Redondea ${a} a la centena más cercana`, near, {
@@ -245,7 +257,7 @@ function qRound(d: D): Question {
       explain: `Mira las decenas: ${a} está más cerca de ${near}.`,
     });
   }
-  const a = ri(byD(d, 11, 101, 101), byD(d, 98, 989, 989));
+  const a = ri(byD(d, 11, 101, 101, 101), byD(d, 98, 989, 989, 989));
   const near = Math.round(a / 10) * 10;
   return numMC(`Redondea ${a} a la decena más cercana`, near, {
     spread: 10,
@@ -256,8 +268,8 @@ function qRound(d: D): Question {
 function qFraction(d: D): Question {
   const kind = ri(1, 3);
   if (kind === 1) {
-    const den = pick(byD(d, [2, 4], [2, 3, 4, 5, 10], [2, 3, 4, 5, 8, 10]));
-    const total = den * ri(2, byD(d, 4, 8, 12));
+    const den = pick(byD(d, [2, 4], [2, 3, 4, 5, 10], [2, 3, 4, 5, 8, 10], [2, 3, 4, 5, 6, 8, 9, 10, 12]));
+    const total = den * ri(2, byD(d, 4, 8, 12, 20));
     return numMC(`¿Cuánto es 1/${den} de ${total}?`, total / den, {
       explain: `Divide ${total} entre ${den}.`,
     });
@@ -269,16 +281,16 @@ function qFraction(d: D): Question {
       explain: `La mitad de ${den} es ${den / 2}, y tienes ${num} partes.`,
     });
   }
-  const den = pick([3, 4, 5]);
+  const den = pick(byD(d, [3, 4, 5], [3, 4, 5], [3, 4, 5], [3, 4, 5, 6, 7, 8, 9]));
   const num = ri(1, den - 1);
-  const total = den * ri(2, 5);
+  const total = den * ri(2, byD(d, 5, 5, 5, 9));
   return numMC(`¿Cuánto es ${num}/${den} de ${total}?`, (total / den) * num, {
     explain: `${total} ÷ ${den} = ${total / den}, luego × ${num}.`,
   });
 }
 
 function qPercent(d: D): Question {
-  const kind = ri(1, byD(d, 3, 3, 4));
+  const kind = ri(1, byD(d, 3, 3, 4, 5));
   if (kind === 1) {
     const base = pick([10, 20, 40, 50, 60, 80, 100, 200]);
     return numMC(`¿Cuánto es el 50% de ${base}?`, base / 2, { explain: "El 50% es la mitad." });
@@ -291,7 +303,20 @@ function qPercent(d: D): Question {
     const base = pick([20, 40, 60, 80, 200]);
     return numMC(`¿Cuánto es el 25% de ${base}?`, base / 4, { explain: "El 25% es la cuarta parte: divide entre 4." });
   }
-  const n = ri(6, byD(d, 20, 60, 90));
+  if (kind === 5) {
+    // real: descuentos y recargos con porcentajes exactos
+    const pct = pick([5, 10, 20, 25, 50]);
+    const base = pick([20, 40, 60, 80, 100, 120, 140, 160, 180, 200]);
+    const isDiscount = Math.random() < 0.6;
+    const change = (base * pct) / 100;
+    const result = isDiscount ? base - change : base + change;
+    return numMC(
+      `Un producto cuesta $${base} y tiene un ${isDiscount ? "descuento" : "recargo"} del ${pct}%.\n¿Cuánto cuesta ahora?`,
+      result,
+      { spread: Math.max(6, Math.round(result * 0.15)), explain: `${pct}% de ${base} es ${change}. ${base} ${isDiscount ? "−" : "+"} ${change} = ${result}.` }
+    );
+  }
+  const n = ri(6, byD(d, 20, 60, 90, 150));
   return Math.random() < 0.5
     ? numMC(`¿Cuál es el DOBLE de ${n}?`, n * 2)
     : numMC(`¿Cuál es la MITAD de ${n * 2}?`, n);
@@ -303,43 +328,91 @@ const THINGS = ["manzanas 🍎", "caramelos 🍬", "figuritas ✨", "canicas �
 function qWordProblem(d: D): Question {
   const name = pick(NAMES);
   const thing = pick(THINGS);
-  const kind = ri(1, 4);
+  const kind = ri(1, d === "experto" ? 5 : 4);
   if (kind === 1) {
-    const a = ri(byD(d, 5, 12, 25), byD(d, 15, 40, 90));
-    const b = ri(byD(d, 2, 5, 15), byD(d, 9, 25, 60));
+    const a = ri(byD(d, 5, 12, 25, 80), byD(d, 15, 40, 90, 400));
+    const b = ri(byD(d, 2, 5, 15, 50), byD(d, 9, 25, 60, 300));
     return typed(`${name} tiene ${a} ${thing} y consigue ${b} más. ¿Cuántas tiene ahora?`, a + b, {
       explain: `"Consigue más" significa SUMAR: ${a} + ${b} = ${a + b}.`,
     });
   }
   if (kind === 2) {
-    const a = ri(byD(d, 8, 20, 40), byD(d, 20, 60, 120));
-    const b = ri(4, Math.min(a - 1, byD(d, 7, 18, 60)));
+    const a = ri(byD(d, 8, 20, 40, 150), byD(d, 20, 60, 120, 500));
+    const b = ri(4, Math.min(a - 1, byD(d, 7, 18, 60, 250)));
     return typed(`${name} tiene ${a} ${thing} y regala ${b}. ¿Cuántas le quedan?`, a - b, {
       explain: `"Regalar" significa RESTAR: ${a} − ${b} = ${a - b}.`,
     });
   }
   if (kind === 3) {
-    const per = ri(2, byD(d, 5, 9, 12));
-    const groups = ri(2, byD(d, 5, 7, 9));
+    const per = ri(2, byD(d, 5, 9, 12, 20));
+    const groups = ri(2, byD(d, 5, 7, 9, 15));
     return typed(
       `${name} arma ${groups} bolsas con ${per} ${thing} cada una. ¿Cuántas hay en total?`,
       per * groups,
       { explain: `Grupos iguales = MULTIPLICAR: ${groups} × ${per} = ${groups * per}.` }
     );
   }
-  const per = ri(2, byD(d, 4, 6, 9));
-  const total = per * ri(2, byD(d, 5, 8, 12));
-  return typed(
-    `${name} reparte ${total} ${thing} entre ${per} amigos en partes iguales. ¿Cuántas recibe cada uno?`,
-    total / per,
-    { explain: `Repartir en partes iguales = DIVIDIR: ${total} ÷ ${per} = ${total / per}.` }
-  );
+  if (kind === 4) {
+    const per = ri(2, byD(d, 4, 6, 9, 15));
+    const total = per * ri(2, byD(d, 5, 8, 12, 20));
+    return typed(
+      `${name} reparte ${total} ${thing} entre ${per} amigos en partes iguales. ¿Cuántas recibe cada uno?`,
+      total / per,
+      { explain: `Repartir en partes iguales = DIVIDIR: ${total} ÷ ${per} = ${total / per}.` }
+    );
+  }
+  // kind 5 (solo experto): promedio (media) de una lista de valores reales
+  const avg = ri(30, 70);
+  const total = avg * 5;
+  const weights = Array.from({ length: 5 }, () => ri(1, 3));
+  const weightSum = weights.reduce((x, y) => x + y, 0);
+  const scores = weights.map((w) => Math.round((w / weightSum) * total));
+  scores[0] += total - scores.reduce((x, y) => x + y, 0); // corrige el redondeo: suma exacta
+  return typed(`${name} anotó estos puntajes en 5 partidas: ${scores.join(", ")}.\n¿Cuál es el PROMEDIO (media)?`, avg, {
+    explain: `Suma total: ${scores.join(" + ")} = ${total}. Promedio = ${total} ÷ 5 = ${avg}.`,
+  });
 }
 
 // ── geometría y medidas (nivel nuevo) ──────────────────────────
 
+function qGeometryExperto(): Question {
+  const kind = ri(1, 4);
+  if (kind === 1) {
+    const r = ri(2, 15);
+    const area = Math.round(Math.PI * r * r);
+    return numMC(`Un círculo tiene radio de ${r} cm.\n¿Cuál es su ÁREA aproximada? (usa π ≈ 3.14)`, area, {
+      spread: Math.max(6, Math.round(area * 0.2)),
+      explain: `Área = π × r² = 3.14 × ${r}² ≈ ${area} cm².`,
+    });
+  }
+  if (kind === 2) {
+    const r = ri(2, 15);
+    const circ = Math.round(2 * Math.PI * r);
+    return numMC(`Un círculo tiene radio de ${r} cm.\n¿Cuál es su CIRCUNFERENCIA aproximada? (usa π ≈ 3.14)`, circ, {
+      spread: Math.max(4, Math.round(circ * 0.2)),
+      explain: `Circunferencia = 2 × π × r = 2 × 3.14 × ${r} ≈ ${circ} cm.`,
+    });
+  }
+  if (kind === 3) {
+    const b = ri(2, 10) * 2; // par, para que el área sea siempre un entero exacto
+    const h = ri(3, 16);
+    return numMC(`Un triángulo tiene base de ${b} cm y altura de ${h} cm.\n¿Cuál es su ÁREA?`, (b * h) / 2, {
+      spread: 6,
+      explain: `Área = (base × altura) ÷ 2 = (${b} × ${h}) ÷ 2 = ${(b * h) / 2} cm².`,
+    });
+  }
+  const l = ri(2, 10);
+  const w = ri(2, 10);
+  const hh = ri(2, 10);
+  return numMC(`Una caja rectangular mide ${l} × ${w} × ${hh} cm.\n¿Cuál es su VOLUMEN?`, l * w * hh, {
+    spread: Math.max(8, Math.round(l * w * hh * 0.2)),
+    explain: `Volumen = largo × ancho × alto = ${l} × ${w} × ${hh} = ${l * w * hh} cm³.`,
+  });
+}
+
 function qGeometry(d: D): Question {
   if (d === "facil") return qShapeVisual();
+  if (d === "experto") return qGeometryExperto();
   const kind = ri(1, 3);
   if (kind === 1) {
     const side = ri(byD(d, 2, 2, 3), byD(d, 8, 12, 20));
@@ -415,6 +488,39 @@ function qAlgebra(d: D): Question {
       return numMC(`? + ${b} = ${sum}\n¿Qué número falta?`, a, { spread: 5, explain: `${sum} − ${b} = ${a}.` });
     }
     return numMC(`${a} + ? = ${sum}\n¿Qué número falta?`, b, { spread: 5, explain: `${sum} − ${a} = ${b}.` });
+  }
+  if (d === "experto") {
+    const kind = ri(1, 4);
+    if (kind === 1) {
+      const x = ri(2, 15);
+      const a = pick([2, 3, 4, 5]);
+      const b = ri(1, 20);
+      const total = a * x + b;
+      return typed(`${a}x + ${b} = ${total}\n¿Cuánto vale x?`, x, {
+        explain: `${a}x = ${total} − ${b} = ${a * x}. x = ${a * x} ÷ ${a} = ${x}.`,
+      });
+    }
+    if (kind === 2) {
+      const x = ri(2, 15);
+      const a = pick([2, 3, 4, 5]);
+      const b = ri(1, 15);
+      const total = a * x - b;
+      return typed(`${a}x − ${b} = ${total}\n¿Cuánto vale x?`, x, {
+        explain: `${a}x = ${total} + ${b} = ${a * x}. x = ${a * x} ÷ ${a} = ${x}.`,
+      });
+    }
+    if (kind === 3) {
+      const a = ri(-20, -1);
+      const b = ri(-15, -1);
+      return numMC(`¿Cuánto es (${a}) + (${b})?`, a + b, {
+        spread: 8,
+        explain: "Sumar dos negativos: se suman los valores absolutos y el resultado es negativo.",
+      });
+    }
+    const total = ri(20, 80);
+    const x = ri(1, total - 1);
+    const y = total - x;
+    return typed(`x + y = ${total}\nx = ${x}\n¿Cuánto vale y?`, y, { explain: `y = ${total} − ${x} = ${y}.` });
   }
   // dificil: ecuaciones simples con x, y algo de negativos
   const kind = ri(1, 3);

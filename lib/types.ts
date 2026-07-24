@@ -6,7 +6,7 @@ export type Rarity = "comun" | "raro" | "epico" | "legendario";
 
 // ── Dificultad por edades ────────────────────────────────────
 
-export type Difficulty = "facil" | "normal" | "dificil";
+export type Difficulty = "facil" | "normal" | "dificil" | "experto";
 
 export const DIFFICULTY_META: Record<
   Difficulty,
@@ -35,6 +35,14 @@ export const DIFFICULTY_META: Record<
     desc: "Retos avanzados, números grandes y menos tiempo. ¡Más monedas!",
     coinMult: 1.5,
     timeBonus: -7,
+  },
+  experto: {
+    label: "Maestros",
+    ages: "Sin límite de edad",
+    emoji: "👑",
+    desc: "El nivel más alto de la academia: cada materia sube de menos a más hasta contenido real de adultos. Para cualquier edad que quiera aprender de verdad.",
+    coinMult: 2,
+    timeBonus: -12,
   },
 };
 
@@ -124,6 +132,10 @@ export type Question =
       options: string[];
       answer: string; // debe estar en options
       explain?: string;
+      // las opciones parecen números (binario, hexadecimal…) pero NO son
+      // cantidades decimales: adaptQuestion no debe generar distractores
+      // haciendo aritmética decimal sobre ellas (rompería el formato).
+      notDecimal?: boolean;
     }
   | {
       kind: "type"; // respuesta escrita

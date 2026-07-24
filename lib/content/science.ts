@@ -19,9 +19,9 @@ function build(mcs: MC[], tfs: TF[] = [], d: Difficulty = "normal", take = 10): 
   const qs: Question[] = [
     ...mcs.map(([prompt, answer, wrong, visual, explain]) => {
       let options = [answer, ...wrong];
-      // en difícil se suman respuestas de otras preguntas del mismo tema
-      if (d === "dificil") {
-        const extra = shuffle(allAnswers.filter((a) => !options.includes(a))).slice(0, 2);
+      // en difícil (y aún más en experto) se suman respuestas de otras preguntas del mismo tema
+      if (d === "dificil" || d === "experto") {
+        const extra = shuffle(allAnswers.filter((a) => !options.includes(a))).slice(0, d === "experto" ? 3 : 2);
         options = [...options, ...extra];
       }
       return {
@@ -83,14 +83,16 @@ const WEATHER_ID: [string, string][] = [
   ["un día con viento", "🌬️"], ["un arcoíris", "🌈"], ["una nube", "☁️"],
 ];
 
+const ECO_VISUAL_FACIL: [string, string, string[], string?][] = [
+  ["¿Dónde va la basura?", "🗑️", ["🌊", "🌳"], "La basura va siempre al tacho de basura, ¡nunca al agua ni a la naturaleza!"],
+  ["¿Cuál es una fuente de energía limpia?", "☀️", ["🛢️", "🔥"], "El sol nos da energía limpia, sin ensuciar el aire."],
+  ["¿Qué hacemos con el papel y el cartón para cuidar el planeta?", "♻️", ["🗑️", "🔥"], "Reciclar el papel ayuda a no talar tantos árboles."],
+  ["¿Qué apagamos para ahorrar energía al salir de un cuarto?", "💡", ["🚪", "🪟"], "Apagar la luz que no usamos ahorra energía."],
+  ["¿Qué plantamos para ayudar al planeta?", "🌳", ["🗑️", "🔥"], "Los árboles nos dan aire limpio para respirar."],
+];
 function qTrashVisual(): Question {
-  return {
-    kind: "mc",
-    prompt: "¿Dónde va la basura?",
-    options: shuffle(["🗑️", "🌊", "🌳"]),
-    answer: "🗑️",
-    explain: "La basura va siempre al tacho de basura, ¡nunca al agua ni a la naturaleza!",
-  };
+  const [prompt, answer, wrong, explain] = pick(ECO_VISUAL_FACIL);
+  return { kind: "mc", prompt, options: shuffle([answer, ...wrong]), answer, explain };
 }
 
 const SIMPLE_TF_FACTS: TF[] = [
@@ -223,13 +225,99 @@ const INVENT_MC: MC[] = [
   ["¿Quién pintó e inventó máquinas hace 500 años?", "Leonardo da Vinci", ["Pablo Picasso", "Cristóbal Colón", "Mozart"], "🎨"],
 ];
 
+// ═════════════════════════════════════════════════════════════
+// CONTENIDO DE "MAESTROS" (experto) — ciencia real de adultos:
+// química, física, biología, astronomía y geología reales.
+// ═════════════════════════════════════════════════════════════
+
+const ANIMALS_EXPERTO_MC: MC[] = [
+  ["¿Qué es la TAXONOMÍA en biología?", "El sistema científico para clasificar a los seres vivos en categorías", ["Un tipo de dieta animal", "El estudio de los fósiles únicamente", "Un tipo de hábitat"], "🧬"],
+  ["¿Qué unidad básica de clasificación agrupa organismos que pueden reproducirse entre sí?", "La especie", ["El género", "El reino", "La familia"], "🐾"],
+  ["¿Qué es un ECOSISTEMA?", "Un conjunto de seres vivos y su ambiente físico interactuando entre sí", ["Un tipo de animal", "Un zoológico", "Una especie en particular"], "🌎"],
+  ["En una cadena alimenticia, ¿qué función cumplen los DESCOMPONEDORES?", "Descomponen materia orgánica muerta y reciclan nutrientes al ecosistema", ["Cazan a los depredadores", "Producen su propio alimento con luz solar", "No cumplen ninguna función"], "🍄"],
+  ["¿Qué propuso Charles Darwin sobre la evolución de las especies?", "Que las especies cambian con el tiempo mediante selección natural", ["Que todas las especies son inmutables", "Que los animales eligen su propia evolución", "Que solo las plantas evolucionan"], "🧭"],
+  ["¿Qué significa que una especie esté EN PELIGRO DE EXTINCIÓN?", "Que su población es tan baja que corre riesgo real de desaparecer", ["Que ya no existe en ningún lugar", "Que solo vive en zoológicos", "Que se está reproduciendo muy rápido"], "🦏"],
+];
+
+const PLANTS_EXPERTO_MC: MC[] = [
+  ["¿Qué gases intercambia una planta durante la fotosíntesis?", "Absorbe dióxido de carbono y libera oxígeno", ["Absorbe oxígeno y libera dióxido de carbono siempre", "Solo absorbe agua", "No intercambia gases"], "🌿"],
+  ["¿Qué es la RESPIRACIÓN CELULAR en las plantas?", "El proceso donde usan el azúcar producido para obtener energía, liberando CO2", ["Lo mismo que la fotosíntesis", "Solo ocurre de noche en algunas plantas", "Un tipo de enfermedad de las plantas"], "🍃"],
+  ["¿Qué papel cumplen los bosques en el CICLO DEL CARBONO?", "Absorben grandes cantidades de CO2 de la atmósfera", ["Producen todo el CO2 del planeta", "No participan del ciclo del carbono", "Solo liberan carbono, nunca lo absorben"], "🌳"],
+  ["¿Qué es la POLINIZACIÓN CRUZADA?", "Cuando el polen de una flor fecunda a una flor distinta de otra planta", ["Cuando una planta se poliniza a sí misma siempre", "Un tipo de enfermedad de las flores", "El riego artificial de las plantas"], "🐝"],
+  ["¿Por qué algunas semillas tienen alas o ganchos?", "Para dispersarse más lejos con el viento o pegándose a los animales", ["Para defenderse de otras plantas", "Para absorber más agua", "No tienen ninguna función"], "🌱"],
+  ["¿Qué es la CLOROFILA?", "El pigmento verde que capta la luz solar para la fotosíntesis", ["Un tipo de raíz", "El azúcar que produce la planta", "Un insecto que poliniza flores"], "🍀"],
+];
+
+const BODY_EXPERTO_MC: MC[] = [
+  ["¿Qué es el ADN?", "La molécula que contiene la información genética de un ser vivo", ["Un tipo de célula sanguínea", "Una hormona del cuerpo", "Un órgano del sistema digestivo"], "🧬"],
+  ["¿Qué sistema del cuerpo combate infecciones?", "El sistema inmunológico", ["El sistema digestivo", "El sistema muscular", "El sistema urinario"], "🛡️"],
+  ["¿Qué son las NEURONAS?", "Células especializadas que transmiten información en el sistema nervioso", ["Las células que forman los huesos", "Un tipo de glóbulo rojo", "Las células de la piel"], "🧠"],
+  ["¿Qué es la HOMEOSTASIS?", "La capacidad del cuerpo de mantener un equilibrio interno estable", ["Un tipo de enfermedad crónica", "El proceso de crecer en la pubertad", "La digestión de las proteínas"], "⚖️"],
+  ["¿Qué órgano produce la insulina para controlar el azúcar en la sangre?", "El páncreas", ["El hígado", "El bazo", "La vesícula"], "🩺"],
+  ["¿Cuántos cromosomas tiene normalmente una célula humana?", "46", ["23", "92", "12"], "🧬", "23 pares, uno de cada progenitor."],
+];
+
+const MATTER_EXPERTO_MC: MC[] = [
+  ["¿Qué es un ÁTOMO?", "La unidad más pequeña de un elemento que conserva sus propiedades", ["Una mezcla de dos sustancias", "Un tipo de molécula orgánica únicamente", "Un estado especial del agua"], "⚛️"],
+  ["¿Qué es la TABLA PERIÓDICA?", "Una lista organizada de todos los elementos químicos conocidos", ["Un calendario científico", "Un tipo de gráfico de temperaturas", "Una lista de compuestos prohibidos"], "🧪"],
+  ["¿Cuál es la diferencia entre un cambio FÍSICO y uno QUÍMICO?", "El físico no crea sustancias nuevas; el químico sí forma sustancias distintas", ["Son exactamente lo mismo", "El químico nunca se puede revertir, el físico siempre sí", "El físico solo ocurre con líquidos"], "🔥"],
+  ["¿Qué mide la escala de pH?", "Qué tan ácida o básica (alcalina) es una sustancia", ["La temperatura de un líquido", "La densidad de un material", "La velocidad de una reacción"], "🧫"],
+  ["¿Qué gas es esencial para que algo se queme (combustión)?", "El oxígeno", ["El nitrógeno", "El dióxido de carbono", "El hidrógeno"], "🔥"],
+  ["¿Qué es una MOLÉCULA?", "Dos o más átomos unidos químicamente", ["Un átomo sin carga eléctrica", "Un tipo de energía", "Un estado de la materia"], "🔗"],
+];
+
+const SPACE_EXPERTO_MC: MC[] = [
+  ["¿Qué es un AÑO LUZ?", "La distancia que recorre la luz en un año (no es una medida de tiempo)", ["El tiempo que tarda la luz del Sol en llegar a la Tierra", "Un año en otro planeta", "La velocidad de la luz"], "💫"],
+  ["¿Qué es una GALAXIA?", "Un enorme conjunto de millones o billones de estrellas, gas y polvo", ["Un grupo de planetas alrededor de una estrella", "Otro nombre para el Sistema Solar", "Una nube de un solo color en el cielo"], "🌌"],
+  ["¿Qué es un EXOPLANETA?", "Un planeta que orbita una estrella fuera de nuestro sistema solar", ["Un planeta sin atmósfera", "Una luna muy grande", "Un asteroide gigante"], "🪐"],
+  ["¿Qué puede pasar cuando una estrella muy grande llega al final de su vida?", "Puede explotar como una supernova", ["Se convierte en un planeta", "Desaparece sin dejar rastro", "Se vuelve un cometa"], "💥"],
+  ["¿Qué fuerza mantiene a los planetas orbitando alrededor del Sol?", "La gravedad", ["El viento solar", "El magnetismo terrestre", "La luz solar"], "🌀"],
+  ["¿Qué es un AGUJERO NEGRO?", "Una región del espacio con gravedad tan fuerte que ni la luz puede escapar", ["Un planeta sin luz propia", "Un tipo de eclipse", "Una estrella apagada sin gravedad"], "⚫"],
+];
+
+const EARTH_EXPERTO_MC: MC[] = [
+  ["¿Qué es la TECTÓNICA DE PLACAS?", "La teoría de que la corteza terrestre está dividida en placas que se mueven lentamente", ["La medición de la temperatura del planeta", "Un tipo de mapa antiguo", "El estudio de los océanos únicamente"], "🌍"],
+  ["¿Qué capa de la Tierra es líquida y genera su campo magnético?", "El núcleo externo", ["La corteza", "El manto superior", "La atmósfera"], "🧲"],
+  ["¿Cuál es la diferencia entre CLIMA y TIEMPO (weather)?", "El clima es el patrón promedio a largo plazo; el tiempo es lo que pasa en un día concreto", ["Son exactamente lo mismo", "El tiempo dura años y el clima solo un día", "El clima solo existe en el ecuador"], "🌦️"],
+  ["¿Qué causa la mayoría de los terremotos?", "El movimiento repentino entre placas tectónicas", ["Las mareas del océano", "El viento fuerte", "Los cambios de estación"], "🌋"],
+  ["¿Qué es el CICLO DE LAS ROCAS?", "La transformación continua entre rocas ígneas, sedimentarias y metamórficas", ["El proceso de erosión del suelo únicamente", "Un tipo de volcán", "El movimiento de las mareas"], "🪨"],
+  ["¿Qué gas de efecto invernadero ha aumentado más por la actividad humana?", "El dióxido de carbono (CO2)", ["El oxígeno", "El helio", "El nitrógeno"], "🏭"],
+];
+
+const ECO_EXPERTO_MC: MC[] = [
+  ["¿Qué es el CAMBIO CLIMÁTICO?", "El cambio a largo plazo en los patrones de temperatura y clima de la Tierra", ["Un cambio de estación normal", "Un tipo de tormenta puntual", "La rotación diaria de la Tierra"], "🌡️"],
+  ["¿Qué es la HUELLA DE CARBONO?", "La cantidad de gases de efecto invernadero que genera una persona o actividad", ["El tamaño del pie de una persona", "Un tipo de contaminación del agua", "La cantidad de basura reciclada"], "👣"],
+  ["¿Qué es la energía RENOVABLE?", "Energía de fuentes que se reponen naturalmente, como el sol o el viento", ["Energía que nunca se agota gastarla mal", "Solo la energía nuclear", "Energía que contamina menos pero se acaba igual"], "♻️"],
+  ["¿Qué es la BIODIVERSIDAD?", "La variedad de seres vivos que existen en un lugar o en el planeta", ["La cantidad total de agua dulce", "El número de países del mundo", "Un tipo de reciclaje"], "🦋"],
+  ["¿Qué es la DEFORESTACIÓN y por qué preocupa?", "Talar bosques a gran escala, lo que reduce el oxígeno producido y el hábitat de especies", ["Plantar árboles nuevos en el desierto", "Un tipo de incendio natural sin causa humana", "El crecimiento normal de los bosques"], "🪓"],
+  ["¿Qué es el DESARROLLO SOSTENIBLE?", "Satisfacer las necesidades actuales sin comprometer las de futuras generaciones", ["Crecer económicamente sin importar el ambiente", "Dejar de producir cualquier cosa", "Un tipo de energía nuclear"], "🌱"],
+];
+
+const INVENT_EXPERTO_MC: MC[] = [
+  ["¿Qué es el MÉTODO CIENTÍFICO?", "Un proceso de observar, formular hipótesis, experimentar y sacar conclusiones", ["Copiar lo que dice un libro de texto", "Adivinar y esperar tener suerte", "Un tipo de examen escolar"], "🔬"],
+  ["¿Qué es una HIPÓTESIS?", "Una explicación posible de un fenómeno que se puede poner a prueba", ["Una ley científica ya comprobada para siempre", "Un experimento fallido", "Una opinión sin ninguna base"], "💡"],
+  ["¿Por qué es importante que un experimento se pueda REPETIR?", "Para confirmar que el resultado no fue casualidad", ["Para tardar más tiempo en publicarlo", "No es importante, un solo intento alcanza", "Para gastar más materiales"], "🔁"],
+  ["¿Qué estudió Gregor Mendel, considerado el padre de la genética?", "Cómo se heredan las características en plantas de arveja", ["Las órbitas de los planetas", "La composición del agua", "Las bacterias y los virus"], "🌱"],
+  ["¿Qué descubrió Alexander Fleming, cambiando la medicina para siempre?", "La penicilina, el primer antibiótico", ["La vacuna contra la viruela", "El microscopio", "La estructura del ADN"], "💊"],
+  ["¿Qué es la 'revisión por pares' (peer review) en ciencia?", "Cuando otros científicos revisan un estudio antes de que se publique", ["Cuando un científico revisa su propio trabajo solo", "Un premio científico anual", "Un tipo de experimento en pareja"], "📝"],
+];
+
+const MIX_TF_EXPERTO: TF[] = [
+  ["Una teoría científica es solo una opinión sin evidencia", false, "Una teoría científica está respaldada por mucha evidencia y experimentos repetidos."],
+  ["El calentamiento global actual está respaldado por consenso científico", true],
+  ["Los antibióticos curan infecciones virales como la gripe común", false, "Los antibióticos combaten bacterias, no virus."],
+  ["El ADN se encuentra dentro del núcleo de la mayoría de las células", true],
+  ["Las placas tectónicas de la Tierra están completamente quietas y nunca se mueven", false, "Se mueven muy lentamente, unos pocos centímetros por año."],
+];
+
 // ── generador con rama visual para "Pequeños" ──────────────────
 
 function scienceLevel(
   facilBanks: [string, string][][],
   facilPrompts: ((name: string) => string)[],
   mcs: MC[],
-  tfs: TF[] = []
+  tfs: TF[] = [],
+  expertoMcs?: MC[]
 ): (d: D) => Question[] {
   return (d) => {
     if (d === "facil") {
@@ -240,6 +328,7 @@ function scienceLevel(
         })
       );
     }
+    if (d === "experto" && expertoMcs) return build(expertoMcs, [], d);
     return build(mcs, tfs, d);
   };
 }
@@ -250,49 +339,49 @@ export const SCIENCE_LEVELS: LevelDef[] = [
     emoji: "🦁",
     desc: "Mamíferos, aves, reptiles y más",
     tier: 1,
-    gen: scienceLevel([ANIMAL_ID], [(name) => `¿Cuál es ${name}?`], ANIMALS_MC),
+    gen: scienceLevel([ANIMAL_ID], [(name) => `¿Cuál es ${name}?`], ANIMALS_MC, [], ANIMALS_EXPERTO_MC),
   },
   {
     name: "Mundo Verde",
     emoji: "🌱",
     desc: "Las plantas, las frutas y sus secretos",
     tier: 1,
-    gen: (d) => (d === "facil" ? session(Array.from({ length: 10 }, qIsFruit)) : build(PLANTS_MC, [], d)),
+    gen: (d) => (d === "facil" ? session(Array.from({ length: 10 }, qIsFruit)) : d === "experto" ? build(PLANTS_EXPERTO_MC, [], d) : build(PLANTS_MC, [], d)),
   },
   {
     name: "Mi Cuerpo",
     emoji: "🫀",
     desc: "Órganos, sentidos y salud",
     tier: 2,
-    gen: scienceLevel([BODY_PARTS_ES], [(name) => `¿Dónde está ${name}?`], BODY_MC),
+    gen: scienceLevel([BODY_PARTS_ES], [(name) => `¿Dónde está ${name}?`], BODY_MC, [], BODY_EXPERTO_MC),
   },
   {
     name: "Laboratorio de Materia",
     emoji: "🧪",
     desc: "Sólidos, líquidos, gases y el ciclo del agua",
     tier: 2,
-    gen: scienceLevel([MATTER_VISUAL], [(name) => `¿Cuál de estos es ${name}?`], MATTER_MC),
+    gen: scienceLevel([MATTER_VISUAL], [(name) => `¿Cuál de estos es ${name}?`], MATTER_MC, [], MATTER_EXPERTO_MC),
   },
   {
     name: "Viaje Espacial",
     emoji: "🚀",
     desc: "El Sol, la Luna y los planetas",
     tier: 2,
-    gen: scienceLevel([SPACE_ID], [(name) => `¿Cuál es ${name}?`], SPACE_MC),
+    gen: scienceLevel([SPACE_ID], [(name) => `¿Cuál es ${name}?`], SPACE_MC, [], SPACE_EXPERTO_MC),
   },
   {
     name: "Planeta Tierra",
     emoji: "🌍",
     desc: "Océanos, volcanes, clima y estaciones",
     tier: 2,
-    gen: scienceLevel([WEATHER_ID], [(name) => `¿Cuál es ${name}?`], EARTH_MC),
+    gen: scienceLevel([WEATHER_ID], [(name) => `¿Cuál es ${name}?`], EARTH_MC, [], EARTH_EXPERTO_MC),
   },
   {
     name: "Guardianes del Planeta",
     emoji: "♻️",
     desc: "Ecología, reciclaje y energía limpia",
     tier: 3,
-    gen: (d) => (d === "facil" ? session(Array.from({ length: 10 }, qTrashVisual)) : build(ECO_MC, [], d)),
+    gen: (d) => (d === "facil" ? session(Array.from({ length: 10 }, qTrashVisual)) : d === "experto" ? build(ECO_EXPERTO_MC, [], d) : build(ECO_MC, [], d)),
   },
   {
     name: "Grandes Mentes",
@@ -302,6 +391,8 @@ export const SCIENCE_LEVELS: LevelDef[] = [
     gen: (d) =>
       d === "facil"
         ? session(SIMPLE_TF_FACTS.map(([prompt, answer, explain]) => tf(prompt, answer, { explain })))
-        : build(INVENT_MC, MIX_TF, d),
+        : d === "experto"
+          ? build(INVENT_EXPERTO_MC, MIX_TF_EXPERTO, d)
+          : build(INVENT_MC, MIX_TF, d),
   },
 ];

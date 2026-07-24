@@ -20,8 +20,8 @@ function buildMC(bank: MC[], d: D, take = 10): Question[] {
   const allAnswers = bank.map((m) => m[1]);
   const qs: Question[] = bank.map(([prompt, answer, wrong, visual, explain]) => {
     let options = [answer, ...wrong];
-    if (d === "dificil") {
-      const extra = shuffle(allAnswers.filter((a) => !options.includes(a))).slice(0, 2);
+    if (d === "dificil" || d === "experto") {
+      const extra = shuffle(allAnswers.filter((a) => !options.includes(a))).slice(0, d === "experto" ? 3 : 2);
       options = [...options, ...extra];
     }
     return { kind: "mc" as const, prompt, visual, options: shuffle(options), answer, explain };
@@ -172,7 +172,7 @@ function qContinentMap(): Question {
 
 function qCountryMap(d: D): Question {
   const target = pick(WORLD_POINTS);
-  const howMany = d === "dificil" ? 6 : 4;
+  const howMany = d === "experto" ? 8 : d === "dificil" ? 6 : 4;
   const distractors = sample(
     WORLD_POINTS.filter((p) => p.id !== target.id),
     howMany - 1
@@ -196,6 +196,7 @@ function genFlags(d: D): Question[] {
   if (d === "facil") {
     return session(Array.from({ length: 10 }, () => pickEmojiMC(FLAGS, (name) => `¿Cuál es la bandera de ${name}?`)));
   }
+  if (d === "experto") return buildMC(FLAG_MC_EXPERTO, d, 10);
   return buildMC(FLAG_MC, d, 10);
 }
 
@@ -203,6 +204,7 @@ function genAnimals(d: D): Question[] {
   if (d === "facil") {
     return session(Array.from({ length: 10 }, () => pickEmojiMC(ANIMAL_REGION, (name) => `¿Cuál es ${name}?`)));
   }
+  if (d === "experto") return buildMC(ANIMAL_BIOGEO_EXPERTO_MC, d);
   return buildMC(ANIMAL_REGION_MC, d);
 }
 
@@ -211,6 +213,7 @@ function genFood(d: D): Question[] {
     const bank: [string, string][] = FOOD_COUNTRY.map(([, emoji, name]) => [name, emoji]);
     return session(Array.from({ length: 10 }, () => pickEmojiMC(bank, (name) => `¿Cuál es ${name}?`)));
   }
+  if (d === "experto") return buildMC(FOOD_HISTORY_EXPERTO_MC, d, FOOD_HISTORY_EXPERTO_MC.length);
   return buildMC(FOOD_MC, d, FOOD_MC.length);
 }
 
@@ -218,6 +221,7 @@ function genLandmarks(d: D): Question[] {
   if (d === "facil") {
     return session(Array.from({ length: 10 }, () => pickEmojiMC(LANDMARKS, (name) => `¿Cuál es ${name}?`)));
   }
+  if (d === "experto") return buildMC(LANDMARK_HISTORY_EXPERTO_MC, d, LANDMARK_HISTORY_EXPERTO_MC.length);
   return buildMC(LANDMARK_MC, d, LANDMARK_MC.length);
 }
 
@@ -225,8 +229,93 @@ function genHabitats(d: D): Question[] {
   if (d === "facil") {
     return session(Array.from({ length: 10 }, () => pickEmojiMC(HABITAT_VISUAL, (name) => `¿Cuál es ${name}?`)));
   }
+  if (d === "experto") return buildMC(BIOME_EXPERTO_MC, d);
   return buildMC(GEO_FACTS_MC, d);
 }
+
+function genContinents(d: D): Question[] {
+  if (d === "facil") {
+    return session(Array.from({ length: 10 }, () => pickEmojiMC(HABITAT_VISUAL, (name) => `¿Cuál es ${name}?`)));
+  }
+  if (d === "experto") return buildMC(CONTINENT_STATS_EXPERTO_MC, d);
+  return buildMC(GEO_FACTS_MC, d);
+}
+
+// ═════════════════════════════════════════════════════════════
+// CONTENIDO DE "MAESTROS" (experto) — geografía real de adultos:
+// capitales, geopolítica, biomas y estadísticas del planeta.
+// ═════════════════════════════════════════════════════════════
+
+const FLAGS_EXPERTO_EXTRA: [string, string][] = [
+  ["Nigeria", "🇳🇬"], ["Kenia", "🇰🇪"], ["Turquía", "🇹🇷"], ["Tailandia", "🇹🇭"],
+  ["Vietnam", "🇻🇳"], ["Polonia", "🇵🇱"], ["Suecia", "🇸🇪"], ["Países Bajos", "🇳🇱"],
+  ["Suiza", "🇨🇭"], ["Grecia", "🇬🇷"], ["Portugal", "🇵🇹"], ["Arabia Saudita", "🇸🇦"],
+  ["Indonesia", "🇮🇩"], ["Filipinas", "🇵🇭"], ["Nueva Zelanda", "🇳🇿"], ["Irlanda", "🇮🇪"],
+  ["Marruecos", "🇲🇦"], ["Ucrania", "🇺🇦"], ["Noruega", "🇳🇴"], ["Israel", "🇮🇱"],
+];
+const FLAGS_EXPERTO: [string, string][] = [...FLAGS, ...FLAGS_EXPERTO_EXTRA];
+const FLAG_MC_EXPERTO: MC[] = FLAGS_EXPERTO.map(([country, flag]) => [
+  `¿Cuál es la bandera de ${country}?`,
+  flag,
+  sample(
+    FLAGS_EXPERTO.filter((f) => f[1] !== flag).map((f) => f[1]),
+    3
+  ),
+]);
+
+const ANIMAL_BIOGEO_EXPERTO_MC: MC[] = [
+  ["¿Qué significa que una especie sea ENDÉMICA de un lugar?", "Que solo se encuentra naturalmente ahí y en ningún otro lugar", ["Que está extinta", "Que vive en cautiverio únicamente", "Que migra todo el año"], "🦎"],
+  ["¿Qué ave realiza la migración más larga conocida, del Ártico a la Antártida?", "El charrán ártico", ["El águila calva", "El pingüino emperador", "El cóndor andino"], "🐦"],
+  ["¿Qué país tiene la mayor población de tigres salvajes del mundo?", "India", ["China", "Rusia", "Indonesia"], "🐯"],
+  ["¿Qué animal protagoniza la gran migración terrestre del Serengueti en África?", "El ñu (wildebeest)", ["El elefante", "La cebra, siempre sola", "El león"], "🦬"],
+  ["¿Qué evalúa la Lista Roja de la UICN?", "El riesgo de extinción de las especies del mundo", ["El precio de los animales exóticos", "La cantidad de zoológicos por país", "El peso promedio de cada especie"], "📋"],
+  ["¿En qué isla africana vive el 90% de las especies de lémures del mundo?", "Madagascar", ["Islandia", "Sri Lanka", "Cuba"], "🐒"],
+];
+
+const FOOD_HISTORY_EXPERTO_MC: MC[] = [
+  ["¿De qué continente es originaria la papa, antes de llegar a Europa?", "Sudamérica", ["Asia", "África", "Oceanía"], "🥔"],
+  ["Las especias como la pimienta impulsaron gran parte de la exploración europea. ¿De dónde venían principalmente?", "Asia", ["América", "Oceanía", "La Antártida"], "🌶️"],
+  ["¿De qué país es originario el kimchi?", "Corea del Sur", ["Japón", "China", "Vietnam"], "🥬"],
+  ["¿En qué región se originó el café, antes de expandirse por el mundo?", "Etiopía (África)", ["Colombia", "Italia", "Brasil"], "☕"],
+  ["¿De qué país es el plato 'pad thai'?", "Tailandia", ["Vietnam", "India", "Malasia"], "🍜"],
+  ["¿De qué región de América es originario el cacao, ingrediente clave del chocolate?", "Mesoamérica", ["Los Andes", "El Caribe", "La Patagonia"], "🍫"],
+];
+
+const LANDMARK_HISTORY_EXPERTO_MC: MC[] = [
+  ["¿Qué imperio construyó Machu Picchu?", "El Imperio Inca", ["El Imperio Azteca", "El Imperio Maya", "El Imperio Español"], "🏔️"],
+  ["¿En qué país está Petra, la ciudad tallada en roca?", "Jordania", ["Egipto", "Israel", "Líbano"], "🏛️"],
+  ["¿Qué organización reconoce sitios de gran valor como 'Patrimonio de la Humanidad'?", "La UNESCO", ["La ONU", "La OMS", "La OTAN"], "🏆"],
+  ["¿En qué país está Stonehenge?", "Reino Unido", ["Irlanda", "Francia", "Alemania"], "🗿"],
+  ["¿Qué faraón mandó construir la Gran Pirámide de Guiza?", "Keops", ["Tutankamón", "Ramsés II", "Cleopatra"], "🔺"],
+  ["¿En qué país está el Taj Mahal?", "India", ["Pakistán", "Irán", "Emiratos Árabes Unidos"], "🕌"],
+];
+
+const BIOME_EXPERTO_MC: MC[] = [
+  ["¿Qué bioma tiene el suelo permanentemente congelado (permafrost)?", "La tundra", ["La sabana", "La selva tropical", "El desierto"], "❄️"],
+  ["¿Qué bioma tiene pastizales extensos con árboles dispersos, típico de África?", "La sabana", ["La taiga", "La tundra", "El manglar"], "🌾"],
+  ["¿Cómo se llama el bosque de coníferas más grande del mundo, en Rusia y Canadá?", "La taiga", ["La sabana", "El chaparral", "La estepa"], "🌲"],
+  ["¿Qué ecosistema marino, formado por organismos vivos, alberga gran biodiversidad?", "Los arrecifes de coral", ["Las fosas abisales", "Los icebergs", "Las mareas rojas"], "🪸"],
+  ["¿Existen desiertos FRÍOS, y no solo cálidos?", "Sí: la Antártida es, técnicamente, el desierto más grande del mundo", ["No, todos los desiertos son cálidos", "Solo en la Luna", "Solo si tienen arena"], "🥶"],
+  ["¿Qué corriente oceánica cálida influye en el clima templado de Europa occidental?", "La Corriente del Golfo", ["La Corriente de Humboldt", "La Corriente del Niño", "La Corriente Ártica"], "🌊"],
+];
+
+const CONTINENT_STATS_EXPERTO_MC: MC[] = [
+  ["¿Cuál es el océano más PROFUNDO del mundo (Fosa de las Marianas)?", "El Pacífico", ["El Atlántico", "El Índico", "El Ártico"], "🌊"],
+  ["¿Cuál es el continente MENOS poblado, sin contar la Antártida?", "Oceanía", ["África", "Europa", "América del Sur"], "🏝️"],
+  ["¿Aproximadamente cuántos países independientes hay en el mundo?", "Cerca de 195", ["Cerca de 50", "Cerca de 500", "Cerca de 20"], "🌐"],
+  ["¿Cuál es el continente con MÁS países?", "África (54 países)", ["Asia", "Europa", "América"], "🗺️"],
+  ["¿Qué línea imaginaria divide la Tierra en hemisferio norte y sur?", "El ecuador", ["El meridiano de Greenwich", "El trópico de Cáncer", "El círculo polar"], "🌍"],
+  ["¿Cuál es el mar más salado del mundo, donde es fácil flotar?", "El Mar Muerto", ["El Mar Rojo", "El Mar Negro", "El Mar Caspio"], "🧂"],
+];
+
+const GEO_TRIVIA_EXPERTO_MC: MC[] = [
+  ["¿Cuál es el idioma con MÁS hablantes nativos en el mundo?", "El chino mandarín", ["El inglés", "El español", "El hindi"], "🗣️"],
+  ["¿Qué organización internacional busca mantener la paz mundial, fundada en 1945?", "La ONU (Naciones Unidas)", ["La OTAN", "La Unión Europea", "La OMS"], "🕊️"],
+  ["¿Qué moneda comparten muchos países de la Unión Europea?", "El euro", ["El dólar", "La libra", "El franco"], "💶"],
+  ["¿Cuál es la capital de Australia? (pista: no es Sídney)", "Canberra", ["Sídney", "Melbourne", "Perth"], "🏙️"],
+  ["¿Qué canal artificial conecta el mar Mediterráneo con el mar Rojo?", "El Canal de Suez", ["El Canal de Panamá", "El Estrecho de Gibraltar", "El Canal de la Mancha"], "🚢"],
+  ["¿Qué línea imaginaria separa oficialmente un día del siguiente al cruzarla?", "La línea internacional de cambio de fecha", ["El ecuador", "El meridiano de Greenwich", "El trópico de Capricornio"], "🗓️"],
+];
 
 export const GEOGRAPHY_LEVELS: LevelDef[] = [
   { name: "Banderas del Mundo", emoji: "🚩", desc: "Reconoce banderas de todo el planeta", tier: 1, gen: genFlags },
@@ -235,6 +324,12 @@ export const GEOGRAPHY_LEVELS: LevelDef[] = [
   { name: "Monumentos Famosos", emoji: "🗼", desc: "Los lugares más famosos del planeta", tier: 2, gen: genLandmarks },
   { name: "Mapa del Mundo", emoji: "🗺️", desc: "Toca el país o continente correcto en el mapa", tier: 2, gen: genWorldMap },
   { name: "Tierra, Mar y Selva", emoji: "🌊", desc: "Océanos, desiertos, montañas y selvas", tier: 2, gen: genHabitats },
-  { name: "Continentes y Océanos", emoji: "🗺️", desc: "Los datos más grandes del planeta", tier: 3, gen: genHabitats },
-  { name: "Datos Curiosos del Mundo", emoji: "🌏", desc: "Países, ríos y montañas increíbles", tier: 3, gen: (d) => (d === "facil" ? genLandmarks(d) : buildMC(GEO_FACTS_MC, d)) },
+  { name: "Continentes y Océanos", emoji: "🗺️", desc: "Los datos más grandes del planeta", tier: 3, gen: genContinents },
+  {
+    name: "Datos Curiosos del Mundo",
+    emoji: "🌏",
+    desc: "Países, ríos y montañas increíbles",
+    tier: 3,
+    gen: (d) => (d === "facil" ? genLandmarks(d) : d === "experto" ? buildMC(GEO_TRIVIA_EXPERTO_MC, d) : buildMC(GEO_FACTS_MC, d)),
+  },
 ];

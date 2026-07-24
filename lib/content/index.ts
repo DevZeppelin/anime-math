@@ -8,10 +8,12 @@ import { CODING_LEVELS } from "./coding";
 import { GEOGRAPHY_LEVELS } from "./geography";
 import { ART_LEVELS } from "./art";
 import { EMOTIONS_LEVELS } from "./emotions";
+import { AI_LEVELS } from "./ai";
 
-// Las 9 materias esenciales, inspiradas en los currículos de
+// Las 10 materias esenciales, inspiradas en los currículos de
 // primaria de Finlandia, Singapur, Estonia y Canadá — y
-// adaptadas a 3 edades (Menores de 5, 10 y 15).
+// adaptadas a 4 niveles de dificultad, desde Menores de 5 hasta
+// Maestros (sin límite de edad).
 export const SUBJECTS: SubjectDef[] = [
   {
     id: "math",
@@ -85,6 +87,14 @@ export const SUBJECTS: SubjectDef[] = [
     color: "#ffb454",
     tagline: "Conócete y cuida a los demás",
     levels: EMOTIONS_LEVELS,
+  },
+  {
+    id: "ai",
+    name: "Inteligencia Artificial",
+    emoji: "🤖",
+    color: "#00e5c8",
+    tagline: "Los fundamentos para entender el nuevo mundo",
+    levels: AI_LEVELS,
   },
 ];
 

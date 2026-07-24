@@ -12,6 +12,10 @@ import { pick, sample, session, shuffle, tf } from "./utils";
 // ─────────────────────────────────────────────────────────────
 
 type D = Difficulty;
+type MC = [prompt: string, answer: string, wrong: string[], visual?: string, explain?: string];
+function mcQuestion([prompt, answer, wrong, visual, explain]: MC): Question {
+  return { kind: "mc", prompt, visual, options: shuffle([answer, ...wrong]), answer, explain };
+}
 
 // [palabra, sílabas]
 const SYLLABLES: [string, number][] = [
@@ -264,6 +268,154 @@ const RIDDLES_FACIL: [clue: string, answer: string, wrong: string[]][] = [
   ["Salgo de noche y brillo en el cielo oscuro. ¿Quién soy?", "🌙", ["☀️", "⭐"]],
 ];
 
+// ═════════════════════════════════════════════════════════════
+// CONTENIDO DE "MAESTROS" (experto) — español real de adultos:
+// acentuación, tildes diacríticas, vocabulario culto y figuras
+// retóricas — los errores más comunes que cometen hasta los
+// hablantes nativos.
+// ═════════════════════════════════════════════════════════════
+
+const STRESS_WORDS: [string, "aguda" | "grave" | "esdrújula"][] = [
+  ["camión", "aguda"], ["reloj", "aguda"], ["café", "aguda"], ["jamás", "aguda"],
+  ["compró", "aguda"], ["salón", "aguda"], ["papá", "aguda"], ["colibrí", "aguda"],
+  ["mesa", "grave"], ["árbol", "grave"], ["fácil", "grave"], ["lápiz", "grave"],
+  ["azúcar", "grave"], ["ángel", "grave"], ["cárcel", "grave"], ["túnel", "grave"],
+  ["música", "esdrújula"], ["médico", "esdrújula"], ["rápido", "esdrújula"], ["teléfono", "esdrújula"],
+  ["cámara", "esdrújula"], ["catástrofe", "esdrújula"], ["árbitro", "esdrújula"], ["sábana", "esdrújula"],
+];
+const STRESS_EXPLAIN: Record<string, string> = {
+  aguda: "Las agudas llevan el acento en la ÚLTIMA sílaba (y se tildan si terminan en n, s o vocal).",
+  grave: "Las graves (o llanas) llevan el acento en la PENÚLTIMA sílaba (se tildan si NO terminan en n, s o vocal).",
+  esdrújula: "Las esdrújulas llevan el acento en la ANTEPENÚLTIMA sílaba: siempre se tildan.",
+};
+function qStress(): Question {
+  const [word, cls] = pick(STRESS_WORDS);
+  return {
+    kind: "mc",
+    prompt: `¿Cómo se clasifica "${word}" según dónde lleva el acento (la sílaba tónica)?`,
+    options: shuffle(["aguda", "grave", "esdrújula"]),
+    answer: cls,
+    explain: STRESS_EXPLAIN[cls],
+  };
+}
+function genSyllablesExperto(): Question[] {
+  return session(Array.from({ length: 10 }, qStress));
+}
+
+const DIACRITIC_MC: MC[] = [
+  ["No ___ dónde guardé las llaves. (verbo saber)", "sé", ["se"], "🔑"],
+  ["Él ___ lava las manos antes de comer. (pronombre reflexivo)", "se", ["sé"], "🧼"],
+  ["¿Cuál es ___ mochila? (posesivo, 'de ti')", "tu", ["tú"], "🎒"],
+  ["___ eres muy responsable. (pronombre personal, sujeto)", "tú", ["tu"], "🙋"],
+  ["Quiero ir, ___ no puedo. (aunque, adversativo)", "mas", ["más"], "🚫"],
+  ["Necesito ___ tiempo para terminar. (cantidad)", "más", ["mas"], "⏳"],
+  ["___ vienes a la fiesta, avísame. (condicional 'si')", "Si", ["Sí"], "❓"],
+  ["___ , quiero ir a la fiesta. (afirmación)", "Sí", ["Si"], "✅"],
+  ["Quiero que me ___ tu opinión. (verbo dar)", "dé", ["de"], "🎁"],
+  ["Este regalo es ___ mi hermana. (preposición)", "de", ["dé"], "👧"],
+];
+
+const PORQUE_MC: MC[] = [
+  ["No entendí ___ llegaste tarde. (pregunta indirecta: '¿por cuál razón?')", "por qué", ["porque", "porqué", "por que"], "❓"],
+  ["Llegué tarde ___ había mucho tráfico. (da la razón, equivale a 'ya que')", "porque", ["por qué", "porqué", "por que"], "🚗"],
+  ["No entiendo el ___ de tu decisión. (sustantivo: 'el motivo')", "porqué", ["por qué", "porque", "por que"], "🤔"],
+  ["Ese es el motivo ___ me preocupo. ('por' + 'que' relativo, equivale a 'por el cual')", "por que", ["porque", "por qué", "porqué"], "📋"],
+];
+
+const OTHER_HOMOPHONES_MC: MC[] = [
+  ["No quiero ir al cine, ___ prefiero quedarme en casa. (contraste fuerte tras negación)", "sino", ["si no"], "🎬"],
+  ["___ terminas la tarea, no podrás salir a jugar. (condicional)", "Si no", ["Sino"], "📚"],
+  ["Puedes ir a ___ quieras de vacaciones. (lugar, 'a qué lugar')", "adonde", ["a donde"], "✈️"],
+  ["Fuimos a ver la casa ___ vivías de niño. (relativo, 'lugar en el que')", "a donde", ["adonde"], "🏠"],
+];
+
+function genSpellingExperto(): Question[] {
+  const bank: MC[] = [...DIACRITIC_MC, ...PORQUE_MC, ...OTHER_HOMOPHONES_MC];
+  return session(
+    sample(bank, 10).map(([prompt, answer, wrong, visual, explain]) => ({
+      kind: "mc" as const,
+      prompt,
+      visual,
+      options: shuffle([answer, ...wrong]),
+      answer,
+      explain,
+    }))
+  );
+}
+
+const SYNONYMS_EXPERTO: [string, string, string[]][] = [
+  ["efímero", "pasajero", ["eterno", "sólido", "ruidoso"]],
+  ["ubicuo", "omnipresente", ["ausente", "escaso", "único"]],
+  ["parco", "escueto", ["extenso", "ruidoso", "lujoso"]],
+  ["diáfano", "claro", ["opaco", "oscuro", "confuso"]],
+  ["sagaz", "astuto", ["torpe", "ingenuo", "lento"]],
+  ["yerto", "rígido", ["flexible", "blando", "cálido"]],
+  ["prístino", "puro", ["contaminado", "usado", "viejo"]],
+  ["lánguido", "débil", ["vigoroso", "fuerte", "veloz"]],
+  ["locuaz", "hablador", ["callado", "tímido", "sordo"]],
+  ["perspicaz", "agudo", ["torpe", "distraído", "lento"]],
+  ["pródigo", "generoso", ["tacaño", "avaro", "mezquino"]],
+  ["magnánimo", "noble", ["mezquino", "cruel", "egoísta"]],
+];
+
+const ANTONYMS_EXPERTO: [string, string, string[]][] = [
+  ["efímero", "perpetuo", ["breve", "corto", "veloz"]],
+  ["magnánimo", "mezquino", ["generoso", "amable", "noble"]],
+  ["locuaz", "taciturno", ["hablador", "ruidoso", "gritón"]],
+  ["pródigo", "tacaño", ["generoso", "amable", "gentil"]],
+  ["sagaz", "ingenuo", ["astuto", "listo", "agudo"]],
+  ["diáfano", "opaco", ["claro", "transparente", "nítido"]],
+  ["lánguido", "vigoroso", ["débil", "cansado", "flojo"]],
+  ["prístino", "corrompido", ["puro", "limpio", "nuevo"]],
+  ["parco", "extravagante", ["escueto", "sobrio", "simple"]],
+  ["perspicaz", "obtuso", ["agudo", "listo", "hábil"]],
+];
+
+const LITERARY_DEVICES_MC: MC[] = [
+  ["«Sus ojos son dos luceros» es un ejemplo de…", "Metáfora", ["Símil", "Hipérbole", "Onomatopeya"], "✨", "La metáfora compara sin usar 'como': identifica una cosa con otra directamente."],
+  ["«El viento susurraba secretos entre los árboles» es un ejemplo de…", "Personificación", ["Símil", "Hipérbole", "Metáfora"], "🌬️", "La personificación da cualidades humanas a algo que no lo es."],
+  ["«Tan veloz como un rayo» es un ejemplo de…", "Símil (comparación)", ["Metáfora", "Hipérbole", "Personificación"], "⚡", "El símil compara usando 'como', 'cual' o 'tal cual'."],
+  ["«Te lo he dicho un millón de veces» es un ejemplo de…", "Hipérbole (exageración)", ["Símil", "Metáfora", "Personificación"], "📢", "La hipérbole exagera intencionalmente para dar énfasis."],
+  ["«El tictac del reloj» usa una palabra que…", "Imita un sonido: es una onomatopeya", ["Compara dos cosas", "Exagera la realidad", "Le da vida a un objeto"], "⏰"],
+  ["«Ni contigo ni sin ti tienen mis males remedio» es un ejemplo de…", "Paradoja (una contradicción con sentido)", ["Rima simple", "Onomatopeya", "Aliteración"], "🔄", "La paradoja une ideas opuestas para expresar una verdad profunda."],
+];
+
+const READING_EXPERTO: [string, string, string, string[]][] = [
+  [
+    "La empresa anunció resultados mejores de lo esperado, pero las acciones cayeron un 5% ese mismo día. Los analistas explicaron que, si bien las ganancias fueron buenas, el crecimiento fue menor al que los inversores habían proyectado para el próximo trimestre.",
+    "¿Por qué cayeron las acciones a pesar de las buenas ganancias?",
+    "Porque el crecimiento proyectado fue menor al esperado",
+    ["Porque la empresa tuvo pérdidas", "Porque los analistas se equivocaron en su reporte", "Porque los inversores vendieron por otro motivo no explicado"],
+  ],
+  [
+    "Aunque el estudio mostró una correlación entre el consumo de cierto alimento y una mejor salud cardíaca, los investigadores fueron cautelosos: aclararon que se necesitan más estudios para determinar si existe una relación de causa y efecto.",
+    "¿Qué advirtieron los investigadores sobre su hallazgo?",
+    "Que una correlación no prueba necesariamente que una cosa cause la otra",
+    ["Que el estudio fue un fracaso total", "Que el alimento es peligroso para el corazón", "Que ya está comprobado que el alimento mejora la salud"],
+  ],
+  [
+    "El candidato prometió bajar impuestos y, al mismo tiempo, aumentar el gasto público en salud y educación sin explicar de dónde saldría el dinero adicional. Varios economistas cuestionaron la viabilidad matemática de ambas promesas juntas.",
+    "¿Qué cuestionaron los economistas?",
+    "Que las dos promesas fueran posibles de cumplir al mismo tiempo",
+    ["Que bajar impuestos fuera legal", "Que el candidato no tuviera experiencia política", "Que el gasto en salud fuera innecesario"],
+  ],
+  [
+    "El manual de la nueva herramienta indicaba que debía usarse únicamente con guantes de protección, pero el trabajador, apurado por terminar el turno, decidió omitir ese paso. Minutos después sufrió un corte que pudo haberse evitado.",
+    "¿Cuál fue la causa principal del accidente, según el texto?",
+    "No seguir la indicación de seguridad del manual por apuro",
+    ["Un defecto de fábrica en la herramienta", "La falta de experiencia del trabajador", "Un error del supervisor"],
+  ],
+];
+
+const SAYINGS_EXPERTO: [string, string, string[]][] = [
+  ["«Statu quo» (locución latina usada en español) se refiere a…", "El estado actual de las cosas, sin cambios", ["Un tipo de acuerdo legal escrito", "Una crisis económica", "Un cargo político"]],
+  ["«Grosso modo» significa…", "De manera aproximada, a grandes rasgos", ["Con todo detalle y precisión", "De forma oficial y legal", "Al revés de lo esperado"]],
+  ["«A grandes males, grandes remedios» significa…", "Los problemas graves requieren soluciones igual de decididas", ["Es mejor no hacer nada ante un problema", "Los remedios caseros son siempre mejores", "Hay que exagerar cualquier problema pequeño"]],
+  ["«Quien siembra vientos, recoge tempestades» significa…", "Las malas acciones traen consecuencias graves", ["Es bueno predecir el clima", "Sembrar es un trabajo difícil", "Las tormentas destruyen los cultivos"]],
+  ["«No hay mal que por bien no venga» significa…", "Hasta de las situaciones difíciles puede salir algo positivo", ["Todo lo malo siempre empeora", "Nunca pasa nada bueno", "Hay que evitar todos los riesgos"]],
+  ["«Ser la gota que colma el vaso» significa…", "El último detalle que hace estallar una situación ya tensa", ["Beber muy poca agua", "Ser muy generoso con los demás", "Llenar un vaso con cuidado"]],
+];
+
 // ── generadores ──────────────────────────────────────────────
 
 function qSyllableFacil(): Question {
@@ -322,11 +474,26 @@ function genSpelling(bank: [string, string][]): (d: D) => Question[] {
 
 function genRhymesOrPairs(
   bank: [string, string, string[]][],
-  label: string
+  label: string,
+  expertoBank?: [string, string, string[]][]
 ): (d: D) => Question[] {
-  const allWrong = bank.flatMap((b) => b[2]);
+  const allWrong = [...new Set(bank.flatMap((b) => b[2]))];
   return (d) => {
     if (d === "facil") return session(Array.from({ length: 10 }, qRhyme));
+    if (d === "experto" && expertoBank) {
+      const allWrongExperto = [...new Set(expertoBank.flatMap((b) => b[2]))];
+      return session(
+        sample(expertoBank, 10).map(([word, right, wrong]) => {
+          const extra = sample(allWrongExperto.filter((w) => ![right, ...wrong].includes(w) && w !== word), 2);
+          return {
+            kind: "mc" as const,
+            prompt: `${label} de «${word}»`,
+            options: shuffle([right, ...wrong, ...extra]),
+            answer: right,
+          };
+        })
+      );
+    }
     return session(
       sample(bank, 10).map(([word, right, wrong]) => {
         let options = [right, ...wrong];
@@ -345,10 +512,24 @@ function genRhymesOrPairs(
   };
 }
 
-function genOpposites(bank: [string, string, string[]][]): (d: D) => Question[] {
-  const allWrong = bank.flatMap((b) => b[2]);
+function genOpposites(bank: [string, string, string[]][], expertoBank?: [string, string, string[]][]): (d: D) => Question[] {
+  const allWrong = [...new Set(bank.flatMap((b) => b[2]))];
   return (d) => {
     if (d === "facil") return session(Array.from({ length: 10 }, qOppositeVisual));
+    if (d === "experto" && expertoBank) {
+      const allWrongExperto = [...new Set(expertoBank.flatMap((b) => b[2]))];
+      return session(
+        sample(expertoBank, 10).map(([word, right, wrong]) => {
+          const extra = sample(allWrongExperto.filter((w) => ![right, ...wrong].includes(w) && w !== word), 2);
+          return {
+            kind: "mc" as const,
+            prompt: `Elige el antónimo de «${word}»`,
+            options: shuffle([right, ...wrong, ...extra]),
+            answer: right,
+          };
+        })
+      );
+    }
     return session(
       sample(bank, 10).map(([word, right, wrong]) => {
         let options = [right, ...wrong];
@@ -369,6 +550,7 @@ function genOpposites(bank: [string, string, string[]][]): (d: D) => Question[] 
 
 function genWordClass(d: D): Question[] {
   if (d === "facil") return session(Array.from({ length: 10 }, qAnimalSound));
+  if (d === "experto") return session(sample(LITERARY_DEVICES_MC, 6).map(mcQuestion));
   return session(
     sample(WORD_CLASS, 10).map(([word, cls]) => ({
       kind: "mc" as const,
@@ -394,6 +576,14 @@ function genReading(d: D): Question[] {
       answer,
     }));
   }
+  if (d === "experto") {
+    return sample(READING_EXPERTO, 4).map(([text, q, right, wrong]) => ({
+      kind: "mc" as const,
+      prompt: `📖 ${text}\n\n${q}`,
+      options: shuffle([right, ...wrong]),
+      answer: right,
+    }));
+  }
   return sample(READING, 6).map(([text, q, right, wrong]) => ({
     kind: "mc" as const,
     prompt: `📖 ${text}\n\n${q}`,
@@ -413,6 +603,16 @@ function genSayings(d: D): Question[] {
       }))
     );
   }
+  if (d === "experto") {
+    return session(
+      sample(SAYINGS_EXPERTO, 6).map(([prompt, right, wrong]) => ({
+        kind: "mc" as const,
+        prompt,
+        options: shuffle([right, ...wrong]),
+        answer: right,
+      }))
+    );
+  }
   return session(
     sample(SAYINGS, 10).map(([prompt, right, wrong]) => ({
       kind: "mc" as const,
@@ -424,11 +624,11 @@ function genSayings(d: D): Question[] {
 }
 
 export const LANGUAGE_LEVELS: LevelDef[] = [
-  { name: "Sílabas Saltarinas", emoji: "👏", desc: "Cuenta las sílabas de cada palabra", tier: 1, gen: genSyllables },
-  { name: "B o V", emoji: "✏️", desc: "Ortografía: palabras con B y V", tier: 1, gen: genSpelling(SPELL_BV) },
-  { name: "Cazafaltas", emoji: "🔍", desc: "Ortografía: H, G/J, C/S/Z", tier: 2, gen: (d) => (d === "facil" ? genLetters(["H", "G", "J", "C", "S", "Z"])(d) : genSpelling(SPELL_MIX)(d)) },
-  { name: "Palabras Gemelas", emoji: "👯", desc: "Sinónimos y rimas: palabras que suenan o significan parecido", tier: 2, gen: genRhymesOrPairs(SYNONYMS, "Elige el sinónimo") },
-  { name: "Mundos Opuestos", emoji: "🔄", desc: "Antónimos: palabras contrarias", tier: 2, gen: genOpposites(ANTONYMS) },
+  { name: "Sílabas Saltarinas", emoji: "👏", desc: "Cuenta las sílabas de cada palabra", tier: 1, gen: (d) => (d === "experto" ? genSyllablesExperto() : genSyllables(d)) },
+  { name: "B o V", emoji: "✏️", desc: "Ortografía: palabras con B y V", tier: 1, gen: (d) => (d === "experto" ? genSpellingExperto() : genSpelling(SPELL_BV)(d)) },
+  { name: "Cazafaltas", emoji: "🔍", desc: "Ortografía: H, G/J, C/S/Z", tier: 2, gen: (d) => (d === "facil" ? genLetters(["H", "G", "J", "C", "S", "Z"])(d) : d === "experto" ? genSpellingExperto() : genSpelling(SPELL_MIX)(d)) },
+  { name: "Palabras Gemelas", emoji: "👯", desc: "Sinónimos y rimas: palabras que suenan o significan parecido", tier: 2, gen: genRhymesOrPairs(SYNONYMS, "Elige el sinónimo", SYNONYMS_EXPERTO) },
+  { name: "Mundos Opuestos", emoji: "🔄", desc: "Antónimos: palabras contrarias", tier: 2, gen: genOpposites(ANTONYMS, ANTONYMS_EXPERTO) },
   { name: "Detective Gramatical", emoji: "🕵️", desc: "Sustantivos, verbos, adjetivos y sonidos de animales", tier: 2, gen: genWordClass },
   { name: "Historias Secretas", emoji: "📖", desc: "Escucha y comprende pequeñas historias", tier: 3, gen: genReading },
   { name: "Sabiduría Popular", emoji: "🦉", desc: "Refranes, frases hechas y adivinanzas", tier: 3, gen: genSayings },

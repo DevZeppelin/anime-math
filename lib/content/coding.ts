@@ -2,6 +2,15 @@ import type { Difficulty, LevelDef, Question } from "../types";
 import { ri, pick, sample, session, shuffle, typed, order, numMC, tf, repeatEmoji, varied } from "./utils";
 
 // ─────────────────────────────────────────────────────────────
+// MAESTROS (experto) — sin límite de edad: los mismos 10 niveles
+// suben aquí a fundamentos reales de programación para adultos:
+// complejidad algorítmica, recursión, estructuras de datos,
+// lógica booleana, bugs reales, y conceptos de sistemas (APIs,
+// bases de datos, hexadecimal, seguridad). Cada nivel sigue
+// yendo "de menos a más" dentro de sí mismo.
+// ─────────────────────────────────────────────────────────────
+
+// ─────────────────────────────────────────────────────────────
 // PROGRAMACIÓN Y LÓGICA — 10 niveles, adaptados a 3 edades:
 //   facil (Menores de 5)  → secuencias e imágenes puras: ciclos
 //                           de vida, patrones de colores, "si
@@ -251,7 +260,9 @@ function qRobotCollect(): Question {
 }
 
 function genRobot(d: D): Question[] {
-  return d === "facil" ? varied([qRobotSimpleAdvance, qRobotSimpleRetreat], 8) : varied([qRobotWalk, qRobotGrid, qRobotCollect], 8);
+  if (d === "facil") return varied([qRobotSimpleAdvance, qRobotSimpleRetreat], 8);
+  if (d === "experto") return genRobotExperto();
+  return varied([qRobotWalk, qRobotGrid, qRobotCollect], 8);
 }
 
 // ── Bucles Mágicos ─────────────────────────────────────────────
@@ -307,7 +318,9 @@ function qLoopCounter(): Question {
 }
 
 function genLoops(d: D): Question[] {
-  return d === "facil" ? varied([qLoopVisualClap, qLoopVisualJump], 8) : varied([qLoopActions, qLoopSteps, qLoopVueltas, qLoopCounter], 8);
+  if (d === "facil") return varied([qLoopVisualClap, qLoopVisualJump], 8);
+  if (d === "experto") return genLoopsExperto();
+  return varied([qLoopActions, qLoopSteps, qLoopVueltas, qLoopCounter], 8);
 }
 
 // ── Si… Entonces (condicionales) ───────────────────────────────
@@ -416,6 +429,7 @@ function qBinaryFromDecimal(): Question {
     prompt: `🤖 ¿Cómo se escribe el número ${n} en binario?\n(pista: las posiciones valen 8, 4, 2 y 1)`,
     options: shuffle([bin, ...wrong]),
     answer: bin,
+    notDecimal: true,
   };
 }
 
@@ -518,7 +532,9 @@ function qVarConceptMC(): Question {
 }
 
 function genVariables(d: D): Question[] {
-  return d === "facil" ? varied([qBoxAdd, qBoxRemove], 8) : varied([qVarAssignSimple, qVarAssignTwoVars, qVarAssignDouble, qVarConceptMC], 8);
+  if (d === "facil") return varied([qBoxAdd, qBoxRemove], 8);
+  if (d === "experto") return genVariablesExperto();
+  return varied([qVarAssignSimple, qVarAssignTwoVars, qVarAssignDouble, qVarConceptMC], 8);
 }
 
 // ── Piezas Reutilizables (funciones) — nivel nuevo ──────────────
@@ -611,7 +627,9 @@ function qFuncConceptMC(): Question {
 }
 
 function genFunctions(d: D): Question[] {
-  return d === "facil" ? varied([qFuncNamedCombo, qFuncNamedChain], 8) : varied([qFuncCallCount, qFuncWithParam, qFuncCompose, qFuncConceptMC], 8);
+  if (d === "facil") return varied([qFuncNamedCombo, qFuncNamedChain], 8);
+  if (d === "experto") return genFunctionsExperto();
+  return varied([qFuncCallCount, qFuncWithParam, qFuncCompose, qFuncConceptMC], 8);
 }
 
 // ── genOrder genérico (bancos de secuencias) ────────────────────
@@ -620,17 +638,387 @@ function genOrder(bank: [string, string[]][]): () => Question[] {
   return () => sample(bank, 6).map(([prompt, items]) => order(prompt, items));
 }
 
+// ═════════════════════════════════════════════════════════════
+// CONTENIDO DE "MAESTROS" (experto) — fundamentos reales de
+// programación, sin límite de edad.
+// ═════════════════════════════════════════════════════════════
+
+// ── 1. Paso a Paso: flujos de trabajo reales de desarrollo ─────
+
+const SEQUENCES_EXPERTO: [string, string[]][] = [
+  ["Ordena los pasos de una búsqueda binaria en una lista ordenada", ["Mirar el elemento del medio", "Comparar con el valor buscado", "Descartar la mitad donde no puede estar", "Repetir en la mitad restante"]],
+  ["Ordena el flujo de un Pull Request en Git", ["Crear una rama nueva", "Hacer commits con los cambios", "Abrir el Pull Request", "Fusionar (merge) tras la revisión"]],
+  ["Ordena las fases clásicas del ciclo de vida de un software", ["Analizar los requisitos", "Diseñar la solución", "Programar el código", "Probar y lanzar"]],
+  ["Ordena cómo se depura (debug) un error en producción", ["Reproducir el error", "Leer el mensaje y los registros (logs)", "Aislar la causa con pruebas", "Aplicar y verificar la solución"]],
+  ["Ordena el proceso de entrenar un modelo simple de aprendizaje automático", ["Recolectar datos de ejemplo", "Dividir en datos de entrenamiento y de prueba", "Ajustar el modelo con los datos", "Evaluar qué tan bien predice"]],
+  ["Ordena cómo funciona una petición a un sitio web", ["El navegador envía la solicitud", "El servidor la recibe y la procesa", "El servidor devuelve una respuesta", "El navegador la muestra en pantalla"]],
+  ["Ordena los pasos típicos para optimizar código lento", ["Medir qué parte tarda más", "Buscar la causa (bucles o consultas repetidas)", "Aplicar una mejora concreta", "Volver a medir para confirmar la mejora"]],
+  ["Ordena una pasada del algoritmo de ordenamiento burbuja", ["Comparar dos elementos vecinos", "Intercambiarlos si están en el orden incorrecto", "Avanzar al siguiente par", "Repetir hasta el final de la lista"]],
+];
+
+// ── 2. Caza Patrones: secuencias matemáticas + complejidad ─────
+
+function qFibonacci(): Question {
+  const a0 = ri(1, 3);
+  const a1 = ri(1, 3);
+  const seq = [a0, a1];
+  for (let i = 2; i < 6; i++) seq.push(seq[i - 1] + seq[i - 2]);
+  return typed(`¿Qué número sigue? ${seq.slice(0, 5).join(", ")}, …`, seq[5], {
+    explain: `Cada número es la suma de los dos anteriores (sucesión de Fibonacci): ${seq[3]} + ${seq[4]} = ${seq[5]}.`,
+  });
+}
+
+const PRIMES = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71];
+function qPrimeNext(): Question {
+  const start = ri(0, PRIMES.length - 6);
+  const seq = PRIMES.slice(start, start + 4);
+  const answer = PRIMES[start + 4];
+  return numMC(`¿Qué número sigue? ${seq.join(", ")}, …`, answer, {
+    spread: 6,
+    explain: "Son números primos: solo se dividen exactamente por 1 y por sí mismos.",
+  });
+}
+
+function qPowerOfTwo(): Question {
+  const startExp = ri(3, 7);
+  const seq = [0, 1, 2, 3].map((i) => 2 ** (startExp + i));
+  return typed(`¿Qué número sigue? ${seq.join(", ")}, …`, 2 ** (startExp + 4), {
+    explain: "Cada número es el doble del anterior: potencias de 2, la base de la memoria de las computadoras.",
+  });
+}
+
+function qFactorialSeq(): Question {
+  const seq = [1, 2, 6, 24, 120];
+  return typed(`¿Qué número sigue? ${seq.join(", ")}, …`, 720, {
+    explain: "Es el factorial: 1, 1×2, 1×2×3, 1×2×3×4… El siguiente es 1×2×3×4×5×6 = 720.",
+  });
+}
+
+const ORDER_BIGO: [string, string[]][] = [
+  ["Ordena estos algoritmos del MÁS RÁPIDO al MÁS LENTO cuando hay muchos datos", ["O(1) — tiempo constante", "O(log n) — como la búsqueda binaria", "O(n) — recorrer la lista una vez", "O(n²) — comparar cada elemento con todos"]],
+  ["Ordena estas formas de buscar un dato, de MENOS a MÁS pasos a medida que crecen los datos", ["Acceder directo por índice", "Buscar partiendo siempre al medio (lista ordenada)", "Revisar la lista completa una vez", "Comparar cada elemento con todos los demás"]],
+];
+function qBigOrder(): Question {
+  const [prompt, items] = pick(ORDER_BIGO);
+  return order(prompt, items, { explain: "A esto se le llama la complejidad de un algoritmo: cuánto trabajo extra necesita cuando los datos crecen." });
+}
+
+function genPatternsExperto(): Question[] {
+  return varied([qFibonacci, qPrimeNext, qPowerOfTwo, qFactorialSeq, qBigOrder], 8);
+}
+
+// ── 3. Robot Explorador: trazar código real con arrays ─────────
+
+function qArrayTrace(): Question {
+  const arr = Array.from({ length: 5 }, () => ri(1, 30));
+  const idx = ri(0, 4);
+  return typed(
+    `lista = [${arr.join(", ")}]\nresultado = lista[${idx}]\n¿Cuál es el valor de "resultado"? (el primer índice es 0)`,
+    arr[idx],
+    { explain: `El índice ${idx} apunta al elemento número ${idx + 1} de la lista: ${arr[idx]}.` }
+  );
+}
+
+function qArraySum(): Question {
+  const arr = Array.from({ length: 4 }, () => ri(2, 20));
+  return typed(
+    `suma = 0\nPARA cada número en [${arr.join(", ")}]:\n    suma = suma + número\n¿Cuánto vale "suma" al final?`,
+    arr.reduce((a, b) => a + b, 0),
+    { explain: `${arr.join(" + ")} = ${arr.reduce((a, b) => a + b, 0)}.` }
+  );
+}
+
+function qMatrixTrace(): Question {
+  const rows = Array.from({ length: 3 }, () => Array.from({ length: 3 }, () => ri(1, 9)));
+  const r = ri(0, 2);
+  const c = ri(0, 2);
+  const display = rows.map((row) => `[${row.join(", ")}]`).join(", ");
+  return typed(`matriz = [${display}]\n¿Cuál es el valor de matriz[${r}][${c}]?\n(fila ${r}, columna ${c}, empezando en 0)`, rows[r][c], {
+    explain: `La fila ${r} es [${rows[r].join(", ")}]; su columna ${c} vale ${rows[r][c]}.`,
+  });
+}
+
+function qLoopRange(): Question {
+  const n = ri(4, 9);
+  const inclusive = Math.random() < 0.5;
+  if (inclusive) {
+    return numMC(`Este bucle: PARA i DESDE 0 HASTA ${n} (incluyendo ${n}, o sea i <= ${n}).\n¿Cuántas veces se ejecuta?`, n + 1, {
+      spread: 2,
+      explain: `Cuenta 0,1,2,…,${n}: son ${n + 1} valores en total.`,
+    });
+  }
+  return numMC(`Este bucle: PARA i DESDE 0 HASTA ${n} (SIN incluir ${n}, o sea i < ${n}).\n¿Cuántas veces se ejecuta?`, n, {
+    spread: 2,
+    explain: `Cuenta 0,1,2,…,${n - 1}: son ${n} valores. Confundir "<" con "<=" es el clásico error "off-by-one".`,
+  });
+}
+
+function genRobotExperto(): Question[] {
+  return varied([qArrayTrace, qArraySum, qMatrixTrace, qLoopRange], 8);
+}
+
+// ── 4. Bucles Mágicos: anidados, while, break ───────────────────
+
+function qNestedLoop(): Question {
+  const a = ri(2, 5);
+  const b = ri(2, 6);
+  return typed(`PARA i DESDE 1 HASTA ${a}:\n    PARA j DESDE 1 HASTA ${b}:\n        imprimir "*"\n¿Cuántas veces se imprime "*"?`, a * b, {
+    explain: `El bucle externo se repite ${a} veces y por cada una el interno se repite ${b}: ${a} × ${b} = ${a * b}.`,
+  });
+}
+
+function qWhileLoop(): Question {
+  const start = ri(1, 3);
+  const limit = pick([20, 30, 50, 100]);
+  let x = start;
+  let steps = 0;
+  while (x < limit) {
+    x *= 2;
+    steps++;
+  }
+  return typed(`x = ${start}\nMIENTRAS x < ${limit}:\n    x = x × 2\n¿En qué valor termina x?`, x, {
+    explain: `x se duplica ${steps} veces hasta superar ${limit}, terminando en ${x}.`,
+  });
+}
+
+function qLoopSumIf(): Question {
+  const arr = Array.from({ length: 5 }, () => ri(1, 20));
+  const total = arr.filter((n) => n % 2 === 0).reduce((a, b) => a + b, 0);
+  return typed(
+    `total = 0\nPARA cada n en [${arr.join(", ")}]:\n    SI n es par:\n        total = total + n\n¿Cuánto vale "total" al final?`,
+    total,
+    { explain: `Los pares de la lista son ${arr.filter((n) => n % 2 === 0).join(", ") || "ninguno"}, que suman ${total}.` }
+  );
+}
+
+function qLoopBreak(): Question {
+  const stop = ri(3, 8);
+  return typed(
+    `PARA i DESDE 1 HASTA 10:\n    SI i == ${stop}:\n        ROMPER (break)\n    imprimir i\n¿Cuántas veces se imprime un número?`,
+    stop - 1,
+    { explain: `Se imprime 1, 2, …, ${stop - 1} y al llegar a ${stop} el bucle se detiene ANTES de imprimirlo: ${stop - 1} veces.` }
+  );
+}
+
+function genLoopsExperto(): Question[] {
+  return varied([qNestedLoop, qWhileLoop, qLoopSumIf, qLoopBreak], 8);
+}
+
+// ── 5. Si… Entonces: lógica booleana ────────────────────────────
+
+function qBoolAnd(): Question {
+  const a = Math.random() < 0.5;
+  const b = Math.random() < 0.5;
+  return tf(`A = ${a ? "Verdadero" : "Falso"}, B = ${b ? "Verdadero" : "Falso"}.\n¿Cuánto vale A Y (AND) B?`, a && b, {
+    explain: "AND (Y) solo es verdadero si AMBAS partes son verdaderas.",
+  });
+}
+function qBoolOr(): Question {
+  const a = Math.random() < 0.5;
+  const b = Math.random() < 0.5;
+  return tf(`A = ${a ? "Verdadero" : "Falso"}, B = ${b ? "Verdadero" : "Falso"}.\n¿Cuánto vale A O (OR) B?`, a || b, {
+    explain: "OR (O) es verdadero si AL MENOS UNA de las dos partes es verdadera.",
+  });
+}
+function qBoolNot(): Question {
+  const a = Math.random() < 0.5;
+  return tf(`A = ${a ? "Verdadero" : "Falso"}.\n¿Cuánto vale NO (NOT) A?`, !a, {
+    explain: "NOT invierte el valor: verdadero pasa a falso y falso pasa a verdadero.",
+  });
+}
+function qBoolXor(): Question {
+  const a = Math.random() < 0.5;
+  const b = Math.random() < 0.5;
+  return tf(`A = ${a ? "Verdadero" : "Falso"}, B = ${b ? "Verdadero" : "Falso"}.\n¿Cuánto vale A XOR B? (verdadero solo si son DISTINTOS)`, a !== b, {
+    explain: "XOR es verdadero únicamente cuando A y B tienen valores diferentes.",
+  });
+}
+function qCondTrace(): Question {
+  const age = ri(10, 70);
+  const hasLicense = Math.random() < 0.5;
+  const canDrive = age >= 18 && hasLicense;
+  return tf(
+    `edad = ${age}\ntiene_licencia = ${hasLicense ? "verdadero" : "falso"}\nSI edad >= 18 Y tiene_licencia ENTONCES puede_manejar = verdadero, SI NO puede_manejar = falso.\n¿"puede_manejar" es verdadero?`,
+    canDrive,
+    { explain: `edad >= 18 es ${age >= 18 ? "verdadero" : "falso"}; tiene_licencia es ${hasLicense ? "verdadero" : "falso"}. AND necesita que AMBAS lo sean.` }
+  );
+}
+
+function genCondExperto(): Question[] {
+  return varied([qBoolAnd, qBoolOr, qBoolNot, qBoolXor, qCondTrace], 8);
+}
+
+// ── 6. Cazador de Bugs: errores reales de código ────────────────
+
+const BUGS_EXPERTO: MC[] = [
+  ["Este código debería comparar: SI x = 5 ENTONCES x = x + 1. ¿Cuál es el bug?", "Usa = (asignar) en vez de == (comparar)", ["No hay ningún bug", "Falta un punto y coma", "x nunca puede valer 5"], "🐛", "En muchos lenguajes = asigna y == compara: confundirlos es un bug clásico."],
+  ["PARA i DESDE 0 HASTA 10: lista[i] = 0 — y la lista solo tiene 10 casillas (índices 0 a 9). ¿Cuál es el bug?", "Se accede a lista[10], que no existe (fuera de rango)", ["No hay ningún bug", "La lista es demasiado grande", "Falta inicializar i"], "📛", "Es un error de índice fuera de rango, típico off-by-one."],
+  ["MIENTRAS x > 0: imprimir(x) — y x nunca cambia dentro del bucle. ¿Qué pasa?", "Bucle infinito: nunca se detiene", ["Se ejecuta una sola vez", "No hay ningún bug", "Imprime x = 0"], "♾️", "Si la condición nunca deja de cumplirse, el bucle no termina."],
+  ["Una función divide(a, b) hace 'devolver a / b' sin comprobar nada. ¿Qué bug puede ocurrir?", "División por cero si b vale 0", ["Nunca puede fallar", "Solo funciona con números negativos", "Falta multiplicar"], "➗"],
+  ["La variable 'contador' se declara DENTRO de una función y se intenta usar FUERA de ella. ¿Cuál es el problema?", "Error de alcance (scope): no existe fuera de la función", ["No hay ningún problema", "Falta ponerle un valor inicial", "El nombre está mal escrito"], "🔭", "Una variable local solo existe dentro de la función donde nace."],
+  ["Código: SI dato_del_usuario ENTONCES ejecutar(dato_del_usuario), sin revisar qué contiene. ¿Qué riesgo hay?", "Puede ejecutar código malicioso (inyección)", ["Ninguno, es totalmente seguro", "Solo afecta el diseño visual", "Hace el programa más rápido"], "🔓", "Nunca hay que confiar ciegamente en datos que vienen del usuario."],
+  ["Una función suma_lista(lista) siempre revisa lista[0], lista[1] y lista[2] sin importar el tamaño real. ¿Cuál es el bug?", "Falla si la lista tiene otra cantidad de elementos", ["Es la forma correcta de hacerlo", "Es más rápida así siempre", "Falta multiplicar"], "📏"],
+  ["Se probó una función SOLO con el caso 'todo funciona bien' y nunca con datos raros (vacío, negativo, enorme). ¿Qué falta?", "Probar casos límite (edge cases)", ["Nada, así se prueba siempre", "Probar con menos casos aún", "Cambiarle el nombre a la función"], "🧪"],
+  ["Una función se llama a sí misma (recursión) pero nunca tiene un caso base que la detenga. ¿Qué pasa?", "Se llama infinitamente hasta agotar la memoria (stack overflow)", ["Funciona perfecto siempre", "Se detiene sola tras 10 llamadas", "No hace nada"], "🔁", "Toda función recursiva necesita un caso base."],
+  ["Dos partes del programa leen y escriben la MISMA variable global al mismo tiempo, sin ningún control. ¿Qué problema es este?", "Una condición de carrera (race condition)", ["Un error de ortografía", "Un problema de diseño de colores", "No es ningún problema"], "⚡", "Cuando el orden de ejecución cambia el resultado, hay una condición de carrera."],
+];
+
+// ── 7. Gran Arquitecto: diseño de algoritmos ────────────────────
+
+const ALGORITHMS_EXPERTO: [string, string[]][] = [
+  ["Ordena los pasos del algoritmo de ORDENAMIENTO POR SELECCIÓN en una pasada", ["Buscar el menor elemento de la lista", "Intercambiarlo con el primer elemento", "Repetir con el resto de la lista", "Continuar hasta que todo esté ordenado"]],
+  ["Ordena los pasos para diseñar un algoritmo desde cero", ["Entender bien el problema", "Pensar ejemplos de entrada y salida", "Diseñar los pasos en pseudocódigo", "Programarlo y probarlo con casos reales"]],
+  ["Ordena el proceso de una búsqueda binaria en una lista ordenada", ["Mirar el elemento del medio", "Si es el valor buscado, terminar", "Si es menor, buscar en la mitad derecha", "Si es mayor, buscar en la mitad izquierda"]],
+  ["Ordena los pasos para desplegar (deploy) una app con seguridad", ["Probar los cambios en el entorno local", "Ejecutar las pruebas automáticas", "Desplegar primero a un entorno de prueba", "Publicar en producción y monitorear"]],
+  ["Ordena las capas típicas de una app web, desde lo que ve el usuario hasta los datos", ["Interfaz (frontend)", "Servidor (backend)", "Lógica de negocio", "Base de datos"]],
+  ["Ordena cómo resuelve la recursión el cálculo de factorial(n)", ["Si n es 0 o 1, devolver 1 (caso base)", "Si no, multiplicar n por factorial(n-1)", "Cada llamada reduce el problema en 1", "Las llamadas se combinan al volver"]],
+];
+
+// ── 8. Código Secreto: hexadecimal y conceptos de sistemas ──────
+
+function qHexToDecimal(): Question {
+  const n = ri(16, 255);
+  const hex = n.toString(16).toUpperCase();
+  return numMC(`💻 En hexadecimal (base 16, usa 0-9 y A-F) el número es ${hex}.\n¿Qué número decimal es?`, n, {
+    spread: 24,
+    explain: `${hex} en hexadecimal equivale a ${n} en decimal.`,
+  });
+}
+function qDecimalToHex(): Question {
+  const n = ri(16, 255);
+  const hex = n.toString(16).toUpperCase();
+  const wrong = new Set<string>();
+  let guard = 0;
+  while (wrong.size < 3 && guard++ < 40) {
+    const w = ri(16, 255).toString(16).toUpperCase();
+    if (w !== hex) wrong.add(w);
+  }
+  return { kind: "mc", prompt: `💻 ¿Cómo se escribe el número ${n} en hexadecimal (base 16)?`, options: shuffle([hex, ...wrong]), answer: hex, notDecimal: true };
+}
+
+const CONCEPTS_EXPERTO: MC[] = [
+  ["¿Qué es un lenguaje COMPILADO?", "Se traduce todo el código a lenguaje de máquina antes de ejecutarlo", ["Se ejecuta línea por línea sin traducir", "No necesita ningún traductor", "Solo sirve para páginas web"], "⚙️"],
+  ["¿Qué es un lenguaje INTERPRETADO?", "Se traduce y ejecuta línea por línea mientras corre", ["Se traduce todo de una vez antes de ejecutar", "No se traduce nunca", "Es más rápido siempre que uno compilado"], "🐍"],
+  ["¿Qué es una API?", "Una forma en que dos programas se comunican entre sí", ["Un tipo de virus", "Un lenguaje de programación", "Un archivo de imagen"], "🔌"],
+  ["¿Qué es una BASE DE DATOS?", "Un sistema organizado para guardar y buscar información", ["Un tipo de pantalla", "Un virus informático", "Un lenguaje de programación"], "🗄️"],
+  ["¿Qué hace el CONTROL DE VERSIONES (como Git)?", "Guarda el historial de cambios del código para poder volver atrás", ["Borra el código viejo para siempre", "Solo sirve para copias de seguridad de fotos", "Traduce el código a otro idioma"], "🗂️"],
+  ["¿Qué significa que una contraseña esté 'hasheada'?", "Se guarda transformada, de forma que no se puede leer directamente", ["Se guarda tal cual la escribiste", "Se envía por correo a todos", "Se borra automáticamente"], "🔐"],
+  ["¿Qué es HTTPS en la barra del navegador?", "Una conexión cifrada y más segura con el sitio web", ["Un tipo de virus", "Un buscador", "Un lenguaje de programación"], "🔒"],
+  ["¿Qué es la NUBE (cloud) en informática?", "Computadoras de otra empresa a las que accedes por internet", ["Un clima especial para las computadoras", "Un tipo de pantalla", "Un cable especial"], "☁️"],
+  ["¿Qué diferencia hay entre HARDWARE y FIRMWARE?", "El firmware es software básico grabado dentro del hardware", ["Son exactamente lo mismo", "El hardware es un programa", "El firmware es solo para videojuegos"], "🔩"],
+  ["¿Qué es la INTELIGENCIA ARTIFICIAL, en pocas palabras?", "Programas que aprenden patrones de datos para tomar decisiones", ["Robots con sentimientos reales", "Una computadora más rápida", "Un tipo de videojuego"], "🤖"],
+];
+
+function genSecretCodeExperto(): Question[] {
+  const hexQs = varied([qHexToDecimal, qDecimalToHex], 4);
+  const conceptQs = sample(CONCEPTS_EXPERTO, 4).map(mcQuestion);
+  const startWithHex = Math.random() < 0.5;
+  const out: Question[] = [];
+  for (let i = 0; i < 4; i++) {
+    out.push(startWithHex ? hexQs[i] : conceptQs[i]);
+    out.push(startWithHex ? conceptQs[i] : hexQs[i]);
+  }
+  return out;
+}
+
+// ── 9. Cajas Mágicas: tipos, alcance y constantes ───────────────
+
+const VAR_CONCEPTS_EXPERTO: MC[] = [
+  ["¿Qué TIPO de dato es 7?", "Número entero (integer)", ["Texto (string)", "Verdadero/falso (boolean)", "Lista (array)"], "🔢"],
+  ["¿Qué TIPO de dato es \"hola\"?", "Texto (string)", ["Número", "Booleano", "Lista"], "🔤"],
+  ["¿Qué TIPO de dato es verdadero o falso?", "Booleano (boolean)", ["Número decimal", "Texto", "Lista"], "✅"],
+  ["¿Qué es una CONSTANTE?", "Un valor que no puede cambiar una vez definido", ["Una variable que cambia siempre", "Un tipo de función", "Un error del programa"], "🔒"],
+  ["Una variable declarada DENTRO de una función tiene alcance…", "Local: solo existe dentro de esa función", ["Global: existe en todo el programa", "Eterno: nunca se borra", "Ninguno"], "🔭"],
+  ["Si sumas el texto \"5\" con el número 3 sin convertir el tipo, ¿qué puede pasar?", "Depende del lenguaje: puede dar error o unir como texto \"53\"", ["Siempre da 8", "Siempre da error", "Se ignora el texto"], "⚠️"],
+];
+
+function qVarTraceAdvanced(): Question {
+  const start = ri(60, 150);
+  const a = ri(1, 20);
+  const b = ri(1, 20);
+  const c = ri(1, 10);
+  const result = start - a + b - c;
+  return typed(
+    `Instrucciones del programa:\ninventario = ${start}\nventas = ${a}\ndevoluciones = ${b}\ndañados = ${c}\ninventario = inventario - ventas + devoluciones - dañados\n¿Cuál es el valor final de "inventario"?`,
+    result,
+    { explain: `${start} − ${a} + ${b} − ${c} = ${result}.` }
+  );
+}
+
+function qVarArray(): Question {
+  const arr = Array.from({ length: 3 }, () => ri(5, 40));
+  const idx = ri(0, 2);
+  const newVal = ri(1, 99);
+  const finalArr = [...arr];
+  finalArr[idx] = newVal;
+  const total = finalArr.reduce((a, b) => a + b, 0);
+  return typed(
+    `lista = [${arr.join(", ")}]\nlista[${idx}] = ${newVal}\n¿Cuánto suman todos los elementos de la lista ahora?`,
+    total,
+    { explain: `Después del cambio la lista es [${finalArr.join(", ")}], que suma ${total}.` }
+  );
+}
+
+function qVarConceptExperto(): Question {
+  return mcQuestion(pick(VAR_CONCEPTS_EXPERTO));
+}
+
+function genVariablesExperto(): Question[] {
+  return varied([qVarTraceAdvanced, qVarArray, qVarConceptExperto], 8);
+}
+
+// ── 10. Piezas Reutilizables: recursión y funciones de orden superior ──
+
+function qRecursionFactorial(): Question {
+  const n = ri(3, 7);
+  let result = 1;
+  for (let i = 2; i <= n; i++) result *= i;
+  return typed(
+    `función factorial(n):\n    si n <= 1: devolver 1\n    si no: devolver n × factorial(n-1)\n¿Cuánto devuelve factorial(${n})?`,
+    result,
+    { explain: `factorial(${n}) = ${Array.from({ length: n }, (_, i) => i + 1).join(" × ")} = ${result}.` }
+  );
+}
+
+function qRecursionFibonacci(): Question {
+  const n = ri(5, 9);
+  const fib = (k: number): number => (k <= 1 ? k : fib(k - 1) + fib(k - 2));
+  const result = fib(n);
+  return typed(
+    `función fib(n):\n    si n <= 1: devolver n\n    si no: devolver fib(n-1) + fib(n-2)\n¿Cuánto devuelve fib(${n})?`,
+    result,
+    { explain: `fib(${n}) = fib(${n - 1}) + fib(${n - 2}) = ${result}, siguiendo la sucesión de Fibonacci.` }
+  );
+}
+
+const FUNC_CONCEPTS_EXPERTO: MC[] = [
+  ["¿Qué es una función de ORDEN SUPERIOR?", "Una función que recibe o devuelve otra función", ["Una función más rápida que las demás", "Una función sin parámetros", "Un tipo de bucle"], "🧩"],
+  ["¿Qué es una función PURA?", "Siempre da el mismo resultado con los mismos datos, sin cambiar nada externo", ["Una función sin errores nunca", "Una función que usa solo números", "Una función muy corta"], "💎"],
+  ["¿Qué necesita SIEMPRE una función recursiva para no fallar?", "Un caso base que detenga las llamadas", ["Muchos parámetros", "Ser muy corta", "No puede tener condicionales"], "🔁"],
+  ["¿Qué es un PARÁMETRO POR DEFECTO?", "Un valor que se usa automáticamente si no se pasa ese argumento", ["Un parámetro obligatorio siempre", "Un error de programación", "El primer parámetro de cualquier función"], "⚙️"],
+  ["¿Qué significa que una función tenga EFECTOS SECUNDARIOS?", "Que cambia algo fuera de sí misma, como una variable global o un archivo", ["Que tarda mucho en ejecutarse", "Que tiene muchos parámetros", "Que no devuelve nada nunca"], "🌊"],
+  ["¿Por qué son útiles las funciones puras?", "Son más fáciles de probar y predecir porque no dependen de nada externo", ["Porque son las únicas que existen", "Porque siempre son más cortas", "Porque no necesitan nombre"], "🧠"],
+];
+
+function qFuncConceptExperto(): Question {
+  return mcQuestion(pick(FUNC_CONCEPTS_EXPERTO));
+}
+
+function genFunctionsExperto(): Question[] {
+  return varied([qRecursionFactorial, qRecursionFibonacci, qFuncConceptExperto], 8);
+}
+
 // ── Niveles ──────────────────────────────────────────────────────
 
 export const CODING_LEVELS: LevelDef[] = [
-  { name: "Paso a Paso", emoji: "👣", desc: "Ordena instrucciones e imágenes en secuencia", tier: 1, gen: (d) => (d === "facil" ? genOrder(EMOJI_SEQUENCES)() : genOrder(SEQUENCES)()) },
-  { name: "Caza Patrones", emoji: "🔍", desc: "Descubre qué sigue en cada patrón", tier: 1, gen: (d) => (d === "facil" ? genPatternsFacil() : genPatternsRest()) },
+  { name: "Paso a Paso", emoji: "👣", desc: "Ordena instrucciones e imágenes en secuencia", tier: 1, gen: (d) => (d === "facil" ? genOrder(EMOJI_SEQUENCES)() : d === "experto" ? genOrder(SEQUENCES_EXPERTO)() : genOrder(SEQUENCES)()) },
+  { name: "Caza Patrones", emoji: "🔍", desc: "Descubre qué sigue en cada patrón", tier: 1, gen: (d) => (d === "facil" ? genPatternsFacil() : d === "experto" ? genPatternsExperto() : genPatternsRest()) },
   { name: "Robot Explorador", emoji: "🤖", desc: "Programa los movimientos del robot", tier: 2, gen: genRobot },
   { name: "Bucles Mágicos", emoji: "🔁", desc: "Repite instrucciones y calcula el resultado", tier: 2, gen: genLoops },
-  { name: "Si… Entonces", emoji: "🚦", desc: "Condicionales: decisiones del programa", tier: 2, gen: (d) => (d === "facil" ? genConditionalsFacil() : buildMC(CONDITIONALS)) },
-  { name: "Cazador de Bugs", emoji: "🐞", desc: "Encuentra el error en cada programa", tier: 3, gen: (d) => (d === "facil" ? genOrderOrCheck(EMOJI_SEQUENCES_BUGS)() : buildMC(BUGS)) },
-  { name: "Gran Arquitecto", emoji: "📐", desc: "Construye algoritmos completos", tier: 3, gen: (d) => (d === "facil" ? genOrder(EMOJI_SEQUENCES_ALGO)() : genOrder(ALGORITHMS)()) },
-  { name: "Código Secreto", emoji: "💾", desc: "Binario, cultura digital y encontrar el igual", tier: 3, gen: (d) => (d === "facil" ? genMatchVisual() : genSecretCodeRest()) },
+  { name: "Si… Entonces", emoji: "🚦", desc: "Condicionales: decisiones del programa", tier: 2, gen: (d) => (d === "facil" ? genConditionalsFacil() : d === "experto" ? genCondExperto() : buildMC(CONDITIONALS)) },
+  { name: "Cazador de Bugs", emoji: "🐞", desc: "Encuentra el error en cada programa", tier: 3, gen: (d) => (d === "facil" ? genOrderOrCheck(EMOJI_SEQUENCES_BUGS)() : d === "experto" ? buildMC(BUGS_EXPERTO) : buildMC(BUGS)) },
+  { name: "Gran Arquitecto", emoji: "📐", desc: "Construye algoritmos completos", tier: 3, gen: (d) => (d === "facil" ? genOrder(EMOJI_SEQUENCES_ALGO)() : d === "experto" ? genOrder(ALGORITHMS_EXPERTO)() : genOrder(ALGORITHMS)()) },
+  { name: "Código Secreto", emoji: "💾", desc: "Binario, cultura digital y encontrar el igual", tier: 3, gen: (d) => (d === "facil" ? genMatchVisual() : d === "experto" ? genSecretCodeExperto() : genSecretCodeRest()) },
   { name: "Cajas Mágicas", emoji: "📦", desc: "Variables: guarda y cambia datos como un programa real", tier: 2, gen: genVariables },
   { name: "Piezas Reutilizables", emoji: "🧩", desc: "Funciones: bloques con nombre que se pueden reutilizar", tier: 3, gen: genFunctions },
 ];

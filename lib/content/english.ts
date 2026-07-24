@@ -162,9 +162,9 @@ function vocabQuestions(bank: V[], d: Difficulty, typedCount = 2): Question[] {
   if (d === "facil") return vocabFacil(bank);
   const englishPool = bank.map((v) => v[1]);
   const spanishPool = bank.map((v) => v[0]);
-  // en difícil hay más opciones para elegir y más escritura
-  const count = d === "dificil" ? 6 : 4;
-  const writeChance = d === "dificil" ? 0.25 : 0.1;
+  // en difícil (y aún más en experto) hay más opciones y más escritura
+  const count = d === "dificil" || d === "experto" ? 6 : 4;
+  const writeChance = d === "experto" ? 0.4 : d === "dificil" ? 0.25 : 0.1;
   const qs: Question[] = [];
   for (const [es, en, emoji] of sample(bank, 10)) {
     const mode = Math.random();
@@ -186,8 +186,19 @@ function vocabQuestions(bank: V[], d: Difficulty, typedCount = 2): Question[] {
   return session(qs);
 }
 
-function phraseQuestions(bank: P[], d: Difficulty, facilBank: V[]): Question[] {
+function phraseQuestions(bank: P[], d: Difficulty, facilBank: V[], expertoBank?: P[]): Question[] {
   if (d === "facil") return vocabFacil(facilBank);
+  if (d === "experto" && expertoBank) {
+    return session(
+      sample(expertoBank, 10).map(([prompt, answer, distractors, visual]) => ({
+        kind: "mc" as const,
+        prompt,
+        visual,
+        options: shuffle([answer, ...distractors]),
+        answer,
+      }))
+    );
+  }
   return session(
     sample(bank, 10).map(([prompt, answer, distractors, visual]) => ({
       kind: "mc" as const,
@@ -199,6 +210,44 @@ function phraseQuestions(bank: P[], d: Difficulty, facilBank: V[]): Question[] {
   );
 }
 
+// ═════════════════════════════════════════════════════════════
+// CONTENIDO DE "MAESTROS" (experto) — inglés real de adultos:
+// saludos de negocios, phrasal verbs, modismos y falsos amigos.
+// ═════════════════════════════════════════════════════════════
+
+const BUSINESS_GREETINGS_EXPERTO: P[] = [
+  ["«Nice to meet you» significa…", "Mucho gusto en conocerte", ["Buenas noches", "Hasta luego", "¿Qué tal el clima?"], "🤝"],
+  ["«Long time no see» significa…", "Cuánto tiempo sin verte", ["Buenos días", "Lo siento mucho", "Encantado, es la primera vez"], "👋"],
+  ["«How's it going?» es una forma informal de preguntar…", "¿Cómo te va?", ["¿Adónde vas?", "¿Qué hora es?", "¿Cuál es tu nombre?"], "💬"],
+  ["«Take care» se usa para…", "Despedirte deseando que alguien esté bien", ["Pedir ayuda urgente", "Presentarte formalmente", "Pedir disculpas"], "👋"],
+  ["«What's up?» es una forma informal de decir…", "¿Qué tal? / ¿Qué onda?", ["¿Dónde está?", "¿Cuánto cuesta?", "¿A qué hora es?"], "🙋"],
+  ["En un correo formal en inglés, ¿cómo se empieza en vez de «Hi»?", "«Dear Mr./Ms. [Apellido]»", ["«Yo!»", "«Hey dude»", "«What's up»"], "✉️"],
+  ["«I look forward to hearing from you» se usa típicamente para…", "Cerrar un correo formal, esperando una respuesta", ["Pedir perdón", "Saludar por primera vez", "Cancelar una reunión"], "📧"],
+  ["«Let's touch base next week» significa…", "Volver a comunicarnos / hablar brevemente la próxima semana", ["Tocar algo físicamente", "Terminar el proyecto", "Cancelar la reunión"], "📅"],
+];
+
+const PHRASAL_VERBS_EXPERTO: P[] = [
+  ["«Look after» significa…", "Cuidar de alguien o algo", ["Buscar algo", "Mirar hacia arriba", "Odiar algo"], "👀"],
+  ["«Look for» significa…", "Buscar algo", ["Cuidar de algo", "Admirar algo", "Ignorar algo"], "🔍"],
+  ["«Give up» significa…", "Rendirse, dejar de intentar", ["Regalar algo", "Levantarse", "Empezar algo nuevo"], "🏳️"],
+  ["«Get up» significa…", "Levantarse", ["Sentarse", "Acostarse", "Vestirse"], "🛏️"],
+  ["«Turn off» significa…", "Apagar algo", ["Encender algo", "Girar hacia otro lado", "Abrir algo"], "🔌"],
+  ["«Find out» significa…", "Descubrir o averiguar algo", ["Perder algo", "Encontrar un objeto físico", "Salir de un lugar"], "🕵️"],
+  ["«Put off» significa…", "Posponer, dejar para después", ["Apagar la luz", "Vestirse rápido", "Terminar de inmediato"], "⏰"],
+  ["«Run into» significa…", "Encontrarse con alguien por casualidad", ["Correr hacia adentro", "Chocar a propósito", "Salir corriendo"], "🏃"],
+];
+
+const REAL_IDIOMS_EXPERTO: P[] = [
+  ["«It's raining cats and dogs» significa…", "Está lloviendo muchísimo", ["Hay animales en la calle", "Es un día soleado", "Va a nevar pronto"], "🌧️"],
+  ["«Break the ice» significa…", "Iniciar una conversación para reducir la tensión inicial", ["Romper hielo literalmente", "Enojarse mucho", "Terminar una relación"], "🧊"],
+  ["«Cost an arm and a leg» significa…", "Ser muy caro", ["Ser gratis", "Doler físicamente", "Ser fácil de conseguir"], "💰"],
+  ["«Under the weather» significa…", "Sentirse un poco enfermo", ["Estar afuera con lluvia", "Estar muy feliz", "Tener mucho calor"], "🤒"],
+  ["FALSO AMIGO: en inglés «actually» significa 'en realidad'. ¿A qué palabra española NO equivale, aunque se parezca?", "«Actualmente»", ["«En verdad»", "«De hecho»", "«Realmente»"], "⚠️"],
+  ["FALSO AMIGO: en inglés «embarrassed» significa 'avergonzado'. ¿A qué palabra española NO equivale, aunque se parezca?", "«Embarazada»", ["«Apenado»", "«Incómodo»", "«Apenada»"], "⚠️"],
+  ["«Once in a blue moon» significa…", "Muy de vez en cuando, casi nunca", ["Todas las noches", "Una vez al mes exacto", "Siempre que hay luna llena"], "🌙"],
+  ["«Piece of cake» significa…", "Algo muy fácil de hacer", ["Un postre delicioso", "Algo muy difícil", "Una mala noticia"], "🍰"],
+];
+
 export const ENGLISH_LEVELS: LevelDef[] = [
   { name: "Colors & Numbers", emoji: "🌈", desc: "Colores y números del 1 al 10", tier: 1, gen: (d) => vocabQuestions(COLORS_NUMBERS, d) },
   { name: "Animals", emoji: "🦁", desc: "Los animales en inglés", tier: 1, gen: (d) => vocabQuestions(ANIMALS, d) },
@@ -208,7 +257,7 @@ export const ENGLISH_LEVELS: LevelDef[] = [
   { name: "My Body", emoji: "🙌", desc: "Las partes del cuerpo", tier: 2, gen: (d) => vocabQuestions(BODY, d) },
   { name: "School & Home", emoji: "🏫", desc: "Objetos de la escuela y la casa", tier: 2, gen: (d) => vocabQuestions(SCHOOL_HOME, d) },
   { name: "Action Words", emoji: "🏃", desc: "Verbos de acción", tier: 2, gen: (d) => vocabQuestions(VERBS, d) },
-  { name: "Hello!", emoji: "👋", desc: "Saludos y presentaciones", tier: 2, gen: (d) => phraseQuestions(GREETINGS, d, FEELINGS) },
-  { name: "Where Is It?", emoji: "🧭", desc: "Posiciones y opuestos", tier: 3, gen: (d) => phraseQuestions(PREPOSITIONS, d, OPPOSITES_BASIC) },
-  { name: "Real Phrases", emoji: "💬", desc: "Frases completas de la vida real", tier: 3, gen: (d) => phraseQuestions(PHRASES, d, ANIMALS) },
+  { name: "Hello!", emoji: "👋", desc: "Saludos y presentaciones", tier: 2, gen: (d) => phraseQuestions(GREETINGS, d, FEELINGS, BUSINESS_GREETINGS_EXPERTO) },
+  { name: "Where Is It?", emoji: "🧭", desc: "Posiciones y opuestos", tier: 3, gen: (d) => phraseQuestions(PREPOSITIONS, d, OPPOSITES_BASIC, PHRASAL_VERBS_EXPERTO) },
+  { name: "Real Phrases", emoji: "💬", desc: "Frases completas de la vida real", tier: 3, gen: (d) => phraseQuestions(PHRASES, d, ANIMALS, REAL_IDIOMS_EXPERTO) },
 ];

@@ -24,12 +24,15 @@ export function sample<T>(arr: readonly T[], n: number): T[] {
 /** Opción múltiple numérica: genera 3 distractores cercanos y plausibles. */
 export function numMC(prompt: string, answer: number, opts?: { visual?: string; spread?: number; explain?: string }): Question {
   const spread = opts?.spread ?? Math.max(3, Math.round(Math.abs(answer) * 0.25));
+  // si la respuesta ya es negativa, los distractores también pueden serlo
+  // (si no, un negativo delataría la respuesta correcta a simple vista)
+  const allowNegative = answer < 0;
   const set = new Set<number>([answer]);
   let guard = 0;
   while (set.size < 4 && guard++ < 60) {
     const off = ri(1, spread) * (Math.random() < 0.5 ? -1 : 1);
     const v = answer + off;
-    if (v >= 0) set.add(v);
+    if (v >= 0 || allowNegative) set.add(v);
   }
   // relleno de emergencia si el answer es muy chico
   let extra = answer + spread + 1;
@@ -102,9 +105,31 @@ export function checkTyped(q: Extract<Question, { kind: "type" }>, input: string
 
 export const SESSION_SIZE = 8;
 
-/** Mezcla y recorta a tamaño de sesión. */
+/** Identidad de una pregunta para detectar repetidos: mismo enunciado,
+ *  imagen y respuesta (sin importar el orden de las opciones barajadas). */
+function questionSignature(q: Question): string {
+  const base = `${q.prompt}|${q.visual ?? ""}`;
+  if (q.kind === "order") return `${base}|${[...q.items].sort().join(",")}`;
+  return `${base}|${String(q.answer)}`;
+}
+
+/** Mezcla y arma una sesión de tamaño fijo, eligiendo en cada paso
+ *  cualquier candidato restante del pool que NO repita el enunciado
+ *  de la pregunta anterior — así se aprovecha toda la variedad
+ *  disponible (no solo un recorte fijo) y ninguna lección se siente
+ *  repetitiva. Si el pool es muy chico, puede que al final no quede
+ *  más remedio que repetir, pero nunca antes de agotar alternativas. */
 export function session(qs: Question[]): Question[] {
-  return shuffle(qs).slice(0, SESSION_SIZE);
+  const remaining = shuffle(qs);
+  const result: Question[] = [];
+  while (result.length < SESSION_SIZE && remaining.length > 0) {
+    const lastSig = result.length > 0 ? questionSignature(result[result.length - 1]) : null;
+    let idx = remaining.findIndex((q) => questionSignature(q) !== lastSig);
+    if (idx === -1) idx = 0;
+    result.push(remaining[idx]);
+    remaining.splice(idx, 1);
+  }
+  return result;
 }
 
 /** Combina varios generadores de preguntas evitando usar el mismo
@@ -166,21 +191,25 @@ export function pickEmojiMC(bank: readonly [string, string][], promptFn: (name: 
 }
 
 /** Ajusta una pregunta al modo de dificultad:
- *  fácil → máximo 3 opciones; difícil → hasta 6 opciones numéricas. */
+ *  fácil → máximo 3 opciones; difícil → hasta 6 opciones numéricas;
+ *  experto (Maestros, sin límite de edad) → hasta 8, el reto máximo. */
 export function adaptQuestion(q: Question, d: Difficulty): Question {
   if (q.kind !== "mc") return q;
   if (d === "facil" && q.options.length > 3) {
     const wrong = shuffle(q.options.filter((o) => o !== q.answer)).slice(0, 2);
     return { ...q, options: shuffle([q.answer, ...wrong]) };
   }
-  if (d === "dificil" && q.options.length < 6 && q.options.every((o) => /^-?\d+$/.test(o))) {
+  if ((d === "dificil" || d === "experto") && !q.notDecimal && q.options.every((o) => /^-?\d+$/.test(o))) {
+    const target = d === "experto" ? 8 : 6;
+    if (q.options.length >= target) return q;
     const set = new Set(q.options.map(Number));
     const ans = Number(q.answer);
+    const allowNegative = ans < 0 || [...set].some((v) => v < 0);
     const spread = Math.max(4, Math.round(Math.abs(ans) * 0.3));
     let guard = 0;
-    while (set.size < 6 && guard++ < 80) {
+    while (set.size < target && guard++ < 100) {
       const v = ans + ri(1, spread) * (Math.random() < 0.5 ? -1 : 1);
-      if (v >= 0) set.add(v);
+      if (v >= 0 || allowNegative) set.add(v);
     }
     return { ...q, options: shuffle([...set]).map(String) };
   }
