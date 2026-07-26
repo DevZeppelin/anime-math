@@ -51,7 +51,7 @@ const BODY: V[] = [
   ["nariz", "nose", "👃"], ["boca", "mouth", "👄"], ["mano", "hand", "✋"],
   ["pie", "foot", "🦶"], ["pierna", "leg", "🦵"], ["brazo", "arm", "💪"],
   ["dedo", "finger", "☝️"], ["pelo", "hair", "💇"], ["diente", "tooth", "🦷"],
-  ["corazón", "heart", "❤️"], ["espalda", "back", "🔙"],
+  ["corazón", "heart", "❤️"],
 ];
 
 const SCHOOL_HOME: V[] = [

@@ -234,9 +234,7 @@ function genHabitats(d: D): Question[] {
 }
 
 function genContinents(d: D): Question[] {
-  if (d === "facil") {
-    return session(Array.from({ length: 10 }, () => pickEmojiMC(HABITAT_VISUAL, (name) => `¿Cuál es ${name}?`)));
-  }
+  if (d === "facil") return session(Array.from({ length: 8 }, qContinentMap));
   if (d === "experto") return buildMC(CONTINENT_STATS_EXPERTO_MC, d);
   return buildMC(GEO_FACTS_MC, d);
 }
@@ -330,6 +328,11 @@ export const GEOGRAPHY_LEVELS: LevelDef[] = [
     emoji: "🌏",
     desc: "Países, ríos y montañas increíbles",
     tier: 3,
-    gen: (d) => (d === "facil" ? genLandmarks(d) : d === "experto" ? buildMC(GEO_TRIVIA_EXPERTO_MC, d) : buildMC(GEO_FACTS_MC, d)),
+    gen: (d) =>
+      d === "facil"
+        ? session(Array.from({ length: 10 }, () => pickEmojiMC(Math.random() < 0.5 ? FLAGS : ANIMAL_REGION, (name) => `¿Cuál es ${name}?`)))
+        : d === "experto"
+          ? buildMC(GEO_TRIVIA_EXPERTO_MC, d)
+          : buildMC(GEO_FACTS_MC, d),
   },
 ];

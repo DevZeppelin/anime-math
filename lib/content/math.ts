@@ -444,6 +444,19 @@ function qGeometry(d: D): Question {
 const CLOCK_FACES = ["🕛", "🕐", "🕑", "🕒", "🕓", "🕔", "🕕", "🕖", "🕗", "🕘", "🕙", "🕚"];
 
 function qTime(d: D): Question {
+  if (d === "facil") {
+    // "Pequeños": solo lectura simple del reloj en punto (1, 2 o 3),
+    // sin problemas de horas transcurridas (demasiado abstracto para <5).
+    const h = ri(1, 3);
+    return {
+      kind: "mc",
+      prompt: "¿Qué hora muestra este reloj?",
+      visual: CLOCK_FACES[h % 12],
+      options: shuffle3(String(h)),
+      answer: String(h),
+      explain: "Cuando el minutero apunta al 12, es una hora en punto.",
+    };
+  }
   const kind = ri(1, 2);
   if (kind === 1) {
     const h = ri(1, 12);

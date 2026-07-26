@@ -114,7 +114,7 @@ function qOppositeVisual(): Question {
   const idx = ri0(OPPOSITES_VISUAL.length);
   const [word, emoji, , oppEmoji] = OPPOSITES_VISUAL[idx];
   const others = OPPOSITES_VISUAL.filter((_, i) => i !== idx).map((o) => (Math.random() < 0.5 ? o[1] : o[3]));
-  const wrong = [emoji, ...sample(others, 3)].slice(0, 2);
+  const wrong = sample([emoji, ...others], 2);
   return {
     kind: "mc",
     prompt: `¿Cuál es lo CONTRARIO de «${word}»?`,

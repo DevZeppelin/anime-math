@@ -38,6 +38,14 @@ const ART_TOOLS: [string, string][] = [
   ["las tijeras", "✂️"], ["el papel", "📄"], ["el marcador", "🖍️"],
 ];
 
+const ARTWORK_TYPES: [string, string][] = [
+  ["un cuadro", "🖼️"], ["una escultura", "🗿"], ["un museo", "🏛️"], ["una fotografía", "📷"],
+];
+
+const DANCE_ID: [string, string][] = [
+  ["el ballet", "🩰"], ["el tango o la salsa", "💃"], ["el hip hop", "🕺"], ["la danza en grupo", "👯"],
+];
+
 function qNotePattern(): Question {
   const notes = ["🎵", "🎶"];
   const times = pick([2, 3]);
@@ -214,13 +222,13 @@ function genArtists(d: D): Question[] {
 }
 
 function genDance(d: D): Question[] {
-  if (d === "facil") return genInstruments("facil");
+  if (d === "facil") return session(Array.from({ length: 10 }, () => pickEmojiMC(DANCE_ID, (name) => `¿Cuál es ${name}?`)));
   if (d === "experto") return buildMC(DANCE_HISTORY_EXPERTO, d);
   return buildMC(DANCE_MUSIC_MC, d, DANCE_MUSIC_MC.length);
 }
 
 function genArtworks(d: D): Question[] {
-  if (d === "facil") return genArtTools();
+  if (d === "facil") return session(Array.from({ length: 10 }, () => pickEmojiMC(ARTWORK_TYPES, (name) => `¿Cuál es ${name}?`)));
   if (d === "experto") return buildMC(ART_TECHNIQUE_EXPERTO, d);
   return buildMC(ARTWORK_MC, d, ARTWORK_MC.length);
 }
