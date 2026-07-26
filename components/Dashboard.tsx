@@ -38,6 +38,9 @@ export default function Dashboard({ profile, onOpenSubject, onNav, onDifficulty 
             </button>
           </div>
           {/* modo de dificultad según la edad */}
+          <span className="diff-switch-label">
+            Nivel actual: <b>{DIFFICULTY_META[profile.difficulty ?? "normal"].label}</b>
+          </span>
           <div className="diff-switch">
             {(Object.keys(DIFFICULTY_META) as Difficulty[]).map((k) => {
               const m = DIFFICULTY_META[k];
@@ -45,11 +48,15 @@ export default function Dashboard({ profile, onOpenSubject, onNav, onDifficulty 
               return (
                 <button
                   key={k}
+                  type="button"
                   className={`diff-chip ${sel ? "sel" : ""}`}
+                  aria-pressed={sel}
                   title={`${m.ages} — ${m.desc}`}
                   onClick={() => onDifficulty(k)}
                 >
-                  {m.emoji} {m.label}
+                  {sel && <span className="diff-chip-check">✓</span>}
+                  <span className="diff-chip-emoji">{m.emoji}</span>
+                  <span className="diff-chip-label">{m.label}</span>
                 </button>
               );
             })}

@@ -219,7 +219,7 @@ function weaponGroup(
   );
 }
 
-export default function Avatar({ character, size = 160, showBackground = false, idle = false }: Props) {
+function Avatar({ character, size = 160, showBackground = false, idle = false }: Props) {
   const uid = useId().replace(/[^a-zA-Z0-9]/g, "");
   const c = character;
   const outfit = getItem(c.outfit);
@@ -1942,3 +1942,10 @@ export default function Avatar({ character, size = 160, showBackground = false, 
     </svg>
   );
 }
+
+// Redibujar este SVG (docenas de capas) es lo más caro de la app: se usa en
+// varias pantallas a la vez y algunas (como el temporizador de la lección)
+// re-renderizan su componente padre varias veces por segundo. React.memo
+// evita recalcular el avatar cuando sus props (objeto character, size…) no
+// cambiaron realmente — clave para que ande fluido en celulares viejos.
+export default React.memo(Avatar);

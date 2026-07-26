@@ -1,5 +1,23 @@
 import type { Metadata, Viewport } from "next";
+import { Baloo_2, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
+
+// next/font: descarga y autohospeda las fuentes en el build (sin request
+// externa a Google Fonts en tiempo de ejecución) e inyecta solo los recortes
+// de caracteres usados — clave para un primer pintado rápido en redes lentas
+// y celulares viejos.
+const baloo = Baloo_2({
+  subsets: ["latin"],
+  weight: ["600", "700", "800"],
+  variable: "--font-display",
+  display: "swap",
+});
+const jakarta = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-body",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Academia Aventura 🏰",
@@ -17,15 +35,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
-          rel="stylesheet"
-        />
-      </head>
+    <html lang="es" className={`${baloo.variable} ${jakarta.variable}`}>
       <body>{children}</body>
     </html>
   );

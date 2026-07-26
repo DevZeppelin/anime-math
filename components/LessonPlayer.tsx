@@ -31,6 +31,60 @@ type Phase = "ask" | "feedback" | "result" | "failed";
 
 const PRAISE = ["¡Correcto!", "¡Genial!", "¡Excelente!", "¡Muy bien!", "¡Increíble!", "¡Eso es!"];
 
+interface TimerBarProps {
+  seconds: number;
+  active: boolean; // true mientras phase === "ask"
+  resetKey: number; // qi: al cambiar, reinicia la barra al 100%
+  timeLeftRef: React.MutableRefObject<number>;
+  onExpire: () => void;
+}
+
+/** Barra de tiempo con vida propia: anima el ancho tocando el DOM directamente
+ *  en un requestAnimationFrame, sin pasar por el estado de React. Antes esto
+ *  era un setInterval de 100ms que re-renderizaba TODA la pantalla de la
+ *  pregunta 10 veces por segundo — carísimo en celulares viejos. */
+function TimerBar({ seconds, active, resetKey, timeLeftRef, onExpire }: TimerBarProps) {
+  const barRef = useRef<HTMLDivElement | null>(null);
+  const fillRef = useRef<HTMLDivElement | null>(null);
+  const onExpireRef = useRef(onExpire);
+  onExpireRef.current = onExpire;
+
+  useEffect(() => {
+    timeLeftRef.current = seconds;
+    if (fillRef.current) fillRef.current.style.width = "100%";
+    barRef.current?.classList.remove("urgent");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resetKey, seconds]);
+
+  useEffect(() => {
+    if (!active) return;
+    let raf = 0;
+    let last = performance.now();
+    const tick = (now: number) => {
+      const dt = (now - last) / 1000;
+      last = now;
+      const left = Math.max(0, timeLeftRef.current - dt);
+      timeLeftRef.current = left;
+      const pct = Math.max(0, Math.min(100, (left / seconds) * 100));
+      if (fillRef.current) fillRef.current.style.width = `${pct}%`;
+      barRef.current?.classList.toggle("urgent", pct < 25);
+      if (left <= 0) {
+        onExpireRef.current();
+        return;
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [active, resetKey, seconds, timeLeftRef]);
+
+  return (
+    <div ref={barRef} className="timerbar">
+      <div ref={fillRef} className="timerbar-fill" style={{ width: "100%" }} />
+    </div>
+  );
+}
+
 export default function LessonPlayer({ subject, levelIdx, profile, onComplete, onExit }: Props) {
   const level = subject.levels[levelIdx];
   const diff = profile.difficulty ?? "normal";
@@ -63,7 +117,10 @@ export default function LessonPlayer({ subject, levelIdx, profile, onComplete, o
   const [lastGain, setLastGain] = useState(0);
   const [lucky, setLucky] = useState(false);
   const [fast, setFast] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(qSeconds);
+  // el tiempo restante vive en un ref (no en estado): así la barra se anima
+  // moviendo el DOM directamente en vez de re-renderizar toda la lección
+  // 10 veces por segundo — ver <TimerBar> más abajo.
+  const timeLeftRef = useRef(qSeconds);
   const [hintUsed, setHintUsed] = useState(false);
   const [hidden, setHidden] = useState<string[]>([]);
   const [typedVal, setTypedVal] = useState("");
@@ -86,26 +143,8 @@ export default function LessonPlayer({ subject, levelIdx, profile, onComplete, o
       setOrderPool(shuffle(q.items));
       setOrderSel([]);
     }
-    setTimeLeft(qSeconds);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [qi]);
-
-  // temporizador
-  useEffect(() => {
-    if (phase !== "ask" || !q) return;
-    const iv = setInterval(() => {
-      setTimeLeft((t) => {
-        if (t <= 0.1) {
-          clearInterval(iv);
-          resolve(false);
-          return 0;
-        }
-        return t - 0.1;
-      });
-    }, 100);
-    return () => clearInterval(iv);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase, qi]);
 
   // foco solo para respuestas de texto (las numéricas usan el teclado en pantalla)
   useEffect(() => {
@@ -176,7 +215,7 @@ export default function LessonPlayer({ subject, levelIdx, profile, onComplete, o
       if (ok) {
         gain = TIER_COINS[level.tier] + Math.min(streak, 5);
         // premio por velocidad: responder con más del 60% del tiempo restante
-        if (timeLeft > qSeconds * 0.6) {
+        if (timeLeftRef.current > qSeconds * 0.6) {
           gain += 3;
           wasFast = true;
         }
@@ -219,7 +258,7 @@ export default function LessonPlayer({ subject, levelIdx, profile, onComplete, o
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
     },
-    [phase, correctCount, errors, streak, bestStreak, hearts, coins, xp, qi, level.tier, hasLucky, finish, timeLeft, qSeconds, dMeta.coinMult]
+    [phase, correctCount, errors, streak, bestStreak, hearts, coins, xp, qi, level.tier, hasLucky, finish, qSeconds, dMeta.coinMult]
   );
 
   const advance = useCallback(
@@ -322,7 +361,6 @@ export default function LessonPlayer({ subject, levelIdx, profile, onComplete, o
 
   if (!q) return null;
 
-  const timerPct = Math.max(0, (timeLeft / qSeconds) * 100);
   const praise = PRAISE[correctCount % PRAISE.length];
 
   return (
@@ -356,9 +394,13 @@ export default function LessonPlayer({ subject, levelIdx, profile, onComplete, o
       </div>
 
       {/* temporizador */}
-      <div className={`timerbar ${timerPct < 25 ? "urgent" : ""}`}>
-        <div className="timerbar-fill" style={{ width: `${timerPct}%` }} />
-      </div>
+      <TimerBar
+        seconds={qSeconds}
+        active={phase === "ask"}
+        resetKey={qi}
+        timeLeftRef={timeLeftRef}
+        onExpire={() => resolve(false)}
+      />
 
       {/* pregunta */}
       <div className={`q-card panel ${phase === "feedback" ? (lastOk ? "flash-ok" : "flash-no") : ""}`}>

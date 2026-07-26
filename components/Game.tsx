@@ -1,20 +1,26 @@
 "use client";
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import type { Profile, RootSave } from "@/lib/types";
 import { loadRoot, saveRoot, upsertProfile, deleteProfile, touchDailyStreak } from "@/lib/storage";
 import { levelFromXp, levelProgress, levelUpReward, checkAchievements } from "@/lib/progression";
 import { getSubject } from "@/lib/content";
 import Avatar from "./Avatar";
 import ProfileSelect from "./ProfileSelect";
-import CharacterCreator from "./CharacterCreator";
 import Dashboard from "./Dashboard";
 import SubjectMap from "./SubjectMap";
-import LessonPlayer from "./LessonPlayer";
-import Shop from "./Shop";
-import Wardrobe from "./Wardrobe";
-import Achievements from "./Achievements";
-import Minigames from "./Minigames";
+
+// pantallas que no hacen falta en la primera pintada: cada una se baja como
+// un chunk aparte solo cuando el jugador realmente navega ahí, así el bundle
+// inicial (selección de perfil + inicio) pesa mucho menos en celulares viejos.
+const screenLoading = () => <div className="shell center-load" />;
+const CharacterCreator = dynamic(() => import("./CharacterCreator"), { ssr: false, loading: screenLoading });
+const LessonPlayer = dynamic(() => import("./LessonPlayer"), { ssr: false, loading: screenLoading });
+const Shop = dynamic(() => import("./Shop"), { ssr: false, loading: screenLoading });
+const Wardrobe = dynamic(() => import("./Wardrobe"), { ssr: false, loading: screenLoading });
+const Achievements = dynamic(() => import("./Achievements"), { ssr: false, loading: screenLoading });
+const Minigames = dynamic(() => import("./Minigames"), { ssr: false, loading: screenLoading });
 
 type Screen =
   | { t: "profiles" }
