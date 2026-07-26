@@ -388,7 +388,7 @@ const BUGS: MC[] = [
   ["Programa: REPETIR 3 veces [avanzar 4] para llegar del 0 al 12. ¿Está bien?", "Sí, llega justo a la casilla 12", ["No, se pasa", "No, le falta", "El robot se rompe"], "✅", "3 × 4 = 12."],
   ["Un programa que nunca termina de repetirse se llama…", "Bucle infinito", ["Bucle perfecto", "Función mágica", "Variable eterna"], "♾️", "Un bucle infinito es un tipo de bug muy común."],
   ["Robot que debe regar SOLO si hace calor, pero riega siempre. ¿Cuál es el bug?", "Falta revisar la condición del clima", ["No hay error", "Riega poco", "Falta el agua"], "🌡️"],
-  ["Programa: 1) apagar la alarma 2) despertarse 3) levantarse de la cama. ¿Qué está mal?", "Primero hay que despertarse, luego apagar la alarma", ["No hay error", "Falta desayunar", "Sobra un paso"], "⏰"],
+  ["Programa: 1) apagar la alarma 2) despertarse 3) levantarse de la cama. ¿Qué está mal?", "Hay que despertarse antes de apagarla", ["No hay ningún error", "Falta el paso de desayunar", "Sobra un paso extra"], "⏰"],
 ];
 
 const CONCEPTS: MC[] = [
@@ -399,8 +399,8 @@ const CONCEPTS: MC[] = [
   ["Internet sirve para…", "Conectar computadoras del mundo", ["Cocinar", "Volar", "Dormir"], "🌐"],
   ["Si un desconocido te escribe en internet, debes…", "Contárselo a un adulto de confianza", ["Darle tus datos", "Enviarle fotos", "Encontrarte con él"], "🛡️"],
   ["¿Qué es DEPURAR (debug) un programa?", "Encontrar y corregir errores", ["Borrar todo el programa", "Hacerlo más lento a propósito", "Cambiarle el color"], "🐛"],
-  ["¿Qué es el HARDWARE de una computadora?", "Las partes físicas: pantalla, teclado, cables", ["Los programas", "Internet", "Las contraseñas"], "🖱️"],
-  ["¿Qué es el SOFTWARE?", "Los programas que corren en la computadora", ["El teclado", "La pantalla", "El cable"], "💿"],
+  ["¿Qué es el HARDWARE de una computadora?", "Las partes físicas de la computadora", ["Los programas instalados", "La conexión a internet", "Las contraseñas guardadas"], "🖱️"],
+  ["¿Qué es el SOFTWARE?", "Los programas de la computadora", ["El teclado físico", "La pantalla del monitor", "El cable de conexión"], "💿"],
   ["Antes de compartir algo en internet, conviene…", "Pensar si es seguro y pedir permiso a un adulto", ["Compartir todo sin pensar", "Usar el nombre de otra persona", "No importa, siempre está bien"], "🤔"],
 ];
 
@@ -614,7 +614,7 @@ function qFuncCompose(): Question {
 }
 
 const FUNC_CONCEPTS: MC[] = [
-  ["¿Qué es una FUNCIÓN en programación?", "Un bloque de instrucciones con nombre que se puede reutilizar", ["Un error del programa", "Un tipo de robot", "Un color"], "🧩"],
+  ["¿Qué es una FUNCIÓN en programación?", "Un bloque de instrucciones reutilizable", ["Un error grave del programa", "Un tipo de robot físico", "Un color cualquiera"], "🧩"],
   ["¿Por qué usamos funciones en un programa?", "Para no repetir el mismo código muchas veces", ["Para que el programa sea más lento", "Para borrar variables", "Para cambiar de color"], "♻️"],
   ["Los datos que le pasas a una función se llaman…", "Parámetros o argumentos", ["Bugs", "Bucles", "Píxeles"], "📥"],
   ["Lo que una función entrega como resultado se llama…", "Valor de retorno", ["Variable global", "Error", "Comentario"], "📤"],
@@ -852,14 +852,14 @@ function genCondExperto(): Question[] {
 
 const BUGS_EXPERTO: MC[] = [
   ["Este código debería comparar: SI x = 5 ENTONCES x = x + 1. ¿Cuál es el bug?", "Usa = (asignar) en vez de == (comparar)", ["No hay ningún bug", "Falta un punto y coma", "x nunca puede valer 5"], "🐛", "En muchos lenguajes = asigna y == compara: confundirlos es un bug clásico."],
-  ["PARA i DESDE 0 HASTA 10: lista[i] = 0 — y la lista solo tiene 10 casillas (índices 0 a 9). ¿Cuál es el bug?", "Se accede a lista[10], que no existe (fuera de rango)", ["No hay ningún bug", "La lista es demasiado grande", "Falta inicializar i"], "📛", "Es un error de índice fuera de rango, típico off-by-one."],
+  ["PARA i DESDE 0 HASTA 10: lista[i] = 0 — y la lista solo tiene 10 casillas (índices 0 a 9). ¿Cuál es el bug?", "Se accede a lista[10], que no existe", ["No hay ningún bug real", "La lista es demasiado grande", "Falta inicializar la variable i"], "📛", "Es un error de índice fuera de rango, típico off-by-one."],
   ["MIENTRAS x > 0: imprimir(x) — y x nunca cambia dentro del bucle. ¿Qué pasa?", "Bucle infinito: nunca se detiene", ["Se ejecuta una sola vez", "No hay ningún bug", "Imprime x = 0"], "♾️", "Si la condición nunca deja de cumplirse, el bucle no termina."],
   ["Una función divide(a, b) hace 'devolver a / b' sin comprobar nada. ¿Qué bug puede ocurrir?", "División por cero si b vale 0", ["Nunca puede fallar", "Solo funciona con números negativos", "Falta multiplicar"], "➗"],
-  ["La variable 'contador' se declara DENTRO de una función y se intenta usar FUERA de ella. ¿Cuál es el problema?", "Error de alcance (scope): no existe fuera de la función", ["No hay ningún problema", "Falta ponerle un valor inicial", "El nombre está mal escrito"], "🔭", "Una variable local solo existe dentro de la función donde nace."],
+  ["La variable 'contador' se declara DENTRO de una función y se intenta usar FUERA de ella. ¿Cuál es el problema?", "Error de alcance: no existe afuera", ["No hay ningún problema real", "Falta ponerle un valor inicial", "El nombre está mal escrito"], "🔭", "Una variable local solo existe dentro de la función donde nace."],
   ["Código: SI dato_del_usuario ENTONCES ejecutar(dato_del_usuario), sin revisar qué contiene. ¿Qué riesgo hay?", "Puede ejecutar código malicioso (inyección)", ["Ninguno, es totalmente seguro", "Solo afecta el diseño visual", "Hace el programa más rápido"], "🔓", "Nunca hay que confiar ciegamente en datos que vienen del usuario."],
-  ["Una función suma_lista(lista) siempre revisa lista[0], lista[1] y lista[2] sin importar el tamaño real. ¿Cuál es el bug?", "Falla si la lista tiene otra cantidad de elementos", ["Es la forma correcta de hacerlo", "Es más rápida así siempre", "Falta multiplicar"], "📏"],
+  ["Una función suma_lista(lista) siempre revisa lista[0], lista[1] y lista[2] sin importar el tamaño real. ¿Cuál es el bug?", "Falla con otra cantidad de elementos", ["Es la forma correcta de hacerlo", "Es más rápida así, siempre", "Falta multiplicar por dos"], "📏"],
   ["Se probó una función SOLO con el caso 'todo funciona bien' y nunca con datos raros (vacío, negativo, enorme). ¿Qué falta?", "Probar casos límite (edge cases)", ["Nada, así se prueba siempre", "Probar con menos casos aún", "Cambiarle el nombre a la función"], "🧪"],
-  ["Una función se llama a sí misma (recursión) pero nunca tiene un caso base que la detenga. ¿Qué pasa?", "Se llama infinitamente hasta agotar la memoria (stack overflow)", ["Funciona perfecto siempre", "Se detiene sola tras 10 llamadas", "No hace nada"], "🔁", "Toda función recursiva necesita un caso base."],
+  ["Una función se llama a sí misma (recursión) pero nunca tiene un caso base que la detenga. ¿Qué pasa?", "Se llama sin fin hasta agotar la memoria", ["Funciona perfecto siempre igual", "Se detiene sola tras 10 llamadas", "No hace absolutamente nada"], "🔁", "Eso se llama stack overflow — toda función recursiva necesita un caso base."],
   ["Dos partes del programa leen y escriben la MISMA variable global al mismo tiempo, sin ningún control. ¿Qué problema es este?", "Una condición de carrera (race condition)", ["Un error de ortografía", "Un problema de diseño de colores", "No es ningún problema"], "⚡", "Cuando el orden de ejecución cambia el resultado, hay una condición de carrera."],
 ];
 
@@ -897,16 +897,16 @@ function qDecimalToHex(): Question {
 }
 
 const CONCEPTS_EXPERTO: MC[] = [
-  ["¿Qué es un lenguaje COMPILADO?", "Se traduce todo el código a lenguaje de máquina antes de ejecutarlo", ["Se ejecuta línea por línea sin traducir", "No necesita ningún traductor", "Solo sirve para páginas web"], "⚙️"],
+  ["¿Qué es un lenguaje COMPILADO?", "Traduce todo el código antes de ejecutarlo", ["Se ejecuta línea por línea sin traducir", "No necesita ningún traductor", "Solo sirve para páginas web"], "⚙️"],
   ["¿Qué es un lenguaje INTERPRETADO?", "Se traduce y ejecuta línea por línea mientras corre", ["Se traduce todo de una vez antes de ejecutar", "No se traduce nunca", "Es más rápido siempre que uno compilado"], "🐍"],
-  ["¿Qué es una API?", "Una forma en que dos programas se comunican entre sí", ["Un tipo de virus", "Un lenguaje de programación", "Un archivo de imagen"], "🔌"],
-  ["¿Qué es una BASE DE DATOS?", "Un sistema organizado para guardar y buscar información", ["Un tipo de pantalla", "Un virus informático", "Un lenguaje de programación"], "🗄️"],
-  ["¿Qué hace el CONTROL DE VERSIONES (como Git)?", "Guarda el historial de cambios del código para poder volver atrás", ["Borra el código viejo para siempre", "Solo sirve para copias de seguridad de fotos", "Traduce el código a otro idioma"], "🗂️"],
-  ["¿Qué significa que una contraseña esté 'hasheada'?", "Se guarda transformada, de forma que no se puede leer directamente", ["Se guarda tal cual la escribiste", "Se envía por correo a todos", "Se borra automáticamente"], "🔐"],
-  ["¿Qué es HTTPS en la barra del navegador?", "Una conexión cifrada y más segura con el sitio web", ["Un tipo de virus", "Un buscador", "Un lenguaje de programación"], "🔒"],
-  ["¿Qué es la NUBE (cloud) en informática?", "Computadoras de otra empresa a las que accedes por internet", ["Un clima especial para las computadoras", "Un tipo de pantalla", "Un cable especial"], "☁️"],
-  ["¿Qué diferencia hay entre HARDWARE y FIRMWARE?", "El firmware es software básico grabado dentro del hardware", ["Son exactamente lo mismo", "El hardware es un programa", "El firmware es solo para videojuegos"], "🔩"],
-  ["¿Qué es la INTELIGENCIA ARTIFICIAL, en pocas palabras?", "Programas que aprenden patrones de datos para tomar decisiones", ["Robots con sentimientos reales", "Una computadora más rápida", "Un tipo de videojuego"], "🤖"],
+  ["¿Qué es una API?", "Una forma en que dos programas se comunican", ["Un tipo de virus informático", "Un lenguaje de programación", "Un tipo de archivo de imagen"], "🔌"],
+  ["¿Qué es una BASE DE DATOS?", "Un sistema para guardar información", ["Un tipo especial de pantalla", "Un tipo de virus informático", "Un lenguaje de programación"], "🗄️"],
+  ["¿Qué hace el CONTROL DE VERSIONES (como Git)?", "Guarda el historial de cambios del código", ["Borra el código viejo para siempre", "Solo sirve para copias de seguridad de fotos", "Traduce el código a otro idioma"], "🗂️"],
+  ["¿Qué significa que una contraseña esté 'hasheada'?", "Se guarda transformada, no se puede leer", ["Se guarda tal cual la escribiste", "Se envía por correo a todos siempre", "Se borra automáticamente después"], "🔐"],
+  ["¿Qué es HTTPS en la barra del navegador?", "Una conexión cifrada y más segura", ["Un tipo de virus del navegador", "Un tipo de buscador web", "Un lenguaje de programación"], "🔒"],
+  ["¿Qué es la NUBE (cloud) en informática?", "Computadoras de otra empresa, vía internet", ["Un clima especial para las computadoras", "Un tipo especial de pantalla", "Un cable especial y raro"], "☁️"],
+  ["¿Qué diferencia hay entre HARDWARE y FIRMWARE?", "El firmware es software dentro del hardware", ["Son exactamente lo mismo siempre", "El hardware es solo un programa", "El firmware es solo para videojuegos"], "🔩"],
+  ["¿Qué es la INTELIGENCIA ARTIFICIAL, en pocas palabras?", "Programas que aprenden patrones de datos", ["Robots con sentimientos reales propios", "Una computadora mucho más rápida", "Un tipo de videojuego nuevo"], "🤖"],
 ];
 
 function genSecretCodeExperto(): Question[] {
@@ -929,7 +929,7 @@ const VAR_CONCEPTS_EXPERTO: MC[] = [
   ["¿Qué TIPO de dato es verdadero o falso?", "Booleano (boolean)", ["Número decimal", "Texto", "Lista"], "✅"],
   ["¿Qué es una CONSTANTE?", "Un valor que no puede cambiar una vez definido", ["Una variable que cambia siempre", "Un tipo de función", "Un error del programa"], "🔒"],
   ["Una variable declarada DENTRO de una función tiene alcance…", "Local: solo existe dentro de esa función", ["Global: existe en todo el programa", "Eterno: nunca se borra", "Ninguno"], "🔭"],
-  ["Si sumas el texto \"5\" con el número 3 sin convertir el tipo, ¿qué puede pasar?", "Depende del lenguaje: puede dar error o unir como texto \"53\"", ["Siempre da 8", "Siempre da error", "Se ignora el texto"], "⚠️"],
+  ["Si sumas el texto \"5\" con el número 3 sin convertir el tipo, ¿qué puede pasar?", "Depende del lenguaje: error o texto \"53\"", ["Siempre da 8 sin excepción", "Siempre da error sin excepción", "Se ignora el texto por completo"], "⚠️"],
 ];
 
 function qVarTraceAdvanced(): Question {
@@ -993,11 +993,11 @@ function qRecursionFibonacci(): Question {
 
 const FUNC_CONCEPTS_EXPERTO: MC[] = [
   ["¿Qué es una función de ORDEN SUPERIOR?", "Una función que recibe o devuelve otra función", ["Una función más rápida que las demás", "Una función sin parámetros", "Un tipo de bucle"], "🧩"],
-  ["¿Qué es una función PURA?", "Siempre da el mismo resultado con los mismos datos, sin cambiar nada externo", ["Una función sin errores nunca", "Una función que usa solo números", "Una función muy corta"], "💎"],
+  ["¿Qué es una función PURA?", "Siempre da el mismo resultado con los mismos datos", ["Una función sin errores nunca jamás", "Una función que usa solo números", "Una función muy corta y simple"], "💎"],
   ["¿Qué necesita SIEMPRE una función recursiva para no fallar?", "Un caso base que detenga las llamadas", ["Muchos parámetros", "Ser muy corta", "No puede tener condicionales"], "🔁"],
-  ["¿Qué es un PARÁMETRO POR DEFECTO?", "Un valor que se usa automáticamente si no se pasa ese argumento", ["Un parámetro obligatorio siempre", "Un error de programación", "El primer parámetro de cualquier función"], "⚙️"],
-  ["¿Qué significa que una función tenga EFECTOS SECUNDARIOS?", "Que cambia algo fuera de sí misma, como una variable global o un archivo", ["Que tarda mucho en ejecutarse", "Que tiene muchos parámetros", "Que no devuelve nada nunca"], "🌊"],
-  ["¿Por qué son útiles las funciones puras?", "Son más fáciles de probar y predecir porque no dependen de nada externo", ["Porque son las únicas que existen", "Porque siempre son más cortas", "Porque no necesitan nombre"], "🧠"],
+  ["¿Qué es un PARÁMETRO POR DEFECTO?", "Un valor usado si no pasás ese argumento", ["Un parámetro obligatorio siempre", "Un error grave de programación", "El primer parámetro de cualquier función"], "⚙️"],
+  ["¿Qué significa que una función tenga EFECTOS SECUNDARIOS?", "Que cambia algo fuera de sí misma", ["Que tarda mucho en ejecutarse siempre", "Que tiene muchos parámetros extra", "Que no devuelve absolutamente nada"], "🌊"],
+  ["¿Por qué son útiles las funciones puras?", "Son más fáciles de probar y predecir", ["Porque son las únicas que existen", "Porque siempre son mucho más cortas", "Porque no necesitan ningún nombre"], "🧠"],
 ];
 
 function qFuncConceptExperto(): Question {

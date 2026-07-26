@@ -9,8 +9,10 @@ import { GEOGRAPHY_LEVELS } from "./geography";
 import { ART_LEVELS } from "./art";
 import { EMOTIONS_LEVELS } from "./emotions";
 import { AI_LEVELS } from "./ai";
+import { CIVICS_LEVELS } from "./civics";
+import { TECH_LEVELS } from "./tech";
 
-// Las 10 materias esenciales, inspiradas en los currículos de
+// Las 12 materias esenciales, inspiradas en los currículos de
 // primaria de Finlandia, Singapur, Estonia y Canadá — y
 // adaptadas a 4 niveles de dificultad, desde Menores de 5 hasta
 // Maestros (sin límite de edad).
@@ -95,6 +97,22 @@ export const SUBJECTS: SubjectDef[] = [
     color: "#00e5c8",
     tagline: "Los fundamentos para entender el nuevo mundo",
     levels: AI_LEVELS,
+  },
+  {
+    id: "civics",
+    name: "Cívica y Ciudadanía",
+    emoji: "🏛️",
+    color: "#75aadb",
+    tagline: "Tu país, sus leyes y cómo funciona la democracia",
+    levels: CIVICS_LEVELS,
+  },
+  {
+    id: "tech",
+    name: "Tecnología y Telecomunicaciones",
+    emoji: "📡",
+    color: "#3a86ff",
+    tagline: "Del mail al wifi: cómo funciona el mundo conectado",
+    levels: TECH_LEVELS,
   },
 ];
 

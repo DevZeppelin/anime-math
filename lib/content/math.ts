@@ -224,6 +224,12 @@ function qDiv(d: D): Question {
     : numMC(`${a} ÷ ${b} = ?`, q, { spread: 3, explain: `Porque ${b} × ${q} = ${a}.` });
 }
 
+/** Formatea con separador de miles (12345 → "12.345") para que los
+ *  números grandes de Genios/Maestros se puedan leer de un vistazo. */
+function groupThousands(n: number): string {
+  return n.toLocaleString("es-AR");
+}
+
 function qCompare(d: D): Question {
   const lo = byD(d, 10, 100, 1000, 10000);
   const hi = byD(d, 99, 9999, 99999, 9999999);
@@ -234,10 +240,16 @@ function qCompare(d: D): Question {
   return {
     kind: "mc",
     prompt: `¿Cuál número es MAYOR?`,
-    options: [String(a), String(b)].sort(() => Math.random() - 0.5),
-    answer: String(mayor),
+    // notDecimal: true es clave — sin esto, adaptQuestion() "completa" las
+    // opciones numéricas hasta 6/8 en Genios/Maestros con valores generados
+    // alrededor de `answer`, y esos valores pueden terminar siendo MÁS
+    // grandes que el propio "mayor", dejando marcada como correcta una
+    // opción que ya no es la más grande de la lista mostrada.
+    notDecimal: true,
+    options: [a, b].map(groupThousands).sort(() => Math.random() - 0.5),
+    answer: groupThousands(mayor),
     explain: "Compara primero cuántas cifras tiene cada número.",
-  } as Question;
+  };
 }
 
 function qRound(d: D): Question {

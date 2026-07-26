@@ -249,13 +249,9 @@ export default function LessonPlayer({ subject, levelIdx, profile, onComplete, o
         return;
       }
       setPhase("feedback");
-      if (ok) {
-        // más tiempo para releer la pregunta/respuesta antes de avanzar: las
-        // preguntas más largas (materias teóricas como IA) necesitan más lectura,
-        // sobre todo en modos con poco tiempo (Genios/Maestros) donde iría muy rápido
-        const readMs = Math.min(3200, Math.max(1400, 900 + (q?.prompt.length ?? 0) * 9));
-        setTimeout(() => advance(answered, newErrors, newCorrect, newCoins, newXp, newBest), readMs);
-      }
+      // ya no se avanza solo: se deja el "Continuar →" para que quien
+      // responde bien pueda releer la pregunta y la respuesta con calma,
+      // en vez de que la lección salte sola a la siguiente.
       // eslint-disable-next-line react-hooks/exhaustive-deps
     },
     [phase, correctCount, errors, streak, bestStreak, hearts, coins, xp, qi, level.tier, hasLucky, finish, qSeconds, dMeta.coinMult]
@@ -599,15 +595,20 @@ export default function LessonPlayer({ subject, levelIdx, profile, onComplete, o
         <div className={`sheet ${lastOk ? "ok" : "no"}`}>
           <div className="sheet-inner">
             {lastOk ? (
-              <div className="sheet-msg">
-                <span className="sheet-icon">{lucky ? "🍀" : fast ? "⚡" : "✨"}</span>
-                <div className="sheet-text">
-                  <b className="display">{lucky ? "¡SUERTE x2!" : fast ? "¡Súper veloz!" : praise}</b>
-                  <small>
-                    +{lastGain} 🪙{fast && " · bono de velocidad ⚡"}
-                  </small>
+              <>
+                <div className="sheet-msg">
+                  <span className="sheet-icon">{lucky ? "🍀" : fast ? "⚡" : "✨"}</span>
+                  <div className="sheet-text">
+                    <b className="display">{lucky ? "¡SUERTE x2!" : fast ? "¡Súper veloz!" : praise}</b>
+                    <small>
+                      +{lastGain} 🪙{fast && " · bono de velocidad ⚡"}
+                    </small>
+                  </div>
                 </div>
-              </div>
+                <button className="btn primary big sheet-btn" onClick={() => advance(qi + 1)}>
+                  Toca para continuar →
+                </button>
+              </>
             ) : (
               <>
                 <div className="sheet-msg">

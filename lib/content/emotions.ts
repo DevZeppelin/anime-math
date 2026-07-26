@@ -199,68 +199,68 @@ const DIGITAL_MC: MC[] = [
 // ═════════════════════════════════════════════════════════════
 
 const EMOTION_VOCAB_EXPERTO: MC[] = [
-  ["¿Qué diferencia hay entre sentir ENOJO y sentir FRUSTRACIÓN?", "La frustración suele surgir de un obstáculo que impide lograr algo; el enojo es una reacción más general", ["Son exactamente lo mismo", "La frustración es siempre más fuerte", "El enojo solo existe en la niñez"], "😤"],
+  ["¿Qué diferencia hay entre sentir ENOJO y sentir FRUSTRACIÓN?", "La frustración surge de un obstáculo concreto", ["Son exactamente lo mismo siempre", "La frustración es siempre más fuerte", "El enojo solo existe en la niñez"], "😤"],
   ["Sentir ANSIEDAD antes de algo importante (como una entrevista) es…", "Una reacción normal del cuerpo ante la incertidumbre", ["Un signo de debilidad", "Algo que nunca le pasa a los adultos", "Siempre un problema grave"], "😰"],
-  ["¿Qué es la NOSTALGIA?", "Un sentimiento agridulce al recordar algo del pasado que ya no está", ["Un tipo de enojo intenso", "Miedo a lo desconocido", "Alegría sin motivo"], "🕰️"],
-  ["¿Qué diferencia hay entre CULPA y VERGÜENZA?", "La culpa es sobre algo que hiciste; la vergüenza es sobre cómo te ves a ti mismo", ["Son exactamente lo mismo", "La vergüenza siempre es peor", "La culpa no tiene solución"], "😔"],
-  ["¿Qué es la INTELIGENCIA EMOCIONAL?", "La capacidad de reconocer, entender y gestionar tus emociones y las de los demás", ["Ser siempre feliz sin excepción", "No sentir emociones negativas nunca", "Ser muy inteligente académicamente"], "🧠"],
-  ["Sentir varias emociones contradictorias a la vez (como felicidad y tristeza juntas) es…", "Normal: las emociones humanas pueden ser complejas y mixtas", ["Imposible, siempre hay una sola emoción", "Un signo de un problema serio", "Solo les pasa a los niños"], "🎭"],
+  ["¿Qué es la NOSTALGIA?", "Un sentimiento agridulce al recordar el pasado", ["Un tipo de enojo muy intenso", "Miedo profundo a lo desconocido", "Alegría repentina sin motivo"], "🕰️"],
+  ["¿Qué diferencia hay entre CULPA y VERGÜENZA?", "La culpa es por un acto; la vergüenza, por vos mismo", ["Son exactamente lo mismo siempre", "La vergüenza siempre es mucho peor", "La culpa nunca tiene solución"], "😔"],
+  ["¿Qué es la INTELIGENCIA EMOCIONAL?", "Reconocer y gestionar tus propias emociones", ["Ser siempre feliz sin excepción", "No sentir emociones negativas nunca", "Ser muy inteligente académicamente"], "🧠"],
+  ["Sentir varias emociones contradictorias a la vez (como felicidad y tristeza juntas) es…", "Normal, las emociones pueden ser mixtas", ["Imposible, siempre hay una sola emoción", "Un signo de un problema serio", "Solo les pasa a los niños pequeños"], "🎭"],
 ];
 
 const SCENARIO_ADULT_MC: MC[] = [
   ["Un compañero de trabajo evita el contacto visual y responde con monosílabos. Probablemente está…", "Incómodo o preocupado por algo", ["Feliz y relajado", "Muy entusiasmado", "Aburrido sin motivo"], "😟"],
   ["Después de una presentación laboral exitosa, alguien probablemente siente…", "Orgullo y alivio", ["Vergüenza", "Indiferencia total", "Miedo sin razón"], "🎉"],
-  ["Alguien que acaba de perder su empleo probablemente atraviesa…", "Una mezcla de shock, tristeza y preocupación", ["Solo alegría", "Total indiferencia", "Solo aburrimiento"], "💼"],
+  ["Alguien que acaba de perder su empleo probablemente atraviesa…", "Shock, tristeza y preocupación", ["Solo alegría pura y nada más", "Total indiferencia ante todo", "Solo aburrimiento y nada más"], "💼"],
   ["Un amigo cancela planes repetidamente sin dar explicaciones claras. Es razonable sentir…", "Un poco de decepción, y preguntarte si está bien", ["Nada, no hay razón para sentir algo", "Furia extrema de inmediato", "Alegría por tener tiempo libre"], "📵"],
   ["Alguien que recibe una crítica constructiva y se pone a la defensiva probablemente siente…", "Que su autoestima se sintió amenazada", ["Total indiferencia", "Orgullo genuino", "Sorpresa agradable"], "🛡️"],
 ];
 
 const HELP_ADULT_MC: MC[] = [
-  ["¿Qué es la ESCUCHA ACTIVA?", "Prestar atención genuina, sin interrumpir, para entender realmente al otro", ["Escuchar mientras haces otra cosa", "Esperar tu turno para hablar", "Repetir todo lo que dice la otra persona"], "👂"],
-  ["Ayudar a alguien sin que te lo pida, ¿es siempre lo correcto?", "No siempre: a veces conviene preguntar primero si quiere esa ayuda", ["Sí, siempre hay que ayudar sin preguntar", "No, nunca hay que ayudar sin que lo pidan", "Solo si te lo agradecen después"], "🤝"],
-  ["¿Qué significa tener LÍMITES SANOS al ayudar a los demás?", "Poder decir que no cuando ayudar te perjudica demasiado a ti mismo", ["Nunca ayudar a nadie", "Ayudar siempre sin importar el costo propio", "Ayudar solo a cambio de algo"], "🚧"],
-  ["¿Qué es un MENTOR?", "Alguien con más experiencia que guía y apoya a otra persona", ["Un jefe que solo da órdenes", "Un competidor directo", "Alguien que hace el trabajo por ti"], "🧑‍🏫"],
-  ["El trabajo en equipo funciona mejor cuando…", "Cada persona aporta sus fortalezas y se respetan las diferencias", ["Todos hacen exactamente lo mismo", "Una sola persona decide todo", "Se compite en vez de colaborar"], "👥"],
+  ["¿Qué es la ESCUCHA ACTIVA?", "Prestar atención genuina sin interrumpir", ["Escuchar mientras haces otra cosa", "Esperar tu turno para hablar", "Repetir todo lo que dice la otra persona"], "👂"],
+  ["Ayudar a alguien sin que te lo pida, ¿es siempre lo correcto?", "No siempre, a veces conviene preguntar antes", ["Sí, siempre hay que ayudar sin preguntar", "No, nunca hay que ayudar sin que lo pidan", "Solo si te lo agradecen después"], "🤝"],
+  ["¿Qué significa tener LÍMITES SANOS al ayudar a los demás?", "Decir que no si te perjudica demasiado", ["Nunca ayudar a nadie", "Ayudar siempre sin importar el costo propio", "Ayudar solo a cambio de algo"], "🚧"],
+  ["¿Qué es un MENTOR?", "Alguien con experiencia que guía a otro", ["Un jefe que solo da órdenes", "Un rival o competidor directo", "Alguien que hace el trabajo por ti"], "🧑‍🏫"],
+  ["El trabajo en equipo funciona mejor cuando…", "Cada persona aporta sus propias fortalezas", ["Todos hacen exactamente lo mismo", "Una sola persona decide todo", "Se compite en vez de colaborar"], "👥"],
 ];
 
 const MANNERS_ADULT_MC: MC[] = [
   ["En una reunión de trabajo, interrumpir constantemente a los demás es…", "Una falta de respeto que dificulta la comunicación", ["Una forma normal de mostrar interés", "Necesario para ser escuchado", "Algo sin ninguna consecuencia"], "🗣️"],
-  ["¿Qué es la EMPATÍA en una conversación difícil?", "Intentar entender genuinamente la perspectiva del otro, aunque no la compartas", ["Estar siempre de acuerdo con todo", "Ignorar lo que siente el otro", "Solo hablar de tus propios problemas"], "🤝"],
+  ["¿Qué es la EMPATÍA en una conversación difícil?", "Entender la perspectiva del otro", ["Estar siempre de acuerdo con todo", "Ignorar lo que siente el otro", "Solo hablar de tus propios problemas"], "🤝"],
   ["Al dar una opinión negativa sobre el trabajo de alguien, es más constructivo…", "Ser específico, respetuoso y ofrecer sugerencias concretas", ["Criticar en general sin detalles", "Decirlo delante de todo el equipo para 'motivar'", "No decir nada nunca"], "📝"],
-  ["¿Qué es la ASERTIVIDAD?", "Expresar lo que piensas o necesitas con claridad y respeto, sin agredir", ["Imponer siempre tu opinión", "Callarte siempre para evitar conflictos", "Ser agresivo para que te hagan caso"], "💬"],
+  ["¿Qué es la ASERTIVIDAD?", "Expresar lo que necesitás con respeto", ["Imponer siempre tu opinión", "Callarte siempre para evitar conflictos", "Ser agresivo para que te hagan caso"], "💬"],
   ["Responder mensajes de trabajo constantemente fuera de horario puede…", "Afectar el equilibrio entre la vida laboral y personal", ["Mejorar siempre la productividad sin costo", "No tener ningún efecto", "Ser obligatorio en cualquier trabajo"], "⏰"],
 ];
 
 const SAFETY_ADULT_MC: MC[] = [
-  ["¿Qué es el AGOTAMIENTO (burnout)?", "Un estado de agotamiento físico y emocional por estrés prolongado, sobre todo laboral", ["Cansancio normal después de dormir poco una noche", "Un tipo de enfermedad contagiosa", "Falta de vitaminas únicamente"], "😩"],
+  ["¿Qué es el AGOTAMIENTO (burnout)?", "Agotamiento físico y emocional por estrés", ["Cansancio normal después de dormir poco una noche", "Un tipo de enfermedad contagiosa", "Falta de vitaminas únicamente"], "😩"],
   ["Si notas señales de depresión en un ser querido, lo más útil suele ser…", "Escuchar sin juzgar y animarlo a buscar ayuda profesional", ["Decirle que simplemente 'piense positivo'", "Ignorarlo hasta que se le pase solo", "Evitarlo para no incomodarlo"], "🫂"],
-  ["¿Qué es una ESTAFA (scam) común por teléfono o mensaje?", "Un intento de engañar a alguien para que entregue dinero o datos personales", ["Una oferta siempre legítima y segura", "Un tipo de encuesta oficial", "Un error técnico sin intención"], "📞"],
-  ["¿Por qué es importante el AUTOCUIDADO?", "Porque cuidar tu bienestar te permite sostener el cuidado de los demás también", ["Porque es egoísta pensar en los demás", "Porque no tiene ningún efecto real", "Solo importa si tienes tiempo libre"], "🧘"],
+  ["¿Qué es una ESTAFA (scam) común por teléfono o mensaje?", "Un engaño para robar dinero o datos", ["Una oferta siempre legítima y segura", "Un tipo de encuesta oficial", "Un error técnico sin intención"], "📞"],
+  ["¿Por qué es importante el AUTOCUIDADO?", "Porque cuidarte permite cuidar a otros", ["Porque es egoísta pensar en los demás", "Porque no tiene ningún efecto real", "Solo importa si tienes tiempo libre"], "🧘"],
   ["Si un desconocido pide tu contraseña o un código de verificación por teléfono, ¿qué haces?", "Nunca lo compartes: ninguna entidad seria lo pide así", ["Se lo doy si suena profesional", "Se lo doy si dice que es urgente", "Depende de qué banco sea"], "🔐"],
 ];
 
 const CONFLICT_ADULT_MC: MC[] = [
   ["¿Qué es la comunicación tipo 'YO' en un conflicto (ej. «yo me siento… cuando…»)?", "Expresar cómo te sientes sin acusar directamente al otro", ["Hablar solo de ti sin escuchar", "Culpar abiertamente a la otra persona", "Evitar decir lo que sientes"], "🗣️"],
   ["En una negociación, ¿qué es una solución 'GANAR-GANAR'?", "Un acuerdo donde ambas partes obtienen algo valioso", ["Que una parte gane todo y la otra nada", "Que nadie llegue a ningún acuerdo", "Que se decida por sorteo"], "🤝"],
-  ["¿Qué es la MEDIACIÓN en un conflicto?", "Cuando una persona neutral ayuda a resolver un conflicto entre otras dos", ["Cuando una de las partes decide todo", "Un tipo de castigo legal", "Ignorar el conflicto hasta que desaparezca"], "⚖️"],
+  ["¿Qué es la MEDIACIÓN en un conflicto?", "Alguien neutral ayuda a resolver el conflicto", ["Cuando una de las partes decide todo", "Un tipo de castigo legal formal", "Ignorar el conflicto hasta que desaparezca"], "⚖️"],
   ["Evitar un conflicto indefinidamente en vez de hablarlo suele…", "Hacer que el problema crezca o se repita", ["Resolverlo automáticamente con el tiempo", "No tener ningún efecto", "Ser siempre la mejor opción"], "📈"],
-  ["¿Qué significa 'elegir tus batallas' en un conflicto?", "Decidir conscientemente qué vale la pena discutir y qué no", ["Pelear por absolutamente todo", "Nunca defender tu punto de vista", "Evitar cualquier tipo de desacuerdo"], "🎯"],
+  ["¿Qué significa 'elegir tus batallas' en un conflicto?", "Elegir qué vale la pena discutir", ["Pelear por absolutamente todo", "Nunca defender tu punto de vista", "Evitar cualquier tipo de desacuerdo"], "🎯"],
 ];
 
 const DIGITAL_ADULT_MC: MC[] = [
-  ["¿Qué es el PHISHING?", "Un engaño digital para robar datos personales haciéndose pasar por algo confiable", ["Un tipo de videojuego", "Un método legítimo de verificación bancaria", "Un tipo de conexión wifi"], "🎣"],
+  ["¿Qué es el PHISHING?", "Un engaño digital para robar tus datos", ["Un tipo de videojuego", "Un método legítimo de verificación bancaria", "Un tipo de conexión wifi"], "🎣"],
   ["¿Qué es tu HUELLA DIGITAL?", "El rastro de información que dejas al usar internet", ["Tu contraseña principal", "El modelo de tu celular", "El nombre de tu proveedor de internet"], "👣"],
-  ["Antes de compartir una noticia impactante, ¿qué conviene hacer?", "Verificar la fuente y ver si otros medios confiables la confirman", ["Compartirla de inmediato para avisar rápido", "Creerla porque tiene muchas reacciones", "Ignorarla siempre sin leerla"], "🔍"],
-  ["¿Qué riesgo tiene usar la MISMA contraseña en todos tus servicios?", "Si una cuenta es hackeada, todas tus otras cuentas quedan en riesgo", ["Ningún riesgo, es más cómodo", "Solo afecta a esa cuenta específica", "Te bloquean automáticamente por seguridad"], "🔑"],
-  ["¿Qué es la AUTENTICACIÓN EN DOS PASOS?", "Una capa extra de seguridad que pide un segundo código además de la contraseña", ["Escribir la contraseña dos veces seguidas", "Tener dos contraseñas distintas", "Un tipo de virus informático"], "🔒"],
+  ["Antes de compartir una noticia impactante, ¿qué conviene hacer?", "Verificar la fuente antes de creerla", ["Compartirla de inmediato para avisar rápido", "Creerla porque tiene muchas reacciones", "Ignorarla siempre sin leerla"], "🔍"],
+  ["¿Qué riesgo tiene usar la MISMA contraseña en todos tus servicios?", "Una cuenta hackeada expone a las demás", ["Ningún riesgo, es más cómodo", "Solo afecta a esa cuenta específica", "Te bloquean automáticamente por seguridad"], "🔑"],
+  ["¿Qué es la AUTENTICACIÓN EN DOS PASOS?", "Pedir un segundo código además de la clave", ["Escribir la contraseña dos veces seguidas", "Tener dos contraseñas distintas", "Un tipo de virus informático"], "🔒"],
 ];
 
 const VALUES_EXPERTO_MC: MC[] = [
-  ["¿Qué es la INTEGRIDAD?", "Actuar de acuerdo a tus valores incluso cuando nadie te está observando", ["Nunca cometer ni un solo error", "Hacer siempre lo que otros esperan", "Ser el más fuerte del grupo"], "🧭"],
-  ["¿Qué significa hacerte RESPONSABLE de un error, más allá de solo disculparte?", "Reconocerlo, reparar el daño si es posible y aprender de él", ["Solo decir 'perdón' y seguir igual", "Culpar a alguien más", "Fingir que no pasó nada"], "🛠️"],
-  ["¿Qué es la RESILIENCIA?", "La capacidad de adaptarte y recuperarte ante la adversidad", ["Nunca sentir tristeza ni dolor", "Ignorar los problemas por completo", "Ser inmune a cualquier fracaso"], "🌱"],
-  ["¿Qué es la HUMILDAD, en su sentido más sano?", "Reconocer tus logros sin necesitar sentirte superior a los demás", ["Pensar que no vales nada", "Nunca aceptar un cumplido", "Rebajarte constantemente"], "🙏"],
-  ["¿Por qué la GRATITUD se asocia con un mayor bienestar?", "Porque enfocarte en lo positivo mejora tu perspectiva y tus relaciones", ["Porque evita que sientas cualquier emoción negativa", "Porque obliga a los demás a tratarte mejor", "No tiene relación real con el bienestar"], "🙌"],
+  ["¿Qué es la INTEGRIDAD?", "Actuar según tus valores sin que nadie mire", ["Nunca cometer ni un solo error", "Hacer siempre lo que otros esperan", "Ser el más fuerte del grupo"], "🧭"],
+  ["¿Qué significa hacerte RESPONSABLE de un error, más allá de solo disculparte?", "Reconocerlo, repararlo y aprender de él", ["Solo decir 'perdón' y seguir igual", "Culpar a alguien más por el error", "Fingir que en realidad no pasó nada"], "🛠️"],
+  ["¿Qué es la RESILIENCIA?", "Adaptarte y recuperarte ante la adversidad", ["Nunca sentir tristeza ni dolor", "Ignorar los problemas por completo", "Ser inmune a cualquier fracaso"], "🌱"],
+  ["¿Qué es la HUMILDAD, en su sentido más sano?", "Reconocer tus logros sin sentirte superior", ["Pensar que no vales nada", "Nunca aceptar un cumplido", "Rebajarte constantemente"], "🙏"],
+  ["¿Por qué la GRATITUD se asocia con un mayor bienestar?", "Porque enfocarte en lo positivo ayuda", ["Porque evita que sientas cualquier emoción negativa", "Porque obliga a los demás a tratarte mejor", "No tiene relación real con el bienestar"], "🙌"],
 ];
 
 // ── generadores ──────────────────────────────────────────────

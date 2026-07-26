@@ -119,20 +119,20 @@ const ARTWORK_MC: MC[] = [
 // ═════════════════════════════════════════════════════════════
 
 const COLOR_THEORY_EXPERTO: MC[] = [
-  ["¿Qué son los colores COMPLEMENTARIOS?", "Los que están opuestos en el círculo cromático y contrastan mucho, como rojo y verde", ["Los que están uno al lado del otro", "Los que se ven iguales", "Solo el blanco y el negro"], "🎨"],
+  ["¿Qué son los colores COMPLEMENTARIOS?", "Los que están opuestos en el círculo cromático", ["Los que están uno al lado del otro", "Los que se ven casi iguales", "Solo el blanco y el negro puro"], "🎨"],
   ["¿Cuál es el color complementario del azul?", "El naranja", ["El verde", "El morado", "El rojo"], "🔵"],
   ["¿Cuál es el color complementario del amarillo?", "El morado (violeta)", ["El naranja", "El verde", "El rojo"], "🟡"],
   ["¿Qué mide la SATURACIÓN de un color?", "Qué tan intenso o puro es ese color", ["Qué tan claro u oscuro es", "Su nombre en inglés", "Su temperatura física"], "🌈"],
   ["¿Qué mide el VALOR (o luminosidad) de un color?", "Qué tan claro u oscuro es", ["Qué tan intenso es", "Su posición en el círculo cromático", "Su precio en pintura"], "⚪"],
-  ["Una paleta de colores ANÁLOGOS usa colores que están…", "Uno al lado del otro en el círculo cromático", ["Opuestos entre sí", "Solo tonos de gris", "Elegidos al azar"], "🎨"],
+  ["Una paleta de colores ANÁLOGOS usa colores que están…", "Uno al lado del otro en el círculo cromático", ["Opuestos entre sí totalmente", "Solo tonos de gris oscuro", "Elegidos totalmente al azar"], "🎨"],
 ];
 
 const COMPOSITION_EXPERTO: MC[] = [
-  ["¿Qué es la 'regla de los tercios' en composición artística?", "Dividir la imagen en 9 partes iguales para ubicar los elementos importantes", ["Usar siempre 3 colores", "Pintar en 3 capas", "Hacer 3 bocetos antes de empezar"], "📐"],
-  ["¿Qué es la PROPORCIÓN ÁUREA?", "Una proporción matemática (aprox. 1.618) considerada estéticamente armoniosa", ["Un tipo de pincel especial", "El precio justo de una obra", "Una técnica de secado rápido"], "🌀"],
-  ["¿Qué es el PUNTO DE FUGA en un dibujo con perspectiva?", "El punto donde las líneas paralelas parecen converger a la distancia", ["El centro exacto del papel", "Donde se firma la obra", "El color más oscuro del cuadro"], "🛣️"],
-  ["¿Qué es la SIMETRÍA en una composición?", "Cuando ambos lados de una imagen son iguales o muy parecidos", ["Cuando todo es de un solo color", "Cuando la imagen está incompleta", "Un tipo de marco para cuadros"], "🦋"],
-  ["¿Qué es un patrón GEOMÉTRICO ABSTRACTO?", "Un diseño hecho con formas geométricas sin representar objetos reales", ["Un retrato muy detallado", "Una fotografía sin editar", "Un mapa de un país"], "🔷"],
+  ["¿Qué es la 'regla de los tercios' en composición artística?", "Dividir la imagen en 9 partes iguales", ["Usar siempre solo 3 colores", "Pintar siempre en 3 capas", "Hacer 3 bocetos antes de empezar"], "📐"],
+  ["¿Qué es la PROPORCIÓN ÁUREA?", "Una proporción matemática (aprox. 1.618)", ["Un tipo de pincel muy especial", "El precio justo de una obra de arte", "Una técnica de secado rápido"], "🌀"],
+  ["¿Qué es el PUNTO DE FUGA en un dibujo con perspectiva?", "Donde las líneas paralelas parecen converger", ["El centro exacto de la hoja de papel", "Donde se firma la obra terminada", "El color más oscuro del cuadro"], "🛣️"],
+  ["¿Qué es la SIMETRÍA en una composición?", "Cuando ambos lados de la imagen son iguales", ["Cuando todo es de un solo color", "Cuando la imagen está incompleta", "Un tipo de marco para cuadros"], "🦋"],
+  ["¿Qué es un patrón GEOMÉTRICO ABSTRACTO?", "Formas geométricas sin objetos reales", ["Un retrato muy detallado y realista", "Una fotografía sin ningún editado", "Un mapa detallado de un país"], "🔷"],
 ];
 
 const ORCHESTRA_EXPERTO: MC[] = [
@@ -149,7 +149,7 @@ const MUSIC_THEORY_EXPERTO: MC[] = [
   ["¿Qué significa 'ADAGIO' como indicación de tempo?", "Lento y tranquilo", ["Rápido y enérgico", "A todo volumen", "Sin ritmo fijo"], "🐢"],
   ["¿Qué es el TEMPO en música?", "La velocidad a la que se toca una pieza", ["El volumen de la música", "El instrumento principal", "El nombre de la canción"], "⏱️"],
   ["¿Cuántas notas tiene una escala musical básica (do, re, mi…) antes de repetirse?", "7", ["5", "10", "3"], "🎵"],
-  ["¿Qué es una OCTAVA en música?", "La distancia entre una nota y la siguiente con el mismo nombre, el doble de frecuencia", ["Un grupo de 8 músicos", "Un tipo de instrumento antiguo", "Una canción de 8 minutos"], "🎹"],
+  ["¿Qué es una OCTAVA en música?", "La distancia hasta la misma nota siguiente", ["Un grupo de 8 músicos distintos", "Un tipo de instrumento antiguo", "Una canción de exactamente 8 minutos"], "🎹"],
   ["¿Qué indica el COMPÁS de una canción, como 4/4?", "Cuántos tiempos hay en cada compás", ["El nombre de la tonalidad", "Cuántos instrumentos hay", "La duración total de la canción"], "🥁"],
 ];
 
@@ -171,7 +171,7 @@ const COLOR_MIXING_EXPERTO: MC[] = [
 ];
 
 const DANCE_HISTORY_EXPERTO: MC[] = [
-  ["¿Qué caracteriza al ballet clásico frente a otras danzas?", "Movimientos codificados y técnica muy formal, a menudo en puntas", ["Improvisación total sin reglas", "Se baila siempre en grupos grandes", "No requiere ningún entrenamiento"], "🩰"],
+  ["¿Qué caracteriza al ballet clásico frente a otras danzas?", "Movimientos codificados y muy formales", ["Improvisación total sin ninguna regla", "Se baila siempre en grupos grandes", "No requiere ningún entrenamiento"], "🩰"],
   ["¿De qué cultura urbana de los años 70 en Nueva York surgió el hip hop?", "La comunidad afroamericana y latina del Bronx", ["La aristocracia europea", "El campo japonés", "Los pueblos originarios de Oceanía"], "🕺"],
   ["¿Qué danza española usa castañuelas y taconeo marcado con fuerza?", "El flamenco", ["El tango", "El vals", "La samba"], "💃"],
   ["¿Qué danza de salón de origen cubano se baila en pareja con pasos laterales?", "La salsa", ["El flamenco", "El ballet", "El vals vienés"], "💃"],
@@ -182,8 +182,8 @@ const ART_TECHNIQUE_EXPERTO: MC[] = [
   ["¿Qué técnica pictórica usa pigmentos aplicados sobre yeso húmedo, típica del Renacimiento?", "El fresco", ["La acuarela", "El óleo", "El grabado"], "🖌️"],
   ["¿Qué es el CLAROSCURO en pintura?", "El uso fuerte de contraste entre luces y sombras", ["Una técnica de solo blanco y negro", "Un tipo de marco dorado", "Pintar solo de noche"], "🕯️"],
   ["¿En qué museo de París se exhibe la Mona Lisa?", "El Louvre", ["El Museo de Orsay", "El Prado", "El Vaticano"], "🏛️"],
-  ["¿Qué es una ACUARELA?", "Una técnica de pintura con pigmentos diluidos en agua sobre papel", ["Una escultura de piedra", "Una técnica con pigmentos y aceite", "Un tipo de mural gigante"], "💧"],
-  ["¿Qué es el ÓLEO en pintura?", "Una técnica con pigmentos mezclados en aceite, de secado lento", ["Pintura diluida en agua", "Un tipo de lápiz de color", "Una técnica digital"], "🖼️"],
+  ["¿Qué es una ACUARELA?", "Pigmentos diluidos en agua sobre papel", ["Una escultura tallada en piedra", "Una técnica con pigmentos y aceite", "Un tipo de mural muy gigante"], "💧"],
+  ["¿Qué es el ÓLEO en pintura?", "Pigmentos mezclados en aceite, de secado lento", ["Pintura diluida solo en agua", "Un tipo de lápiz de color común", "Una técnica puramente digital"], "🖼️"],
   ["¿Qué museo de Madrid alberga «Las Meninas» de Velázquez?", "El Museo del Prado", ["El Louvre", "El Museo Reina Sofía", "El Guggenheim Bilbao"], "🏛️"],
 ];
 

@@ -314,12 +314,12 @@ function qNeedWantExperto(): Question {
 }
 
 const CONCEPTS_WORK_EXPERTO: MC[] = [
-  ["¿Qué diferencia hay entre el salario BRUTO y el NETO?", "El bruto es antes de descuentos; el neto es lo que realmente recibes en la mano", ["Son exactamente lo mismo", "El neto siempre es mayor que el bruto", "El bruto solo aplica a los freelancers"], "💵"],
-  ["¿Qué es un CURRÍCULUM (CV)?", "Un resumen de tu experiencia y estudios para buscar trabajo", ["Un tipo de contrato legal", "El horario de la empresa", "Un préstamo bancario"], "📄"],
-  ["¿Qué son los BENEFICIOS LABORALES?", "Ventajas extra al salario, como seguro médico o vacaciones pagas", ["Un impuesto que se descuenta del sueldo", "El nombre del jefe", "Una multa por llegar tarde"], "🎁"],
-  ["¿Qué significa trabajar como FREELANCE o independiente?", "Trabajar por proyectos para distintos clientes, sin un solo empleador fijo", ["Trabajar gratis por experiencia", "No poder cobrar por el trabajo", "Trabajar solo los fines de semana"], "💻"],
-  ["¿Por qué conviene investigar el salario promedio del mercado antes de negociar el propio?", "Para pedir un monto justo e informado, ni muy bajo ni irreal", ["No sirve de nada investigar", "Para copiar el sueldo de un amigo", "Es ilegal hacerlo"], "🤝"],
-  ["¿Qué es la JUBILACIÓN o pensión?", "El ingreso que recibes al dejar de trabajar, tras ahorrar durante tu vida laboral", ["Un tipo de préstamo", "Una multa por dejar el trabajo", "Un bono único al empezar a trabajar"], "👴"],
+  ["¿Qué diferencia hay entre el salario BRUTO y el NETO?", "El bruto es sin descuentos; el neto, con ellos", ["Son exactamente lo mismo siempre", "El neto siempre es mayor que el bruto", "El bruto solo aplica a los freelancers"], "💵"],
+  ["¿Qué es un CURRÍCULUM (CV)?", "Un resumen de tu experiencia laboral", ["Un tipo de contrato legal firmado", "El horario oficial de la empresa", "Un tipo de préstamo bancario"], "📄"],
+  ["¿Qué son los BENEFICIOS LABORALES?", "Ventajas extra al salario, como seguro médico", ["Un impuesto que se descuenta del sueldo", "El nombre completo del jefe", "Una multa por llegar tarde"], "🎁"],
+  ["¿Qué significa trabajar como FREELANCE o independiente?", "Trabajar por proyectos para varios clientes", ["Trabajar gratis por experiencia", "No poder cobrar por el trabajo", "Trabajar solo los fines de semana"], "💻"],
+  ["¿Por qué conviene investigar el salario promedio del mercado antes de negociar el propio?", "Para pedir un monto justo e informado", ["No sirve de nada investigar esto", "Para copiar el sueldo de un amigo", "Es completamente ilegal hacerlo"], "🤝"],
+  ["¿Qué es la JUBILACIÓN o pensión?", "El ingreso que recibes al dejar de trabajar", ["Un tipo especial de préstamo", "Una multa por dejar el trabajo", "Un bono único al empezar a trabajar"], "👴"],
 ];
 
 function qSavingsExperto(): Question {
@@ -341,11 +341,11 @@ function qSavingsExperto(): Question {
 }
 
 const CONCEPTS_SAVE_EXPERTO: MC[] = [
-  ["¿Qué es un FONDO DE EMERGENCIA?", "Ahorros guardados para gastos inesperados, como una reparación o pérdida de trabajo", ["Dinero que se gasta apenas se recibe", "Un préstamo del banco", "Un impuesto obligatorio"], "🆘"],
-  ["¿Qué es la INFLACIÓN?", "La subida general de precios con el tiempo, que reduce el valor del dinero", ["Una bajada de precios permanente", "Un tipo de ahorro seguro", "Un impuesto sobre el salario"], "📈"],
-  ["¿Qué significa 'diversificar' tus ahorros o inversiones?", "No poner todo el dinero en un solo lugar, para repartir el riesgo", ["Gastar todo en una sola cosa", "Guardar todo en efectivo bajo el colchón", "Prestarle todo tu dinero a una sola persona"], "🧺"],
-  ["¿Qué es el COSTO DE OPORTUNIDAD de un gasto?", "Lo que dejas de poder hacer con ese dinero al gastarlo en otra cosa", ["El precio con impuestos incluidos", "Un descuento especial", "El costo de envío"], "⚖️"],
-  ["¿Por qué las deudas de tarjeta de crédito con intereses altos son peligrosas?", "Porque la deuda puede crecer rápido si no se paga a tiempo", ["Porque las tarjetas se rompen fácil", "No tienen ningún riesgo real", "Porque solo se pueden usar una vez"], "💳"],
+  ["¿Qué es un FONDO DE EMERGENCIA?", "Ahorros guardados para gastos inesperados", ["Dinero que se gasta apenas se recibe", "Un préstamo pedido al banco", "Un impuesto anual obligatorio"], "🆘"],
+  ["¿Qué es la INFLACIÓN?", "La subida general de precios con el tiempo", ["Una bajada de precios permanente", "Un tipo de ahorro muy seguro", "Un impuesto sobre el salario"], "📈"],
+  ["¿Qué significa 'diversificar' tus ahorros o inversiones?", "No poner todo el dinero en un solo lugar", ["Gastar todo en una sola cosa", "Guardar todo en efectivo bajo el colchón", "Prestarle todo tu dinero a una sola persona"], "🧺"],
+  ["¿Qué es el COSTO DE OPORTUNIDAD de un gasto?", "Lo que dejás de poder hacer con ese dinero", ["El precio con impuestos incluidos", "Un descuento especial temporal", "El costo total de envío"], "⚖️"],
+  ["¿Por qué las deudas de tarjeta de crédito con intereses altos son peligrosas?", "Porque la deuda crece rápido sin pagos", ["Porque las tarjetas se rompen fácil", "No tienen ningún riesgo real jamás", "Porque solo se pueden usar una vez"], "💳"],
   ["Regla general: ¿cuántos meses de gastos se recomienda tener guardados en un fondo de emergencia?", "Entre 3 y 6 meses de gastos", ["Solo 1 día", "20 años", "No hace falta ahorrar nada"], "🗓️"],
 ];
 
@@ -390,11 +390,11 @@ function qCompoundInterest(): Question {
 
 const CONCEPTS_INVEST_EXPERTO: MC[] = [
   ["¿Qué es una ACCIÓN (stock) de una empresa?", "Una pequeña parte de propiedad de esa empresa", ["Un préstamo que le haces al gobierno", "Un tipo de moneda extranjera", "Un impuesto sobre las ventas"], "📈"],
-  ["¿Qué es el INTERÉS COMPUESTO?", "Ganar interés no solo sobre tu dinero inicial, sino también sobre los intereses ya generados", ["Un interés que nunca cambia", "Un impuesto especial del banco", "Un descuento por ahorrar"], "💰"],
-  ["¿Qué es un PUNTAJE DE CRÉDITO (credit score)?", "Un número que refleja qué tan confiable eres para pagar deudas", ["La cantidad de dinero en tu cuenta", "El nombre de tu banco", "Un tipo de tarjeta física"], "📊"],
+  ["¿Qué es el INTERÉS COMPUESTO?", "Ganar interés también sobre los intereses previos", ["Un interés que nunca cambia nunca", "Un impuesto especial del banco", "Un descuento especial por ahorrar"], "💰"],
+  ["¿Qué es un PUNTAJE DE CRÉDITO (credit score)?", "Un número que refleja tu confiabilidad", ["La cantidad de dinero en tu cuenta", "El nombre oficial de tu banco", "Un tipo especial de tarjeta física"], "📊"],
   ["Entre dos préstamos con la MISMA cuota mensual, ¿cuál conviene más?", "El que tenga la tasa de interés más baja", ["El que tenga el plazo más largo, siempre", "El del banco más conocido", "No hay diferencia entre ellos"], "🏦"],
-  ["¿Qué es diversificar una inversión?", "Repartir el dinero en distintos activos para reducir el riesgo", ["Invertir todo en una sola empresa", "Guardar todo en efectivo", "Pedir un préstamo grande"], "🧺"],
-  ["¿Qué es un PRESUPUESTO PERSONAL?", "Un plan de cuánto ganas y gastas para controlar tu dinero", ["Un tipo de cuenta bancaria especial", "Un impuesto anual obligatorio", "Un préstamo sin intereses"], "📒"],
+  ["¿Qué es diversificar una inversión?", "Repartir el dinero en distintos activos", ["Invertir todo en una sola empresa", "Guardar todo el dinero en efectivo", "Pedir un préstamo bastante grande"], "🧺"],
+  ["¿Qué es un PRESUPUESTO PERSONAL?", "Un plan de cuánto ganás y gastás", ["Un tipo de cuenta bancaria especial", "Un impuesto anual obligatorio", "Un préstamo sin ningún interés"], "📒"],
 ];
 
 function genBankExperto(): Question[] {

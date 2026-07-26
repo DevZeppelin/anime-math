@@ -231,75 +231,75 @@ const INVENT_MC: MC[] = [
 // ═════════════════════════════════════════════════════════════
 
 const ANIMALS_EXPERTO_MC: MC[] = [
-  ["¿Qué es la TAXONOMÍA en biología?", "El sistema científico para clasificar a los seres vivos en categorías", ["Un tipo de dieta animal", "El estudio de los fósiles únicamente", "Un tipo de hábitat"], "🧬"],
+  ["¿Qué es la TAXONOMÍA en biología?", "El sistema para clasificar a los seres vivos", ["Un tipo de dieta animal específica", "El estudio de los fósiles únicamente", "Un tipo de hábitat natural"], "🧬"],
   ["¿Qué unidad básica de clasificación agrupa organismos que pueden reproducirse entre sí?", "La especie", ["El género", "El reino", "La familia"], "🐾"],
-  ["¿Qué es un ECOSISTEMA?", "Un conjunto de seres vivos y su ambiente físico interactuando entre sí", ["Un tipo de animal", "Un zoológico", "Una especie en particular"], "🌎"],
-  ["En una cadena alimenticia, ¿qué función cumplen los DESCOMPONEDORES?", "Descomponen materia orgánica muerta y reciclan nutrientes al ecosistema", ["Cazan a los depredadores", "Producen su propio alimento con luz solar", "No cumplen ninguna función"], "🍄"],
-  ["¿Qué propuso Charles Darwin sobre la evolución de las especies?", "Que las especies cambian con el tiempo mediante selección natural", ["Que todas las especies son inmutables", "Que los animales eligen su propia evolución", "Que solo las plantas evolucionan"], "🧭"],
-  ["¿Qué significa que una especie esté EN PELIGRO DE EXTINCIÓN?", "Que su población es tan baja que corre riesgo real de desaparecer", ["Que ya no existe en ningún lugar", "Que solo vive en zoológicos", "Que se está reproduciendo muy rápido"], "🦏"],
+  ["¿Qué es un ECOSISTEMA?", "Seres vivos y su ambiente interactuando", ["Un tipo de animal específico", "Un zoológico o parque", "Una sola especie en particular"], "🌎"],
+  ["En una cadena alimenticia, ¿qué función cumplen los DESCOMPONEDORES?", "Descomponen materia muerta y reciclan nutrientes", ["Cazan a los grandes depredadores", "Producen su propio alimento con luz solar", "No cumplen ninguna función real"], "🍄"],
+  ["¿Qué propuso Charles Darwin sobre la evolución de las especies?", "Que las especies cambian por selección natural", ["Que todas las especies son inmutables", "Que los animales eligen su propia evolución", "Que solo las plantas evolucionan"], "🧭"],
+  ["¿Qué significa que una especie esté EN PELIGRO DE EXTINCIÓN?", "Que su población es muy baja y riesgosa", ["Que ya no existe en ningún lugar", "Que solo vive en zoológicos ahora", "Que se está reproduciendo muy rápido"], "🦏"],
 ];
 
 const PLANTS_EXPERTO_MC: MC[] = [
   ["¿Qué gases intercambia una planta durante la fotosíntesis?", "Absorbe dióxido de carbono y libera oxígeno", ["Absorbe oxígeno y libera dióxido de carbono siempre", "Solo absorbe agua", "No intercambia gases"], "🌿"],
-  ["¿Qué es la RESPIRACIÓN CELULAR en las plantas?", "El proceso donde usan el azúcar producido para obtener energía, liberando CO2", ["Lo mismo que la fotosíntesis", "Solo ocurre de noche en algunas plantas", "Un tipo de enfermedad de las plantas"], "🍃"],
+  ["¿Qué es la RESPIRACIÓN CELULAR en las plantas?", "Usan el azúcar producido para obtener energía", ["Es lo mismo que la fotosíntesis", "Solo ocurre de noche en algunas plantas", "Un tipo de enfermedad de las plantas"], "🍃"],
   ["¿Qué papel cumplen los bosques en el CICLO DEL CARBONO?", "Absorben grandes cantidades de CO2 de la atmósfera", ["Producen todo el CO2 del planeta", "No participan del ciclo del carbono", "Solo liberan carbono, nunca lo absorben"], "🌳"],
-  ["¿Qué es la POLINIZACIÓN CRUZADA?", "Cuando el polen de una flor fecunda a una flor distinta de otra planta", ["Cuando una planta se poliniza a sí misma siempre", "Un tipo de enfermedad de las flores", "El riego artificial de las plantas"], "🐝"],
-  ["¿Por qué algunas semillas tienen alas o ganchos?", "Para dispersarse más lejos con el viento o pegándose a los animales", ["Para defenderse de otras plantas", "Para absorber más agua", "No tienen ninguna función"], "🌱"],
-  ["¿Qué es la CLOROFILA?", "El pigmento verde que capta la luz solar para la fotosíntesis", ["Un tipo de raíz", "El azúcar que produce la planta", "Un insecto que poliniza flores"], "🍀"],
+  ["¿Qué es la POLINIZACIÓN CRUZADA?", "El polen de una flor fecunda otra planta", ["Cuando una planta se poliniza a sí misma siempre", "Un tipo de enfermedad de las flores", "El riego artificial de las plantas"], "🐝"],
+  ["¿Por qué algunas semillas tienen alas o ganchos?", "Para dispersarse lejos con el viento", ["Para defenderse de otras plantas", "Para absorber mucha más agua", "No tienen ninguna función real"], "🌱"],
+  ["¿Qué es la CLOROFILA?", "El pigmento verde que capta la luz solar", ["Un tipo de raíz profunda", "El azúcar que produce la planta", "Un insecto que poliniza flores"], "🍀"],
 ];
 
 const BODY_EXPERTO_MC: MC[] = [
-  ["¿Qué es el ADN?", "La molécula que contiene la información genética de un ser vivo", ["Un tipo de célula sanguínea", "Una hormona del cuerpo", "Un órgano del sistema digestivo"], "🧬"],
+  ["¿Qué es el ADN?", "La molécula con la información genética", ["Un tipo de célula sanguínea especial", "Una hormona común del cuerpo", "Un órgano del sistema digestivo"], "🧬"],
   ["¿Qué sistema del cuerpo combate infecciones?", "El sistema inmunológico", ["El sistema digestivo", "El sistema muscular", "El sistema urinario"], "🛡️"],
-  ["¿Qué son las NEURONAS?", "Células especializadas que transmiten información en el sistema nervioso", ["Las células que forman los huesos", "Un tipo de glóbulo rojo", "Las células de la piel"], "🧠"],
-  ["¿Qué es la HOMEOSTASIS?", "La capacidad del cuerpo de mantener un equilibrio interno estable", ["Un tipo de enfermedad crónica", "El proceso de crecer en la pubertad", "La digestión de las proteínas"], "⚖️"],
+  ["¿Qué son las NEURONAS?", "Células que transmiten información nerviosa", ["Las células que forman los huesos", "Un tipo especial de glóbulo rojo", "Las células externas de la piel"], "🧠"],
+  ["¿Qué es la HOMEOSTASIS?", "Mantener un equilibrio interno estable", ["Un tipo de enfermedad crónica grave", "El proceso de crecer en la pubertad", "La digestión lenta de las proteínas"], "⚖️"],
   ["¿Qué órgano produce la insulina para controlar el azúcar en la sangre?", "El páncreas", ["El hígado", "El bazo", "La vesícula"], "🩺"],
   ["¿Cuántos cromosomas tiene normalmente una célula humana?", "46", ["23", "92", "12"], "🧬", "23 pares, uno de cada progenitor."],
 ];
 
 const MATTER_EXPERTO_MC: MC[] = [
-  ["¿Qué es un ÁTOMO?", "La unidad más pequeña de un elemento que conserva sus propiedades", ["Una mezcla de dos sustancias", "Un tipo de molécula orgánica únicamente", "Un estado especial del agua"], "⚛️"],
-  ["¿Qué es la TABLA PERIÓDICA?", "Una lista organizada de todos los elementos químicos conocidos", ["Un calendario científico", "Un tipo de gráfico de temperaturas", "Una lista de compuestos prohibidos"], "🧪"],
-  ["¿Cuál es la diferencia entre un cambio FÍSICO y uno QUÍMICO?", "El físico no crea sustancias nuevas; el químico sí forma sustancias distintas", ["Son exactamente lo mismo", "El químico nunca se puede revertir, el físico siempre sí", "El físico solo ocurre con líquidos"], "🔥"],
+  ["¿Qué es un ÁTOMO?", "La unidad más pequeña de un elemento", ["Una mezcla de dos sustancias distintas", "Un tipo de molécula orgánica únicamente", "Un estado especial y raro del agua"], "⚛️"],
+  ["¿Qué es la TABLA PERIÓDICA?", "Una lista de todos los elementos químicos", ["Un calendario científico especial", "Un tipo de gráfico de temperaturas", "Una lista de compuestos prohibidos"], "🧪"],
+  ["¿Cuál es la diferencia entre un cambio FÍSICO y uno QUÍMICO?", "El físico no crea sustancias nuevas", ["Son exactamente lo mismo siempre", "El químico nunca se puede revertir", "El físico solo ocurre con líquidos"], "🔥"],
   ["¿Qué mide la escala de pH?", "Qué tan ácida o básica (alcalina) es una sustancia", ["La temperatura de un líquido", "La densidad de un material", "La velocidad de una reacción"], "🧫"],
   ["¿Qué gas es esencial para que algo se queme (combustión)?", "El oxígeno", ["El nitrógeno", "El dióxido de carbono", "El hidrógeno"], "🔥"],
   ["¿Qué es una MOLÉCULA?", "Dos o más átomos unidos químicamente", ["Un átomo sin carga eléctrica", "Un tipo de energía", "Un estado de la materia"], "🔗"],
 ];
 
 const SPACE_EXPERTO_MC: MC[] = [
-  ["¿Qué es un AÑO LUZ?", "La distancia que recorre la luz en un año (no es una medida de tiempo)", ["El tiempo que tarda la luz del Sol en llegar a la Tierra", "Un año en otro planeta", "La velocidad de la luz"], "💫"],
-  ["¿Qué es una GALAXIA?", "Un enorme conjunto de millones o billones de estrellas, gas y polvo", ["Un grupo de planetas alrededor de una estrella", "Otro nombre para el Sistema Solar", "Una nube de un solo color en el cielo"], "🌌"],
-  ["¿Qué es un EXOPLANETA?", "Un planeta que orbita una estrella fuera de nuestro sistema solar", ["Un planeta sin atmósfera", "Una luna muy grande", "Un asteroide gigante"], "🪐"],
+  ["¿Qué es un AÑO LUZ?", "La distancia que recorre la luz en un año", ["El tiempo que tarda la luz en llegar", "Un año calendario en otro planeta", "La velocidad exacta de la luz"], "💫"],
+  ["¿Qué es una GALAXIA?", "Un enorme conjunto de estrellas, gas y polvo", ["Un grupo de planetas alrededor de una estrella", "Otro nombre para el Sistema Solar", "Una nube de un solo color en el cielo"], "🌌"],
+  ["¿Qué es un EXOPLANETA?", "Un planeta que orbita otra estrella", ["Un planeta sin ninguna atmósfera", "Una luna bastante grande", "Un asteroide muy gigante"], "🪐"],
   ["¿Qué puede pasar cuando una estrella muy grande llega al final de su vida?", "Puede explotar como una supernova", ["Se convierte en un planeta", "Desaparece sin dejar rastro", "Se vuelve un cometa"], "💥"],
   ["¿Qué fuerza mantiene a los planetas orbitando alrededor del Sol?", "La gravedad", ["El viento solar", "El magnetismo terrestre", "La luz solar"], "🌀"],
-  ["¿Qué es un AGUJERO NEGRO?", "Una región del espacio con gravedad tan fuerte que ni la luz puede escapar", ["Un planeta sin luz propia", "Un tipo de eclipse", "Una estrella apagada sin gravedad"], "⚫"],
+  ["¿Qué es un AGUJERO NEGRO?", "Una región con gravedad tan fuerte que atrapa la luz", ["Un planeta sin ninguna luz propia", "Un tipo especial de eclipse", "Una estrella apagada sin gravedad"], "⚫"],
 ];
 
 const EARTH_EXPERTO_MC: MC[] = [
-  ["¿Qué es la TECTÓNICA DE PLACAS?", "La teoría de que la corteza terrestre está dividida en placas que se mueven lentamente", ["La medición de la temperatura del planeta", "Un tipo de mapa antiguo", "El estudio de los océanos únicamente"], "🌍"],
+  ["¿Qué es la TECTÓNICA DE PLACAS?", "La corteza terrestre está dividida en placas", ["La medición de la temperatura del planeta", "Un tipo de mapa muy antiguo", "El estudio de los océanos únicamente"], "🌍"],
   ["¿Qué capa de la Tierra es líquida y genera su campo magnético?", "El núcleo externo", ["La corteza", "El manto superior", "La atmósfera"], "🧲"],
-  ["¿Cuál es la diferencia entre CLIMA y TIEMPO (weather)?", "El clima es el patrón promedio a largo plazo; el tiempo es lo que pasa en un día concreto", ["Son exactamente lo mismo", "El tiempo dura años y el clima solo un día", "El clima solo existe en el ecuador"], "🌦️"],
-  ["¿Qué causa la mayoría de los terremotos?", "El movimiento repentino entre placas tectónicas", ["Las mareas del océano", "El viento fuerte", "Los cambios de estación"], "🌋"],
-  ["¿Qué es el CICLO DE LAS ROCAS?", "La transformación continua entre rocas ígneas, sedimentarias y metamórficas", ["El proceso de erosión del suelo únicamente", "Un tipo de volcán", "El movimiento de las mareas"], "🪨"],
+  ["¿Cuál es la diferencia entre CLIMA y TIEMPO (weather)?", "El clima es a largo plazo; el tiempo, del día", ["Son exactamente lo mismo siempre", "El tiempo dura años y el clima solo un día", "El clima solo existe en el ecuador"], "🌦️"],
+  ["¿Qué causa la mayoría de los terremotos?", "El movimiento entre placas tectónicas", ["Las mareas altas del océano", "El viento muy fuerte", "Los cambios de estación del año"], "🌋"],
+  ["¿Qué es el CICLO DE LAS ROCAS?", "La transformación continua entre tipos de roca", ["El proceso de erosión del suelo únicamente", "Un tipo especial de volcán", "El movimiento diario de las mareas"], "🪨"],
   ["¿Qué gas de efecto invernadero ha aumentado más por la actividad humana?", "El dióxido de carbono (CO2)", ["El oxígeno", "El helio", "El nitrógeno"], "🏭"],
 ];
 
 const ECO_EXPERTO_MC: MC[] = [
-  ["¿Qué es el CAMBIO CLIMÁTICO?", "El cambio a largo plazo en los patrones de temperatura y clima de la Tierra", ["Un cambio de estación normal", "Un tipo de tormenta puntual", "La rotación diaria de la Tierra"], "🌡️"],
-  ["¿Qué es la HUELLA DE CARBONO?", "La cantidad de gases de efecto invernadero que genera una persona o actividad", ["El tamaño del pie de una persona", "Un tipo de contaminación del agua", "La cantidad de basura reciclada"], "👣"],
-  ["¿Qué es la energía RENOVABLE?", "Energía de fuentes que se reponen naturalmente, como el sol o el viento", ["Energía que nunca se agota gastarla mal", "Solo la energía nuclear", "Energía que contamina menos pero se acaba igual"], "♻️"],
-  ["¿Qué es la BIODIVERSIDAD?", "La variedad de seres vivos que existen en un lugar o en el planeta", ["La cantidad total de agua dulce", "El número de países del mundo", "Un tipo de reciclaje"], "🦋"],
-  ["¿Qué es la DEFORESTACIÓN y por qué preocupa?", "Talar bosques a gran escala, lo que reduce el oxígeno producido y el hábitat de especies", ["Plantar árboles nuevos en el desierto", "Un tipo de incendio natural sin causa humana", "El crecimiento normal de los bosques"], "🪓"],
-  ["¿Qué es el DESARROLLO SOSTENIBLE?", "Satisfacer las necesidades actuales sin comprometer las de futuras generaciones", ["Crecer económicamente sin importar el ambiente", "Dejar de producir cualquier cosa", "Un tipo de energía nuclear"], "🌱"],
+  ["¿Qué es el CAMBIO CLIMÁTICO?", "El cambio a largo plazo del clima terrestre", ["Un simple cambio de estación normal", "Un tipo de tormenta bien puntual", "La rotación diaria de la Tierra"], "🌡️"],
+  ["¿Qué es la HUELLA DE CARBONO?", "Los gases de efecto invernadero que generás", ["El tamaño del pie de una persona", "Un tipo de contaminación del agua", "La cantidad de basura reciclada"], "👣"],
+  ["¿Qué es la energía RENOVABLE?", "Energía de fuentes que se reponen solas", ["Energía que nunca se agota gastarla mal", "Solo la energía nuclear pura", "Energía que contamina un poco menos"], "♻️"],
+  ["¿Qué es la BIODIVERSIDAD?", "La variedad de seres vivos de un lugar", ["La cantidad total de agua dulce", "El número total de países del mundo", "Un tipo especial de reciclaje"], "🦋"],
+  ["¿Qué es la DEFORESTACIÓN y por qué preocupa?", "Talar bosques enteros a gran escala", ["Plantar árboles nuevos en el desierto", "Un tipo de incendio natural sin causa humana", "El crecimiento normal de los bosques"], "🪓"],
+  ["¿Qué es el DESARROLLO SOSTENIBLE?", "Cubrir necesidades sin dañar el futuro", ["Crecer económicamente sin importar el ambiente", "Dejar de producir absolutamente todo", "Un tipo especial de energía nuclear"], "🌱"],
 ];
 
 const INVENT_EXPERTO_MC: MC[] = [
-  ["¿Qué es el MÉTODO CIENTÍFICO?", "Un proceso de observar, formular hipótesis, experimentar y sacar conclusiones", ["Copiar lo que dice un libro de texto", "Adivinar y esperar tener suerte", "Un tipo de examen escolar"], "🔬"],
-  ["¿Qué es una HIPÓTESIS?", "Una explicación posible de un fenómeno que se puede poner a prueba", ["Una ley científica ya comprobada para siempre", "Un experimento fallido", "Una opinión sin ninguna base"], "💡"],
+  ["¿Qué es el MÉTODO CIENTÍFICO?", "Observar, formular hipótesis y experimentar", ["Copiar lo que dice un libro de texto", "Adivinar y esperar tener mucha suerte", "Un tipo de examen escolar común"], "🔬"],
+  ["¿Qué es una HIPÓTESIS?", "Una explicación posible que se puede probar", ["Una ley científica ya comprobada para siempre", "Un experimento que ya falló", "Una simple opinión sin ninguna base"], "💡"],
   ["¿Por qué es importante que un experimento se pueda REPETIR?", "Para confirmar que el resultado no fue casualidad", ["Para tardar más tiempo en publicarlo", "No es importante, un solo intento alcanza", "Para gastar más materiales"], "🔁"],
-  ["¿Qué estudió Gregor Mendel, considerado el padre de la genética?", "Cómo se heredan las características en plantas de arveja", ["Las órbitas de los planetas", "La composición del agua", "Las bacterias y los virus"], "🌱"],
+  ["¿Qué estudió Gregor Mendel, considerado el padre de la genética?", "Cómo se heredan rasgos en plantas de arveja", ["Las órbitas de todos los planetas", "La composición química del agua", "Las bacterias y los virus comunes"], "🌱"],
   ["¿Qué descubrió Alexander Fleming, cambiando la medicina para siempre?", "La penicilina, el primer antibiótico", ["La vacuna contra la viruela", "El microscopio", "La estructura del ADN"], "💊"],
-  ["¿Qué es la 'revisión por pares' (peer review) en ciencia?", "Cuando otros científicos revisan un estudio antes de que se publique", ["Cuando un científico revisa su propio trabajo solo", "Un premio científico anual", "Un tipo de experimento en pareja"], "📝"],
+  ["¿Qué es la 'revisión por pares' (peer review) en ciencia?", "Otros científicos revisan el estudio antes", ["Un científico revisa su propio trabajo", "Un premio científico muy anual", "Un tipo de experimento en pareja"], "📝"],
 ];
 
 const MIX_TF_EXPERTO: TF[] = [
