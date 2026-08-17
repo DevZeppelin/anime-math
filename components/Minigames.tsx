@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import type { Profile } from "@/lib/types";
-import { shuffle } from "@/lib/content/utils";
+import { ri, shuffle } from "@/lib/content/utils";
 import Avatar from "./Avatar";
 
 // ─────────────────────────────────────────────────────────────
@@ -16,7 +16,7 @@ interface Props {
   onReward: (coins: number, xp: number) => void;
 }
 
-type GameId = null | "reflex" | "slash" | "memory" | "stars";
+type GameId = null | "reflex" | "slash" | "memory" | "stars" | "tables";
 
 export default function Minigames({ profile, onBack, onReward }: Props) {
   const [game, setGame] = useState<GameId>(null);
@@ -25,6 +25,7 @@ export default function Minigames({ profile, onBack, onReward }: Props) {
   if (game === "slash") return <Slash profile={profile} onDone={onReward} onExit={() => setGame(null)} />;
   if (game === "memory") return <Memory profile={profile} onDone={onReward} onExit={() => setGame(null)} />;
   if (game === "stars") return <StarRain profile={profile} onDone={onReward} onExit={() => setGame(null)} />;
+  if (game === "tables") return <Tables profile={profile} onDone={onReward} onExit={() => setGame(null)} />;
 
   return (
     <div className="games-screen">
@@ -57,6 +58,12 @@ export default function Minigames({ profile, onBack, onReward }: Props) {
           <b className="display">Lluvia de Estrellas</b>
           <small>Atrapa estrellas y esquiva bombas durante 30 segundos.</small>
           <span className="game-skill">Entrena: puntería y velocidad</span>
+        </button>
+        <button className="game-card panel" onClick={() => setGame("tables")}>
+          <span className="game-emoji">✖️</span>
+          <b className="display">Tablas Ninja</b>
+          <small>Elegí qué tablas practicar y respondé rápido: cuanto más difícil la tabla, más monedas paga.</small>
+          <span className="game-skill">Entrena: tablas de multiplicar</span>
         </button>
       </div>
     </div>
@@ -542,6 +549,276 @@ function StarRain({ profile, onDone, onExit }: { profile: Profile; onDone: (c: n
         ))}
         <div className="rain-avatar">
           <Avatar character={profile.character} size={90} idle />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── 5. Tablas Ninja (multiplicación con ayuda visual) ────────
+
+const TABLE_ROUNDS = 10;
+const TABLE_NUMS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+const TABLE_ICONS = ["🍬", "🍓", "⭐", "🍎", "🎈", "🍩", "🐟", "🍀", "🔵", "🌸", "🍋", "🐝"];
+
+// el 1, el 2 y el 10 son las tablas más fáciles (el 10 es solo agregar un
+// cero) y pagan poco; el 6, 7 y 8 son las que más cuesta memorizar y el 9
+// paga el máximo.
+function tableTier(t: number): 1 | 2 | 3 | 4 {
+  if (t === 1 || t === 2 || t === 10) return 1;
+  if (t <= 5) return 2;
+  if (t <= 8) return 3;
+  return 4;
+}
+const TIER_BASE = { 1: 1, 2: 2, 3: 3, 4: 5 } as const;
+const TIER_LABEL = { 1: "Fácil", 2: "Media", 3: "Difícil", 4: "Experta" } as const;
+const TIER_EMOJI = { 1: "🟢", 2: "🟡", 3: "🟠", 4: "🔴" } as const;
+
+/** Elige tabla + multiplicador al azar, evitando repetir el par anterior. */
+function nextPair(tables: number[], last: [number, number] | null): [number, number] {
+  let t = tables[0];
+  let m = 1;
+  do {
+    t = tables[Math.floor(Math.random() * tables.length)];
+    m = ri(1, 10);
+  } while (last && t === last[0] && m === last[1] && tables.length * 10 > 1);
+  return [t, m];
+}
+
+function Tables({ profile, onDone, onExit }: { profile: Profile; onDone: (c: number, x: number) => void; onExit: () => void }) {
+  const [phase, setPhase] = useState<"pick" | "play" | "done">("pick");
+  const [tables, setTables] = useState<number[]>([]);
+  const [round, setRound] = useState(0);
+  const [pair, setPair] = useState<[number, number]>([2, 1]);
+  const [icon, setIcon] = useState(TABLE_ICONS[0]);
+  const [typedVal, setTypedVal] = useState("");
+  const [fx, setFx] = useState<"" | "ok" | "no">("");
+  const [coins, setCoins] = useState(0);
+  const [xp, setXp] = useState(0);
+  const [correctCount, setCorrectCount] = useState(0);
+  const [streak, setStreak] = useState(0);
+  const [bestStreak, setBestStreak] = useState(0);
+  const [lastGain, setLastGain] = useState(0);
+  const startAt = useRef(0);
+  const lastPair = useRef<[number, number] | null>(null);
+  const rewardSent = useRef(false);
+
+  const toggleTable = (t: number) =>
+    setTables((ts) => (ts.includes(t) ? ts.filter((x) => x !== t) : [...ts, t].sort((a, b) => a - b)));
+
+  const rollRound = (list: number[], prev: [number, number] | null) => {
+    const p = nextPair(list, prev);
+    lastPair.current = p;
+    setPair(p);
+    setIcon(TABLE_ICONS[Math.floor(Math.random() * TABLE_ICONS.length)]);
+    setTypedVal("");
+    setFx("");
+    startAt.current = performance.now();
+  };
+
+  const startGame = () => {
+    if (tables.length === 0) return;
+    setRound(0);
+    rollRound(tables, null);
+    setPhase("play");
+  };
+
+  const retry = () => {
+    rewardSent.current = false;
+    setCoins(0);
+    setXp(0);
+    setCorrectCount(0);
+    setStreak(0);
+    setBestStreak(0);
+    startGame();
+  };
+
+  const answer = pair[0] * pair[1];
+
+  const submit = (val: string) => {
+    if (fx || phase !== "play") return;
+    const ok = Number(val) === answer;
+    const elapsed = performance.now() - startAt.current;
+    let gained = 0;
+    let gxp = 0;
+    if (ok) {
+      const base = TIER_BASE[tableTier(pair[0])];
+      const speedMult = elapsed < 1500 ? 2 : elapsed < 3000 ? 1.5 : elapsed < 6000 ? 1 : 0.5;
+      gained = Math.round(base * speedMult) + Math.min(streak, 3);
+      gxp = Math.round(base * 0.8) + 1;
+      setCorrectCount((c) => c + 1);
+      setStreak((s) => {
+        const ns = s + 1;
+        setBestStreak((b) => Math.max(b, ns));
+        return ns;
+      });
+    } else {
+      setStreak(0);
+    }
+    setLastGain(gained);
+    setCoins((c) => c + gained);
+    setXp((x) => x + gxp);
+    setFx(ok ? "ok" : "no");
+    const r = round + 1;
+    setTimeout(() => {
+      setRound(r);
+      if (r >= TABLE_ROUNDS) setPhase("done");
+      else rollRound(tables, lastPair.current);
+    }, ok ? 650 : 1000);
+  };
+
+  const onTyped = (val: string) => {
+    if (fx) return;
+    setTypedVal(val);
+    if (val !== "" && val.length >= String(answer).length) submit(val);
+  };
+
+  // teclado físico, igual que en las lecciones
+  useEffect(() => {
+    if (phase !== "play" || fx) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (/^[0-9]$/.test(e.key)) onTyped(typedVal + e.key);
+      else if (e.key === "Backspace") setTypedVal((v) => v.slice(0, -1));
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, fx, typedVal]);
+
+  useEffect(() => {
+    if (phase === "done" && !rewardSent.current) {
+      rewardSent.current = true;
+      onDone(coins, xp);
+    }
+  }, [phase, coins, xp, onDone]);
+
+  if (phase === "pick") {
+    return (
+      <div className="games-screen">
+        <div className="map-header">
+          <button className="btn ghost" onClick={onExit}>← Volver</button>
+          <h2 className="display map-title">✖️ Tablas Ninja</h2>
+          <span className="map-tagline">Elegí qué tablas querés practicar</span>
+        </div>
+        <div className="table-picker panel">
+          <p className="table-picker-hint">🪙 Las tablas más difíciles pagan más monedas — ¡animate a elegirlas!</p>
+          <div className="table-grid">
+            {TABLE_NUMS.map((t) => {
+              const tier = tableTier(t);
+              return (
+                <button
+                  key={t}
+                  className={`table-chip ${tables.includes(t) ? "on" : ""}`}
+                  onClick={() => toggleTable(t)}
+                >
+                  <b className="display">×{t}</b>
+                  <span className="table-chip-tier">
+                    {TIER_EMOJI[tier]} {TIER_LABEL[tier]}
+                  </span>
+                  <span className="table-chip-pay">🪙{TIER_BASE[tier]}+</span>
+                </button>
+              );
+            })}
+          </div>
+          <div className="table-picker-actions">
+            <button className="btn ghost small" onClick={() => setTables(TABLE_NUMS)}>Elegir todas</button>
+            <button className="btn ghost small" disabled={tables.length === 0} onClick={() => setTables([])}>
+              Ninguna
+            </button>
+          </div>
+          <button className="btn primary big" disabled={tables.length === 0} onClick={startGame}>
+            {tables.length === 0
+              ? "Elegí al menos una tabla"
+              : `¡Empezar! (${tables.length} ${tables.length === 1 ? "tabla" : "tablas"}) →`}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (phase === "done") {
+    return (
+      <div className="games-screen">
+        <GameOver
+          title={
+            correctCount === TABLE_ROUNDS
+              ? "✖️ ¡Tablas perfectas!"
+              : correctCount >= TABLE_ROUNDS * 0.7
+              ? "✖️ ¡Muy bien!"
+              : "✖️ ¡Sigue practicando!"
+          }
+          lines={[`Acertaste ${correctCount} de ${TABLE_ROUNDS}`, `Mejor racha: 🔥 ${bestStreak}`]}
+          coins={coins}
+          xp={xp}
+          onRetry={retry}
+          onExit={onExit}
+        />
+      </div>
+    );
+  }
+
+  const dense = pair[0] * pair[1] > 40;
+
+  return (
+    <div className="games-screen">
+      <div className="memory-top">
+        <Avatar character={profile.character} size={80} idle />
+        <div>
+          <h2 className="display map-title">✖️ Tablas Ninja</h2>
+          <span className="map-tagline">
+            Pregunta {Math.min(round + 1, TABLE_ROUNDS)} de {TABLE_ROUNDS}
+            {streak >= 3 && <span className="streak-flame"> 🔥 {streak}</span>}
+          </span>
+        </div>
+        <span className="pill coin">🪙 {coins}</span>
+        <button className="btn ghost small" onClick={onExit}>✕ Salir</button>
+      </div>
+
+      <div className="tbl-stage panel">
+        <div className={`tbl-visual ${fx} ${dense ? "dense" : ""}`}>
+          {Array.from({ length: pair[0] }, (_, r) => (
+            <div className="tbl-row" key={r}>
+              {Array.from({ length: pair[1] }, (_, c) => (
+                <span key={c} className="tbl-dot">{icon}</span>
+              ))}
+            </div>
+          ))}
+        </div>
+
+        <div className="tbl-equation display">
+          <span>{pair[0]} × {pair[1]} =</span>
+          <span className={`tbl-answer ${typedVal ? "filled" : ""}`}>{typedVal || "?"}</span>
+        </div>
+
+        <div className="tbl-fx display">
+          {fx === "ok" && `✨ ¡Bien! +${lastGain} 🪙`}
+          {fx === "no" && `💡 Era ${answer}`}
+        </div>
+
+        <div className="type-area">
+          <div className="numpad">
+            {["1", "2", "3", "4", "5", "6", "7", "8", "9"].map((d) => (
+              <button
+                key={d}
+                className="numpad-btn display"
+                disabled={!!fx}
+                onClick={() => onTyped(typedVal + d)}
+              >
+                {d}
+              </button>
+            ))}
+            <button
+              className="numpad-btn aux"
+              disabled={!!fx || typedVal === ""}
+              onClick={() => setTypedVal((v) => v.slice(0, -1))}
+            >
+              ⌫
+            </button>
+            <button className="numpad-btn display" disabled={!!fx} onClick={() => onTyped(typedVal + "0")}>
+              0
+            </button>
+            <span className="numpad-spacer" />
+          </div>
         </div>
       </div>
     </div>

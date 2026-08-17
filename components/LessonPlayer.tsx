@@ -31,6 +31,25 @@ type Phase = "ask" | "feedback" | "result" | "failed";
 
 const PRAISE = ["¡Correcto!", "¡Genial!", "¡Excelente!", "¡Muy bien!", "¡Increíble!", "¡Eso es!"];
 
+/** Texto de la respuesta correcta, sea cual sea el tipo de pregunta. */
+function answerText(q: Question): string {
+  if (q.kind === "mc") return q.answer;
+  if (q.kind === "type") return q.answer;
+  if (q.kind === "tf") return q.answer ? "Verdadero" : "Falso";
+  if (q.kind === "map") return q.points.find((p) => p.id === q.answer)?.label ?? q.answer;
+  return q.items.join(" → ");
+}
+
+// equilibrio lectura/velocidad: si pregunta+respuesta(+explicación) son
+// cortas, la hoja de feedback avanza sola; si hay mucho para leer, se espera
+// el toque en "Continuar" (que además ahora queda pegado arriba del texto,
+// no después de él, para tenerlo siempre a mano).
+const AUTO_ADVANCE_MAX_CHARS = 70;
+function autoAdvanceDelay(chars: number): number | null {
+  if (chars > AUTO_ADVANCE_MAX_CHARS) return null;
+  return Math.round(Math.min(2200, Math.max(1100, 650 + chars * 16)));
+}
+
 interface TimerBarProps {
   seconds: number;
   active: boolean; // true mientras phase === "ask"
@@ -169,6 +188,21 @@ export default function LessonPlayer({ subject, levelIdx, profile, onComplete, o
   }, [qi, phase, diff]);
   useEffect(() => stopSpeaking, []); // corta la voz al desmontar la lección
 
+  // avance automático de la hoja de feedback: solo cuando hay poco para leer.
+  // si la pregunta+respuesta(+explicación) es larga, no se programa nada acá
+  // y queda esperando el toque en "Continuar" (ver botón más abajo).
+  useEffect(() => {
+    if (phase !== "feedback" || !q) return;
+    if (!lastOk && hearts <= 0) return; // ese caso ya tiene su propio timer (fin del juego)
+    const explainText = "explain" in q && q.explain ? q.explain : "";
+    const chars = q.prompt.length + answerText(q).length + (lastOk ? 0 : explainText.length);
+    const delay = autoAdvanceDelay(chars);
+    if (delay == null) return;
+    const t = setTimeout(() => advance(qi + 1), delay);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, qi, lastOk, hearts]);
+
   const finish = useCallback(
     (failed: boolean, fErrors: number, fCorrect: number, fCoins: number, fXp: number, fBest: number, fAnswered: number) => {
       if (doneRef.current) return;
@@ -242,16 +276,20 @@ export default function LessonPlayer({ subject, levelIdx, profile, onComplete, o
       const answered = qi + 1;
       if (!ok && newHearts <= 0) {
         setPhase("feedback");
+        const explainText = "explain" in q && q.explain ? q.explain : "";
+        const chars = q.prompt.length + answerText(q).length + explainText.length;
+        // acá no hay botón (se acaban los corazones y se corta la lección),
+        // así que si hay mucho para leer damos más tiempo igual, con un tope.
+        const delay = autoAdvanceDelay(chars) ?? 2600;
         setTimeout(() => {
           setPhase("failed");
           finish(true, newErrors, newCorrect, newCoins, newXp, newBest, answered);
-        }, 1600);
+        }, delay);
         return;
       }
       setPhase("feedback");
-      // ya no se avanza solo: se deja el "Continuar →" para que quien
-      // responde bien pueda releer la pregunta y la respuesta con calma,
-      // en vez de que la lección salte sola a la siguiente.
+      // el avance (automático o por el botón "Continuar") se maneja en el
+      // useEffect de arriba, según cuánto haya para leer.
       // eslint-disable-next-line react-hooks/exhaustive-deps
     },
     [phase, correctCount, errors, streak, bestStreak, hearts, coins, xp, qi, level.tier, hasLucky, finish, qSeconds, dMeta.coinMult]
@@ -302,14 +340,7 @@ export default function LessonPlayer({ subject, levelIdx, profile, onComplete, o
 
   if (!q && phase === "ask") return null;
 
-  const correctText = (() => {
-    if (!q) return "";
-    if (q.kind === "mc") return q.answer;
-    if (q.kind === "type") return q.answer;
-    if (q.kind === "tf") return q.answer ? "Verdadero" : "Falso";
-    if (q.kind === "map") return q.points.find((p) => p.id === q.answer)?.label ?? q.answer;
-    return q.items.join(" → ");
-  })();
+  const correctText = q ? answerText(q) : "";
 
   // ── pantallas finales ──────────────────────────────────────
   if (phase === "result" || phase === "failed") {
@@ -598,31 +629,27 @@ export default function LessonPlayer({ subject, levelIdx, profile, onComplete, o
               <>
                 <div className="sheet-msg">
                   <span className="sheet-icon">{lucky ? "🍀" : fast ? "⚡" : "✨"}</span>
-                  <div className="sheet-text">
-                    <b className="display">{lucky ? "¡SUERTE x2!" : fast ? "¡Súper veloz!" : praise}</b>
-                    <small>
-                      +{lastGain} 🪙{fast && " · bono de velocidad ⚡"}
-                    </small>
-                  </div>
+                  <b className="display">{lucky ? "¡SUERTE x2!" : fast ? "¡Súper veloz!" : praise}</b>
                 </div>
                 <button className="btn primary big sheet-btn" onClick={() => advance(qi + 1)}>
                   Toca para continuar →
                 </button>
+                <small className="sheet-detail">
+                  +{lastGain} 🪙{fast && " · bono de velocidad ⚡"}
+                </small>
               </>
             ) : (
               <>
                 <div className="sheet-msg">
                   <span className="sheet-icon">💡</span>
-                  <div className="sheet-text">
-                    <b className="display">La respuesta era: {correctText}</b>
-                    {"explain" in q && q.explain && <small>{q.explain}</small>}
-                  </div>
+                  <b className="display">La respuesta era: {correctText}</b>
                 </div>
                 {hearts > 0 && (
                   <button className="btn primary big sheet-btn" onClick={() => advance(qi + 1)}>
                     Entendido →
                   </button>
                 )}
+                {"explain" in q && q.explain && <small className="sheet-detail">{q.explain}</small>}
               </>
             )}
           </div>
