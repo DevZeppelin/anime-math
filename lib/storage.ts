@@ -62,7 +62,16 @@ function migrateProfile(p: Profile): Profile {
     character.back = character.accessory;
     character.accessory = null;
   }
-  return { ...p, character, difficulty: p.difficulty ?? "normal" };
+  const difficulty = p.difficulty ?? "normal";
+  // versiones antiguas guardaban el progreso de cada nivel sin distinguir
+  // dificultad ("materia:índice"); se migra asignándolo a la dificultad
+  // actual del perfil, para no perder las estrellas ya ganadas.
+  const levels: Profile["levels"] = {};
+  for (const [key, rec] of Object.entries(p.levels ?? {})) {
+    const newKey = key.split(":").length === 2 ? `${key}:${difficulty}` : key;
+    levels[newKey] = rec;
+  }
+  return { ...p, character, difficulty, levels };
 }
 
 export function loadRoot(): RootSave {

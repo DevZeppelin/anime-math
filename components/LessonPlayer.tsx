@@ -37,6 +37,7 @@ function answerText(q: Question): string {
   if (q.kind === "type") return q.answer;
   if (q.kind === "tf") return q.answer ? "Verdadero" : "Falso";
   if (q.kind === "map") return q.points.find((p) => p.id === q.answer)?.label ?? q.answer;
+  if (q.kind === "info") return "";
   return q.items.join(" → ");
 }
 
@@ -112,6 +113,10 @@ export default function LessonPlayer({ subject, levelIdx, profile, onComplete, o
     () => level.gen(diff).map((q) => adaptQuestion(q, diff)),
     [level, diff]
   );
+  // las tarjetas "info" (código + explicación) no puntúan: el marcador final
+  // debe medirse sobre las preguntas realmente evaluables, no sobre el total
+  // de pasos de la lección.
+  const scorable = useMemo(() => questions.filter((qq) => qq.kind !== "info").length, [questions]);
 
   const hasShield = profile.abilities.includes("ab_shield");
   const hasTime = profile.abilities.includes("ab_time");
@@ -374,7 +379,7 @@ export default function LessonPlayer({ subject, levelIdx, profile, onComplete, o
           <div className="result-rewards">
             <span className="pill coin">🪙 +{coins}</span>
             <span className="pill xppill">⚡ +{xp} XP</span>
-            <span className="pill">✅ {correctCount}/{questions.length}</span>
+            <span className="pill">✅ {correctCount}/{scorable}</span>
           </div>
           <div className="result-actions">
             <button className="btn primary big" onClick={onExit}>
@@ -387,6 +392,49 @@ export default function LessonPlayer({ subject, levelIdx, profile, onComplete, o
   }
 
   if (!q) return null;
+
+  // tarjeta de enseñanza (código + explicación): sin temporizador, sin
+  // corazones en juego, se avanza libremente con un solo botón.
+  if (q.kind === "info") {
+    return (
+      <div className="lesson-shell">
+        <div className="lesson-top">
+          <button className="btn ghost small" onClick={onExit} title="Abandonar lección">
+            ✕
+          </button>
+          <div className="lesson-progress">
+            <div className="lesson-progress-fill" style={{ width: `${(qi / questions.length) * 100}%` }} />
+          </div>
+        </div>
+
+        <div className="q-card panel info-card">
+          <p className="info-title display">{q.prompt}</p>
+          <pre className="code-block">
+            <code>{q.code}</code>
+          </pre>
+          {q.output !== undefined && (
+            <div className="code-output">
+              <span className="code-output-label">▶ Salida</span>
+              <pre>{q.output}</pre>
+            </div>
+          )}
+          <p className="info-explain">{q.explain}</p>
+        </div>
+
+        <div className="lesson-companion">
+          <Avatar character={profile.character} size={90} idle />
+        </div>
+
+        <div className="sheet ok">
+          <div className="sheet-inner">
+            <button className="btn primary big sheet-btn" onClick={() => advance(qi + 1)}>
+              Entendido, ¡sigamos! →
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const praise = PRAISE[correctCount % PRAISE.length];
 
@@ -432,6 +480,11 @@ export default function LessonPlayer({ subject, levelIdx, profile, onComplete, o
       {/* pregunta */}
       <div className={`q-card panel ${phase === "feedback" ? (lastOk ? "flash-ok" : "flash-no") : ""}`}>
         {q.visual && <div className={`q-visual ${q.visual.length > 10 ? "small" : ""} ${diff === "facil" ? "big" : ""}`}>{q.visual}</div>}
+        {"code" in q && q.code && (
+          <pre className="code-block q-code">
+            <code>{q.code}</code>
+          </pre>
+        )}
         <div className="q-prompt-row">
           <p className="q-prompt display">{q.prompt}</p>
           {speechAvailable() && (

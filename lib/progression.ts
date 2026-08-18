@@ -1,6 +1,13 @@
-import type { Profile } from "./types";
+import type { Difficulty, Profile } from "./types";
 import { ALL_ITEMS, ABILITIES } from "./items";
 import { SUBJECTS } from "./content";
+
+const ALL_DIFFICULTIES: Difficulty[] = ["facil", "normal", "dificil", "experto"];
+
+/** Clave de progreso de un nivel: el avance se guarda por separado en cada dificultad. */
+export function levelKey(subjectId: string, idx: number, difficulty: Difficulty): string {
+  return `${subjectId}:${idx}:${difficulty}`;
+}
 
 // ─────────────────────────────────────────────────────────────
 // Nivel de jugador: XP acumulada → nivel
@@ -60,12 +67,15 @@ function starsTotal(p: Profile): number {
   return Object.values(p.levels).reduce((s, r) => s + r.stars, 0);
 }
 
+/** Una materia se considera completa si TODOS sus niveles tienen al menos 1 estrella en ALGUNA dificultad (no hace falta repetirla en las 4). */
 function subjectCompleted(p: Profile, subjectId: string, levelCount: number): boolean {
-  for (let i = 0; i < levelCount; i++) {
-    const rec = p.levels[`${subjectId}:${i}`];
-    if (!rec || rec.stars < 1) return false;
-  }
-  return true;
+  return ALL_DIFFICULTIES.some((d) => {
+    for (let i = 0; i < levelCount; i++) {
+      const rec = p.levels[levelKey(subjectId, i, d)];
+      if (!rec || rec.stars < 1) return false;
+    }
+    return true;
+  });
 }
 
 export const ACHIEVEMENTS: AchievementDef[] = [

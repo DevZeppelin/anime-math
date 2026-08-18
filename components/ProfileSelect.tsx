@@ -162,6 +162,14 @@ export default function ProfileSelect({ root, onSelect, onCreate, onDelete, onRe
           💛 Donar con Mercado Pago
         </a>
         <span className="donate-alias">o alias: <b>gino73mp</b> (Gino Pietrobon)</span>
+        <a
+          className="donate-line"
+          href={`https://wa.me/5492612473147?text=${encodeURIComponent("Hola! Tengo una sugerencia para Academia Aventura: ")}`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          💬 Enviar una sugerencia al desarrollador
+        </a>
       </footer>
     </div>
   );

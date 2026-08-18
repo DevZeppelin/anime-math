@@ -4,6 +4,7 @@ import React from "react";
 import type { Difficulty, Profile } from "@/lib/types";
 import { DIFFICULTY_META } from "@/lib/types";
 import { SUBJECTS } from "@/lib/content";
+import { levelKey } from "@/lib/progression";
 import HeroStage from "./HeroStage";
 import DonateLine from "./DonateLine";
 
@@ -15,6 +16,7 @@ interface Props {
 }
 
 export default function Dashboard({ profile, onOpenSubject, onNav, onDifficulty }: Props) {
+  const diff = profile.difficulty ?? "normal";
   return (
     <div className="dashboard">
       <div className="dash-grid">
@@ -73,7 +75,7 @@ export default function Dashboard({ profile, onOpenSubject, onNav, onDifficulty 
               let stars = 0;
               let done = 0;
               for (let i = 0; i < total; i++) {
-                const rec = profile.levels[`${s.id}:${i}`];
+                const rec = profile.levels[levelKey(s.id, i, diff)];
                 if (rec) {
                   stars += rec.stars;
                   if (rec.stars > 0) done++;

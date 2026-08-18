@@ -1159,6 +1159,66 @@ button:disabled {
   line-height: 1.45;
   margin-bottom: 0;
 }
+/* ── bloques de código (módulo "Programación: aprende Python") ── */
+.code-block {
+  background: #0a0a18;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px 18px;
+  margin: 4px 0 16px;
+  overflow-x: auto;
+  text-align: left;
+}
+.code-block code {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 15px;
+  line-height: 1.6;
+  color: #9ef5c4;
+  white-space: pre;
+}
+.q-code {
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 100%;
+}
+.code-output {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+  padding: 10px 16px;
+  margin: -6px 0 16px;
+  text-align: left;
+}
+.code-output-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--txt-faint);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.code-output pre {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 14px;
+  color: var(--gold);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.info-card {
+  text-align: center;
+}
+.info-title {
+  font-size: clamp(19px, 3.4vw, 25px);
+  margin-bottom: 16px;
+}
+.info-explain {
+  font-size: 15.5px;
+  line-height: 1.55;
+  color: var(--txt-dim);
+  text-align: left;
+}
+
 .speak-btn {
   flex-shrink: 0;
   width: 40px;

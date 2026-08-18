@@ -130,6 +130,7 @@ export type Question =
       kind: "mc"; // opción múltiple
       prompt: string;
       visual?: string; // emoji grande de apoyo
+      code?: string; // bloque de código de referencia (monoespaciado), opcional
       options: string[];
       answer: string; // debe estar en options
       explain?: string;
@@ -142,6 +143,7 @@ export type Question =
       kind: "type"; // respuesta escrita
       prompt: string;
       visual?: string;
+      code?: string; // bloque de código de referencia (monoespaciado), opcional
       answer: string; // se normaliza al comparar
       accept?: string[]; // respuestas alternativas válidas
       numeric?: boolean;
@@ -151,6 +153,7 @@ export type Question =
       kind: "tf"; // verdadero / falso
       prompt: string;
       visual?: string;
+      code?: string; // bloque de código de referencia (monoespaciado), opcional
       answer: boolean;
       explain?: string;
     }
@@ -158,6 +161,7 @@ export type Question =
       kind: "order"; // ordenar elementos tocándolos en secuencia
       prompt: string;
       visual?: string;
+      code?: string; // bloque de código de referencia (monoespaciado), opcional
       items: string[]; // en el orden CORRECTO; se barajan al mostrar
       explain?: string;
     }
@@ -169,6 +173,13 @@ export type Question =
       answer: string; // debe ser el id de uno de los points
       big?: boolean; // pines grandes (continentes) en vez de chicos (países)
       explain?: string;
+    }
+  | {
+      kind: "info"; // tarjeta de enseñanza estilo SoloLearn: código + explicación, sin puntaje ni riesgo
+      prompt: string; // título breve de la tarjeta
+      code: string; // bloque de código (puede tener varias líneas, separadas por \n)
+      explain: string; // qué hace el código, en lenguaje simple
+      output?: string; // qué imprime/produce al ejecutarse, si aplica
     };
 
 export interface MapPoint {

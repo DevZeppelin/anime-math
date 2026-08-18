@@ -22,7 +22,7 @@ export function sample<T>(arr: readonly T[], n: number): T[] {
 }
 
 /** Opción múltiple numérica: genera 3 distractores cercanos y plausibles. */
-export function numMC(prompt: string, answer: number, opts?: { visual?: string; spread?: number; explain?: string }): Question {
+export function numMC(prompt: string, answer: number, opts?: { visual?: string; spread?: number; explain?: string; code?: string }): Question {
   const spread = opts?.spread ?? Math.max(3, Math.round(Math.abs(answer) * 0.25));
   // si la respuesta ya es negativa, los distractores también pueden serlo
   // (si no, un negativo delataría la respuesta correcta a simple vista)
@@ -41,6 +41,7 @@ export function numMC(prompt: string, answer: number, opts?: { visual?: string; 
     kind: "mc",
     prompt,
     visual: opts?.visual,
+    code: opts?.code,
     options: shuffle([...set]).map(String),
     answer: String(answer),
     explain: opts?.explain,
@@ -52,7 +53,7 @@ export function textMC(
   prompt: string,
   answer: string,
   distractorPool: readonly string[],
-  opts?: { visual?: string; explain?: string; count?: number }
+  opts?: { visual?: string; explain?: string; count?: number; code?: string }
 ): Question {
   const n = opts?.count ?? 4;
   const pool = shuffle(distractorPool.filter((d) => d !== answer)).slice(0, n - 1);
@@ -60,17 +61,19 @@ export function textMC(
     kind: "mc",
     prompt,
     visual: opts?.visual,
+    code: opts?.code,
     options: shuffle([answer, ...pool]),
     answer,
     explain: opts?.explain,
   };
 }
 
-export function typed(prompt: string, answer: string | number, opts?: { visual?: string; accept?: string[]; explain?: string }): Question {
+export function typed(prompt: string, answer: string | number, opts?: { visual?: string; accept?: string[]; explain?: string; code?: string }): Question {
   return {
     kind: "type",
     prompt,
     visual: opts?.visual,
+    code: opts?.code,
     answer: String(answer),
     accept: opts?.accept,
     numeric: typeof answer === "number",
@@ -78,12 +81,17 @@ export function typed(prompt: string, answer: string | number, opts?: { visual?:
   };
 }
 
-export function tf(prompt: string, answer: boolean, opts?: { visual?: string; explain?: string }): Question {
-  return { kind: "tf", prompt, visual: opts?.visual, answer, explain: opts?.explain };
+export function tf(prompt: string, answer: boolean, opts?: { visual?: string; explain?: string; code?: string }): Question {
+  return { kind: "tf", prompt, visual: opts?.visual, code: opts?.code, answer, explain: opts?.explain };
 }
 
-export function order(prompt: string, items: string[], opts?: { visual?: string; explain?: string }): Question {
-  return { kind: "order", prompt, items, visual: opts?.visual, explain: opts?.explain };
+export function order(prompt: string, items: string[], opts?: { visual?: string; explain?: string; code?: string }): Question {
+  return { kind: "order", prompt, items, visual: opts?.visual, code: opts?.code, explain: opts?.explain };
+}
+
+/** Tarjeta de enseñanza (sin puntaje ni riesgo): muestra código + explicación, estilo SoloLearn. */
+export function info(prompt: string, code: string, explain: string, opts?: { output?: string }): Question {
+  return { kind: "info", prompt, code, explain, output: opts?.output };
 }
 
 /** Normaliza texto para comparar respuestas escritas. */
@@ -117,8 +125,9 @@ export const SESSION_SIZE = 8;
 /** Identidad de una pregunta para detectar repetidos: mismo enunciado,
  *  imagen y respuesta (sin importar el orden de las opciones barajadas). */
 function questionSignature(q: Question): string {
-  const base = `${q.prompt}|${q.visual ?? ""}`;
+  const base = `${q.prompt}|${"visual" in q ? q.visual ?? "" : ""}`;
   if (q.kind === "order") return `${base}|${[...q.items].sort().join(",")}`;
+  if (q.kind === "info") return `${base}|${q.code}`;
   return `${base}|${String(q.answer)}`;
 }
 

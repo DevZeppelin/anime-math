@@ -5,6 +5,7 @@ import { LANGUAGE_LEVELS } from "./language";
 import { SCIENCE_LEVELS } from "./science";
 import { FINANCE_LEVELS } from "./finance";
 import { CODING_LEVELS } from "./coding";
+import { PYTHON_LEVELS } from "./python";
 import { GEOGRAPHY_LEVELS } from "./geography";
 import { ART_LEVELS } from "./art";
 import { EMOTIONS_LEVELS } from "./emotions";
@@ -65,6 +66,14 @@ export const SUBJECTS: SubjectDef[] = [
     color: "#c061ff",
     tagline: "Piensa como un creador",
     levels: CODING_LEVELS,
+  },
+  {
+    id: "python",
+    name: "Programación: Aprende Python",
+    emoji: "🐍",
+    color: "#3776ab",
+    tagline: "Código real, paso a paso, como Duolingo",
+    levels: PYTHON_LEVELS,
   },
   {
     id: "geography",

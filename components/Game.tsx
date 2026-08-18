@@ -13,7 +13,7 @@ import {
   resolveImportCollision,
   MAX_PROFILES,
 } from "@/lib/storage";
-import { levelFromXp, levelProgress, levelUpReward, checkAchievements } from "@/lib/progression";
+import { levelFromXp, levelProgress, levelUpReward, checkAchievements, levelKey } from "@/lib/progression";
 import { getSubject } from "@/lib/content";
 import Avatar from "./Avatar";
 import ProfileSelect from "./ProfileSelect";
@@ -259,7 +259,7 @@ export default function Game() {
             profile={profile}
             onComplete={(res) => {
               updateProfile((p) => {
-                const key = `${subject.id}:${idx}`;
+                const key = levelKey(subject.id, idx, p.difficulty ?? "normal");
                 const prevRec = p.levels[key] ?? { stars: 0 as const, plays: 0 };
                 const firstThreeStars = res.passed && res.stars === 3 && prevRec.stars < 3;
                 return {
