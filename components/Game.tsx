@@ -3,7 +3,16 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import type { Profile, RootSave } from "@/lib/types";
-import { loadRoot, saveRoot, upsertProfile, deleteProfile, touchDailyStreak } from "@/lib/storage";
+import {
+  loadRoot,
+  saveRoot,
+  upsertProfile,
+  deleteProfile,
+  touchDailyStreak,
+  resetProfileProgress,
+  resolveImportCollision,
+  MAX_PROFILES,
+} from "@/lib/storage";
 import { levelFromXp, levelProgress, levelUpReward, checkAchievements } from "@/lib/progression";
 import { getSubject } from "@/lib/content";
 import Avatar from "./Avatar";
@@ -181,6 +190,23 @@ export default function Game() {
           onDelete={(id) => {
             const r = rootRef.current;
             if (r) commit(deleteProfile(r, id));
+          }}
+          onReset={(id) => {
+            const r = rootRef.current;
+            const prev = r?.profiles[id];
+            if (!r || !prev) return;
+            commit(upsertProfile(r, resetProfileProgress(prev)));
+            pushToast("🔄", "Progreso reiniciado", "Nivel, lecciones y logros a cero — monedas e ítems intactos");
+          }}
+          onImport={(profile) => {
+            const r = rootRef.current ?? { v: 1, profiles: {}, order: [] };
+            if (r.order.length >= MAX_PROFILES) {
+              pushToast("⚠️", "Límite de héroes", `Ya tenés ${MAX_PROFILES} personajes`);
+              return;
+            }
+            const resolved = resolveImportCollision(profile, r.order);
+            commit(upsertProfile(r, resolved));
+            pushToast("📥", "Héroe importado", resolved.name);
           }}
         />
       )}

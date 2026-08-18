@@ -427,16 +427,32 @@ button:disabled {
   font-size: 13px;
   font-weight: 600;
 }
-.profile-delete {
+.profile-actions {
   position: absolute;
   top: 10px;
   right: 10px;
-  font-size: 15px;
-  opacity: 0.4;
-  transition: opacity 0.12s;
+  display: flex;
+  gap: 4px;
 }
-.profile-delete:hover {
+.profile-icon-btn {
+  font-size: 14px;
+  line-height: 1;
+  padding: 4px;
+  border-radius: 8px;
+  opacity: 0.4;
+  transition: opacity 0.12s, background 0.12s;
+}
+.profile-icon-btn:hover {
   opacity: 1;
+  background: rgba(255, 255, 255, 0.08);
+}
+.backup-hint {
+  max-width: 480px;
+  margin: 22px auto 0;
+  text-align: center;
+  color: var(--txt-faint);
+  font-size: 12px;
+  line-height: 1.5;
 }
 .confirm-row {
   display: flex;

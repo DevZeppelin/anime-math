@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import type { RootSave } from "@/lib/types";
-import { MAX_PROFILES } from "@/lib/storage";
+import { useRef, useState } from "react";
+import type { Profile, RootSave } from "@/lib/types";
+import { MAX_PROFILES, downloadProfileBackup, parseProfileBackup } from "@/lib/storage";
 import { levelFromXp } from "@/lib/progression";
 import Avatar from "./Avatar";
 
@@ -11,11 +11,31 @@ interface Props {
   onSelect: (id: string) => void;
   onCreate: () => void;
   onDelete: (id: string) => void;
+  onReset: (id: string) => void;
+  onImport: (profile: Profile) => void;
 }
 
-export default function ProfileSelect({ root, onSelect, onCreate, onDelete }: Props) {
-  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+type Confirm = { id: string; action: "delete" | "reset" } | null;
+
+export default function ProfileSelect({ root, onSelect, onCreate, onDelete, onReset, onImport }: Props) {
+  const [confirm, setConfirm] = useState<Confirm>(null);
+  const [importError, setImportError] = useState(false);
+  const fileInput = useRef<HTMLInputElement>(null);
   const profiles = root.order.map((id) => root.profiles[id]).filter(Boolean);
+
+  const handleImportFile = (file: File) => {
+    setImportError(false);
+    const reader = new FileReader();
+    reader.onload = () => {
+      const profile = parseProfileBackup(String(reader.result ?? ""));
+      if (!profile) {
+        setImportError(true);
+        return;
+      }
+      onImport(profile);
+    };
+    reader.readAsText(file);
+  };
 
   return (
     <div className="profiles-screen">
@@ -43,36 +63,91 @@ export default function ProfileSelect({ root, onSelect, onCreate, onDelete }: Pr
                 Nv {levelFromXp(p.xp)} · 🪙 {p.coins} · 💎 {p.gems}
               </span>
             </button>
-            {confirmDelete === p.id ? (
+
+            {confirm?.id === p.id ? (
               <div className="confirm-row">
-                <span>¿Borrar?</span>
-                <button className="mini-btn danger" onClick={() => { onDelete(p.id); setConfirmDelete(null); }}>
+                <span>{confirm.action === "delete" ? "¿Borrar?" : "¿Reiniciar nivel y logros?"}</span>
+                <button
+                  className="mini-btn danger"
+                  onClick={() => {
+                    if (confirm.action === "delete") onDelete(p.id);
+                    else onReset(p.id);
+                    setConfirm(null);
+                  }}
+                >
                   Sí
                 </button>
-                <button className="mini-btn" onClick={() => setConfirmDelete(null)}>
+                <button className="mini-btn" onClick={() => setConfirm(null)}>
                   No
                 </button>
               </div>
             ) : (
-              <button className="profile-delete" title="Borrar perfil" onClick={() => setConfirmDelete(p.id)}>
-                🗑️
-              </button>
+              <div className="profile-actions">
+                <button
+                  className="profile-icon-btn"
+                  title="Descargar backup de este héroe"
+                  onClick={() => downloadProfileBackup(p)}
+                >
+                  💾
+                </button>
+                <button
+                  className="profile-icon-btn"
+                  title="Reiniciar nivel, lecciones y logros (conserva monedas, gemas, ítems y apariencia)"
+                  onClick={() => setConfirm({ id: p.id, action: "reset" })}
+                >
+                  🔄
+                </button>
+                <button
+                  className="profile-icon-btn"
+                  title="Borrar perfil"
+                  onClick={() => setConfirm({ id: p.id, action: "delete" })}
+                >
+                  🗑️
+                </button>
+              </div>
             )}
           </div>
         ))}
 
         {profiles.length < MAX_PROFILES && (
-          <button className="profile-card profile-new" onClick={onCreate}>
-            <span className="new-plus">＋</span>
-            <b className="display">Nuevo héroe</b>
-            <span className="profile-meta">Crea tu personaje</span>
-          </button>
+          <>
+            <button className="profile-card profile-new" onClick={onCreate}>
+              <span className="new-plus">＋</span>
+              <b className="display">Nuevo héroe</b>
+              <span className="profile-meta">Crea tu personaje</span>
+            </button>
+
+            <button className="profile-card profile-new" onClick={() => fileInput.current?.click()}>
+              <span className="new-plus">📥</span>
+              <b className="display">Importar héroe</b>
+              <span className="profile-meta">Desde un backup .json</span>
+            </button>
+            <input
+              ref={fileInput}
+              type="file"
+              accept="application/json"
+              hidden
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) handleImportFile(file);
+                e.target.value = "";
+              }}
+            />
+          </>
         )}
       </div>
+
+      {importError && (
+        <p className="empty-hint">⚠️ Ese archivo no es un backup válido de Academia Aventura.</p>
+      )}
 
       {profiles.length === 0 && (
         <p className="empty-hint">Crea tu primer héroe para empezar la aventura 🚀</p>
       )}
+
+      <p className="backup-hint">
+        💾 Descargá un backup de cada héroe para hacer una copia de seguridad o llevarlo a otro navegador/dispositivo — luego usá &quot;Importar héroe&quot; ahí para restaurarlo.
+      </p>
 
       <footer className="donate-footer">
         <p className="donate-text">
