@@ -5,6 +5,7 @@ import type { ItemDef, ItemType, Profile } from "@/lib/types";
 import { RARITY_META } from "@/lib/types";
 import { ALL_ITEMS, ABILITIES, ITEM_TYPE_META } from "@/lib/items";
 import HeroStage from "./HeroStage";
+import DonateLine from "./DonateLine";
 
 interface Props {
   profile: Profile;
@@ -159,6 +160,7 @@ export default function Shop({ profile, updateProfile, onBack }: Props) {
           )}
         </div>
       </div>
+      <DonateLine />
     </div>
   );
 }

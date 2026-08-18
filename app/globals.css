@@ -194,6 +194,49 @@ button:disabled {
   background: rgba(255, 255, 255, 0.12);
 }
 
+/* ── donaciones ──────────────────────────── */
+.donate-footer {
+  margin-top: 28px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+}
+.donate-text {
+  max-width: 420px;
+  margin: 0;
+  color: var(--txt-dim);
+  font-size: 13px;
+}
+.donate-btn {
+  opacity: 0.85;
+}
+.donate-btn:hover:not(:disabled) {
+  opacity: 1;
+}
+.donate-alias {
+  color: var(--txt-dim);
+  font-size: 12px;
+}
+.donate-line {
+  display: block;
+  margin: 26px auto 4px;
+  padding: 6px;
+  max-width: 480px;
+  text-align: center;
+  color: var(--txt-dim);
+  font-size: 12.5px;
+  opacity: 0.75;
+  transition: opacity 0.12s, color 0.12s;
+}
+.donate-line:hover {
+  opacity: 1;
+  color: var(--txt);
+}
+
 /* ── barra superior ──────────────────────── */
 .topbar {
   display: flex;

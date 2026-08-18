@@ -5,6 +5,7 @@ import type { Difficulty, Profile } from "@/lib/types";
 import { DIFFICULTY_META } from "@/lib/types";
 import { SUBJECTS } from "@/lib/content";
 import HeroStage from "./HeroStage";
+import DonateLine from "./DonateLine";
 
 interface Props {
   profile: Profile;
@@ -103,6 +104,7 @@ export default function Dashboard({ profile, onOpenSubject, onNav, onDifficulty 
           </div>
         </section>
       </div>
+      <DonateLine />
     </div>
   );
 }

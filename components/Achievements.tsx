@@ -3,6 +3,7 @@
 import React from "react";
 import type { Profile } from "@/lib/types";
 import { ACHIEVEMENTS, levelFromXp } from "@/lib/progression";
+import DonateLine from "./DonateLine";
 
 interface Props {
   profile: Profile;
@@ -44,6 +45,7 @@ export default function Achievements({ profile, onBack }: Props) {
           );
         })}
       </div>
+      <DonateLine />
     </div>
   );
 }

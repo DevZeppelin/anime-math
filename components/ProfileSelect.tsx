@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import type { RootSave } from "@/lib/types";
 import { MAX_PROFILES } from "@/lib/storage";
 import { levelFromXp } from "@/lib/progression";
@@ -73,6 +73,21 @@ export default function ProfileSelect({ root, onSelect, onCreate, onDelete }: Pr
       {profiles.length === 0 && (
         <p className="empty-hint">Crea tu primer héroe para empezar la aventura 🚀</p>
       )}
+
+      <footer className="donate-footer">
+        <p className="donate-text">
+          💛 Si Academia Aventura te sirvió en la educación de tu familia, podés colaborar con una donación.
+        </p>
+        <a
+          className="btn ghost small donate-btn"
+          href="https://link.mercadopago.com.ar/donaciondz"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          💛 Donar con Mercado Pago
+        </a>
+        <span className="donate-alias">o alias: <b>gino73mp</b> (Gino Pietrobon)</span>
+      </footer>
     </div>
   );
 }
